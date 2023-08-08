@@ -1,0 +1,5 @@
+private_files/
+build
+dist
+.vscode
+__pycache__
