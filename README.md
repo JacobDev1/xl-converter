@@ -1,5 +1,7 @@
-<p align="center"><img src="icons/logo.svg" width="20%"></p>
-<center><h3>XL Converter</h3></center>
+<p align="center">
+    <img src="icons/logo.svg" width="20%">
+</p>
+<h3 align="center">XL Converter</h3>
 
 Fast and easy to use JPEG XL converter with multithreading, intelligent effort and drag 'n drop support. Available for both Windows and Linux.
 
