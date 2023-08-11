@@ -17,6 +17,6 @@ elif platform.system() == "Linux":
     DJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/djxl"
 
 # Proper usage is "if 'extension'.lower() in ALLOWED_INPUT:"
-ALLOWED_INPUT = ("jpg","jpeg","jfif","png","jxl","gif")
-ALLOWED_INPUT_DJXL = ("jxl")
-ALLOWED_INPUT_CJXL = ("jpg","jpeg","jfif","png","gif")
+ALLOWED_INPUT_DJXL = ["jxl"]
+ALLOWED_INPUT_CJXL = ["jpg","jpeg","jfif","png","gif"]
+ALLOWED_INPUT = ALLOWED_INPUT_DJXL + ALLOWED_INPUT_CJXL
