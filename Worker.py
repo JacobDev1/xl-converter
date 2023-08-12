@@ -1,4 +1,4 @@
-from VARIABLES import CJXL_PATH, DJXL_PATH
+from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, ALLOWED_INPUT_IMAGE_MAGICK
 
 import os, subprocess
 from send2trash import send2trash
@@ -70,6 +70,10 @@ class Worker(QRunnable):
                     output_ext = ".jxl"
                 elif self.params["format"] == "PNG":
                     output_ext = ".png"
+                elif self.params["format"] == "AVIF":
+                    output_ext = ".avif"
+                elif self.params["format"] == "WEBP":
+                    output_ext = ".webp"
 
                 output = os.path.abspath(os.path.join(output_dir, self.item[0] + output_ext))
                 if self.params["if_file_exists"] == "Replace":
@@ -110,7 +114,25 @@ class Worker(QRunnable):
                         out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item[3]}\" \"{output}\"', shell=True) # The subprocess needs to be defined here. If you move it to a function, it will cause seg faults.
                         print(f"[Worker #{self.n}] {out}")
                 elif self.params["format"] == "PNG":
-                    out = subprocess.run(f'\"{DJXL_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
+                    if self.item[1].lower() == "jxl":
+                        out = subprocess.run(f'\"{DJXL_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
+                        print(f"[Worker #{self.n}] {out}")
+                    elif self.item[1].lower() in ALLOWED_INPUT_IMAGE_MAGICK:
+                        out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
+                        print(f"[Worker #{self.n}] {out}")
+                elif self.params["format"] == "WEBP":
+                    arguments = [
+                        f"-quality {self.params['quality']}",
+                        "-define webp:thread-level=0",
+                        "-define webp:method=6"
+                        ]
+                    if self.params["lossless"]:
+                        arguments.append("-define webp:lossless=true")
+
+                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"{output}\"', shell=True)
+                    print(f"[Worker #{self.n}] {out}")
+                elif self.params["format"] == "AVIF":
+                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 else:
                     print(f"[Worker #{self.n}] Unknown Format ({self.params['format']})")

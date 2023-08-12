@@ -122,7 +122,7 @@ class OutputTab(QWidget):
         format_grp.setLayout(format_grp_layout)
 
         self.format_cmb = QComboBox()
-        self.format_cmb.addItems(("JPEG XL", "PNG"))
+        self.format_cmb.addItems(("JPEG XL", "WEBP", "AVIF", "PNG"))
         self.format_cmb.currentIndexChanged.connect(self.onFormatChange)
 
         self.format_jxl_e_sb = QSpinBox()
@@ -216,6 +216,18 @@ class OutputTab(QWidget):
             self.format_jxl_q_sb.setEnabled(True)
             self.format_jxl_q_sl.setEnabled(True)
             self.format_jxl_e_int_cb.setEnabled(True)
+        elif cur_format == "WEBP":
+            self.format_jxl_q_lossless_cb.setEnabled(True)
+            self.format_jxl_q_sb.setEnabled(True)
+            self.format_jxl_q_sl.setEnabled(True)
+            self.format_jxl_e_sb.setEnabled(False)
+            self.format_jxl_e_int_cb.setEnabled(False)
+        elif cur_format == "AVIF":
+            self.format_jxl_q_sb.setEnabled(True)
+            self.format_jxl_q_sl.setEnabled(True)
+            self.format_jxl_q_lossless_cb.setEnabled(False)
+            self.format_jxl_e_sb.setEnabled(False)
+            self.format_jxl_e_int_cb.setEnabled(False)
         elif cur_format == "PNG":
             self.format_jxl_e_sb.setEnabled(False)
             self.format_jxl_q_lossless_cb.setEnabled(False)
