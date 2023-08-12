@@ -45,7 +45,7 @@ class OutputTab(QWidget):
         conv_grp.setLayout(conv_grp_layout)
         
         self.if_file_exists_cmb = QComboBox()
-        self.if_file_exists_cmb.addItems(["Replace", "Rename", "Skip"])
+        self.if_file_exists_cmb.addItems(("Replace", "Rename", "Skip"))
         self.conv_cores_sl = QSlider(Qt.Horizontal)
         self.conv_cores_sl.setTickPosition(QSlider.TicksBelow)
         self.conv_cores_sl.setRange(1,self.MAX_THREAD_COUNT)
@@ -76,7 +76,7 @@ class OutputTab(QWidget):
 
         self.delete_original_cb = QCheckBox("Delete Original")
         self.delete_original_cmb = QComboBox()
-        self.delete_original_cmb.addItems(["To Trash", "Permanently"])
+        self.delete_original_cmb.addItems(("To Trash", "Permanently"))
 
         if self.delete_original_cb.isChecked() == False:
             self.delete_original_cmb.setEnabled(False)
