@@ -33,7 +33,7 @@ Linux
 
 ## What is "Intelligent Effort"?
 
-It's a feature I came up with that gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer convertion time**. I wrote an article that [explains](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) this further.
+It's a feature I came up with that gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer convertion time**. I wrote an [article](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) demystifying the effort argument.
 
 ## Building
 
@@ -92,12 +92,12 @@ Install dependencies from the [Building](#building) section and replace the last
 ## Supported Formats
 
 Input -> Output
-- PNG / JPG / GIF -> JXL
-- JXL -> PNG
+- PNG, JPG, GIF... -> JXL, AVIF, WEBP
+- JXL, AVIF, WEBP -> PNG
 
 ## Development
 
 - `stable` branch is meant for regular use
 - `unstable` branch is where all the development happens
 
-Future versions are planned to be based off of FFmpeg. The current release is based on [libjxl](https://github.com/libjxl/libjxl).
+The current release is based on [libjxl](https://github.com/libjxl/libjxl) and ImageMagick.
