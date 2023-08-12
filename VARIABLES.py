@@ -17,7 +17,7 @@ if platform.system() == "Windows":
 elif platform.system() == "Linux":
     CJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/cjxl"
     DJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/djxl"
-    IMAGE_MAGICK_PATH = f"{PROGRAM_FOLDER}/bin/win/magick"
+    IMAGE_MAGICK_PATH = f"{PROGRAM_FOLDER}/bin/linux/magick"
 
 # Proper usage is "if 'extension'.lower() in ALLOWED_INPUT:"
 ALLOWED_INPUT_DJXL = ["jxl"]
