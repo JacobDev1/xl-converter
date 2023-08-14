@@ -122,7 +122,7 @@ class OutputTab(QWidget):
         format_grp.setLayout(format_grp_layout)
 
         self.format_cmb = QComboBox()
-        self.format_cmb.addItems(("JPEG XL", "WEBP", "AVIF", "PNG"))
+        self.format_cmb.addItems(("JPEG XL", "WEBP", "AVIF", "JPG", "PNG"))
         self.format_cmb.currentIndexChanged.connect(self.onFormatChange)
 
         self.format_jxl_e_sb = QSpinBox()
@@ -147,11 +147,13 @@ class OutputTab(QWidget):
         format_cmb_hbox.addWidget(QLabel("Format"))
         format_cmb_hbox.addWidget(self.format_cmb)
         format_grp_layout.addLayout(format_cmb_hbox)
+
         format_jxl_e_hbox = QHBoxLayout()
         format_jxl_e_hbox.addWidget(QLabel("Effort"))
         format_jxl_e_hbox.addWidget(self.format_jxl_e_int_cb)
         format_jxl_e_hbox.addWidget(self.format_jxl_e_sb)
         format_grp_layout.addLayout(format_jxl_e_hbox)
+
         format_jxl_q_hbox = QHBoxLayout()
         format_jxl_q_hbox.addWidget(QLabel("Quality"))
         format_jxl_q_hbox.addWidget(self.format_jxl_q_sl)
@@ -227,6 +229,12 @@ class OutputTab(QWidget):
             self.format_jxl_q_sl.setEnabled(True)
             self.format_jxl_q_lossless_cb.setEnabled(False)
             self.format_jxl_e_sb.setEnabled(False)
+            self.format_jxl_e_int_cb.setEnabled(False)
+        elif cur_format == "JPG":
+            self.format_jxl_e_sb.setEnabled(False)
+            self.format_jxl_q_lossless_cb.setEnabled(False)
+            self.format_jxl_q_sb.setEnabled(True)
+            self.format_jxl_q_sl.setEnabled(True)
             self.format_jxl_e_int_cb.setEnabled(False)
         elif cur_format == "PNG":
             self.format_jxl_e_sb.setEnabled(False)
