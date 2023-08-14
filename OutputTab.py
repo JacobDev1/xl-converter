@@ -212,36 +212,25 @@ class OutputTab(QWidget):
         
     def onFormatChange(self):
         cur_format = self.format_cmb.currentText()
+        
+        if cur_format in ("JPEG XL", "WEBP"):    # Support lossless mode
+            self.format_jxl_q_lossless_cb.setEnabled(True)
+        else:
+            self.format_jxl_q_lossless_cb.setEnabled(False)
+
         if cur_format == "JPEG XL":
             self.format_jxl_e_sb.setEnabled(True)
-            self.format_jxl_q_lossless_cb.setEnabled(True)
-            self.format_jxl_q_sb.setEnabled(True)
-            self.format_jxl_q_sl.setEnabled(True)
             self.format_jxl_e_int_cb.setEnabled(True)
-        elif cur_format == "WEBP":
-            self.format_jxl_q_lossless_cb.setEnabled(True)
-            self.format_jxl_q_sb.setEnabled(True)
-            self.format_jxl_q_sl.setEnabled(True)
+        else:
             self.format_jxl_e_sb.setEnabled(False)
             self.format_jxl_e_int_cb.setEnabled(False)
-        elif cur_format == "AVIF":
-            self.format_jxl_q_sb.setEnabled(True)
-            self.format_jxl_q_sl.setEnabled(True)
-            self.format_jxl_q_lossless_cb.setEnabled(False)
-            self.format_jxl_e_sb.setEnabled(False)
-            self.format_jxl_e_int_cb.setEnabled(False)
-        elif cur_format == "JPG":
-            self.format_jxl_e_sb.setEnabled(False)
-            self.format_jxl_q_lossless_cb.setEnabled(False)
-            self.format_jxl_q_sb.setEnabled(True)
-            self.format_jxl_q_sl.setEnabled(True)
-            self.format_jxl_e_int_cb.setEnabled(False)
-        elif cur_format == "PNG":
-            self.format_jxl_e_sb.setEnabled(False)
-            self.format_jxl_q_lossless_cb.setEnabled(False)
+        
+        if cur_format == "PNG":
             self.format_jxl_q_sb.setEnabled(False)
             self.format_jxl_q_sl.setEnabled(False)
-            self.format_jxl_e_int_cb.setEnabled(False)
+        else:
+            self.format_jxl_q_sb.setEnabled(True)
+            self.format_jxl_q_sl.setEnabled(True)
 
     def toggleEffort(self):
         if self.format_jxl_e_sb.isEnabled():
