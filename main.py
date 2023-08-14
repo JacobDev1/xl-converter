@@ -104,6 +104,8 @@ class MainWindow(QMainWindow):
             allowed = ALLOWED_INPUT_IMAGE_MAGICK
         elif params["format"] == "PNG":
             allowed = ALLOWED_INPUT_IMAGE_MAGICK + ALLOWED_INPUT_DJXL
+        elif params["format"] == "JPG":
+            allowed = ALLOWED_INPUT_IMAGE_MAGICK
         elif params["format"] == "AVIF":
             allowed = ALLOWED_INPUT_IMAGE_MAGICK
 

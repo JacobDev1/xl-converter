@@ -74,6 +74,8 @@ class Worker(QRunnable):
                     output_ext = ".avif"
                 elif self.params["format"] == "WEBP":
                     output_ext = ".webp"
+                elif self.params["format"] == "JPG":
+                    output_ext = ".jpg"
 
                 output = os.path.abspath(os.path.join(output_dir, self.item[0] + output_ext))
                 if self.params["if_file_exists"] == "Replace":
@@ -132,6 +134,9 @@ class Worker(QRunnable):
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 elif self.params["format"] == "AVIF":
+                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)
+                    print(f"[Worker #{self.n}] {out}")
+                elif self.params["format"] == "JPG":
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 else:
