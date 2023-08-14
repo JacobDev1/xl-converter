@@ -5,7 +5,6 @@ PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
 CJXL_PATH = "cjxl"
 DJXL_PATH = "djxl"
 IMAGE_MAGICK_PATH = "magick"
-# MOZJPG_PATH = "mozjpeg"
 
 if platform.system() == "Windows":
     CJXL_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/cjxl.exe"))
