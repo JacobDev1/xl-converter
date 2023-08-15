@@ -14,7 +14,7 @@ class TaskStatus():
     def __init__(self):
         self.canceled = False
 
-    def iscanceled(self):
+    def isCanceled(self):
         return self.canceled
 
     def cancel(self):
@@ -40,7 +40,7 @@ class Worker(QRunnable):
     
     @Slot()
     def run(self):
-        if task_status.iscanceled():
+        if task_status.isCanceled():
             self.signals.canceled.emit(self.n)
             return
         else:
