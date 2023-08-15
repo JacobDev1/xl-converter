@@ -91,9 +91,11 @@ Install dependencies from the [Building](#building) section and replace the last
 
 ## Supported Formats
 
-Input -> Output
-- PNG, JPG, GIF... -> JXL, AVIF, WEBP
-- JXL, AVIF, WEBP -> PNG
+Encoding and decoding:
+- JPEG XL
+- AVIF
+- WEBP
+- JPG
 
 ## Development
 
