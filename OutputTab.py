@@ -128,6 +128,7 @@ class OutputTab(QWidget):
 
         self.format_jxl_e_sb = QSpinBox()
         self.format_jxl_e_sb.setRange(1,9)
+        self.format_e_l = QLabel("Effort")
         self.format_jxl_e_int_cb = QCheckBox("Intelligent")
         self.format_jxl_e_int_cb.toggled.connect(self.toggleEffort)
 
@@ -150,7 +151,7 @@ class OutputTab(QWidget):
         format_grp_layout.addLayout(format_cmb_hbox)
 
         format_jxl_e_hbox = QHBoxLayout()
-        format_jxl_e_hbox.addWidget(QLabel("Effort"))
+        format_jxl_e_hbox.addWidget(self.format_e_l)
         format_jxl_e_hbox.addWidget(self.format_jxl_e_int_cb)
         format_jxl_e_hbox.addWidget(self.format_jxl_e_sb)
         format_grp_layout.addLayout(format_jxl_e_hbox)
@@ -224,11 +225,15 @@ class OutputTab(QWidget):
 
         # Enable Effort Settings
         if cur_format == "JPEG XL":
-            self.format_jxl_e_sb.setEnabled(True)
             self.format_jxl_e_int_cb.setEnabled(True)
         else:
-            self.format_jxl_e_sb.setEnabled(False)
             self.format_jxl_e_int_cb.setEnabled(False)
+        
+        # Effort / Speed
+        if cur_format in ("JPEG XL", "AVIF"):
+            self.format_jxl_e_sb.setEnabled(True)
+        else:
+            self.format_jxl_e_sb.setEnabled(False)
 
         # Disable Quality Slider
         if cur_format == "PNG" or self.format_jxl_q_lossless_cb.isChecked():
@@ -242,13 +247,19 @@ class OutputTab(QWidget):
         if cur_format == "AVIF":
             self.format_jxl_q_sl.setRange(-63, 0)
             self.format_jxl_q_sb.setRange(0, 63)
+            self.format_jxl_e_sb.setRange(0, 10)
+            self.format_jxl_e_sb.setValue(6)
             self.format_jxl_q_sl.setValue(-24)
             self.format_q_l.setText("Constant Quality")
+            self.format_e_l.setText("Speed")
         else:
             self.format_jxl_q_sl.setRange(1, 100)
             self.format_jxl_q_sb.setRange(1, 100)
+            self.format_jxl_e_sb.setRange(1, 9)
+            self.format_jxl_e_sb.setValue(7)
             self.format_jxl_q_sl.setValue(80)
             self.format_q_l.setText("Quality")
+            self.format_e_l.setText("Effort")
 
     def onQualitySlChange(self):
         self.format_jxl_q_sb.setValue(abs(self.format_jxl_q_sl.value()))
@@ -274,10 +285,11 @@ class OutputTab(QWidget):
             self.format_jxl_q_sb.setEnabled(True)
 
     def resetToDefault(self):
-        self.format_jxl_e_sb.setValue(7)
         if self.format_cmb.currentText() == "AVIF":
+            self.format_jxl_e_sb.setValue(6)
             self.format_jxl_q_sl.setValue(-24)
         else:
+            self.format_jxl_e_sb.setValue(7)
             self.format_jxl_q_sl.setValue(80)
 
         self.choose_output_src.setChecked(True)
