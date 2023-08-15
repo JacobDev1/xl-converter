@@ -122,6 +122,7 @@ class OutputTab(QWidget):
         format_grp.setLayout(format_grp_layout)
 
         self.format_cmb = QComboBox()
+        self.format_q_l = QLabel("Quality")
         self.format_cmb.addItems(("JPEG XL","AVIF", "WEBP", "JPG", "PNG"))
         self.format_cmb.currentIndexChanged.connect(self.onFormatChange)
 
@@ -137,8 +138,8 @@ class OutputTab(QWidget):
         self.format_jxl_q_sl.setRange(1, 100)
         self.format_jxl_q_sl.setTickPosition(QSlider.TicksBelow)
         self.format_jxl_q_sl.setTickInterval(5)
-        self.format_jxl_q_sl.valueChanged.connect(lambda: self.format_jxl_q_sb.setValue(self.format_jxl_q_sl.value()))
-        self.format_jxl_q_sb.valueChanged.connect(lambda: self.format_jxl_q_sl.setValue(self.format_jxl_q_sb.value()))
+        self.format_jxl_q_sl.valueChanged.connect(self.onQualitySlChange)
+        self.format_jxl_q_sb.valueChanged.connect(self.onQualitySbChange)
 
         self.format_jxl_q_lossless_cb = QCheckBox("Lossless")
         self.format_jxl_q_lossless_cb.toggled.connect(self.toggleLossless)
@@ -155,7 +156,7 @@ class OutputTab(QWidget):
         format_grp_layout.addLayout(format_jxl_e_hbox)
 
         format_jxl_q_hbox = QHBoxLayout()
-        format_jxl_q_hbox.addWidget(QLabel("Quality"))
+        format_jxl_q_hbox.addWidget(self.format_q_l)
         format_jxl_q_hbox.addWidget(self.format_jxl_q_sl)
         format_jxl_q_hbox.addWidget(self.format_jxl_q_sb)
         format_grp_layout.addLayout(format_jxl_q_hbox)
@@ -230,12 +231,33 @@ class OutputTab(QWidget):
             self.format_jxl_e_int_cb.setEnabled(False)
 
         # Disable Quality Slider
-        if cur_format == "PNG" or cur_format == "AVIF" or self.format_jxl_q_lossless_cb.isChecked():
+        if cur_format == "PNG" or self.format_jxl_q_lossless_cb.isChecked():
             self.format_jxl_q_sb.setEnabled(False)
             self.format_jxl_q_sl.setEnabled(False)
         else:
             self.format_jxl_q_sb.setEnabled(True)
             self.format_jxl_q_sl.setEnabled(True)
+        
+        # Quality Slider Range and label
+        if cur_format == "AVIF":
+            self.format_jxl_q_sl.setRange(-63, 0)
+            self.format_jxl_q_sb.setRange(0, 63)
+            self.format_jxl_q_sl.setValue(-24)
+            self.format_q_l.setText("Constant Quality")
+        else:
+            self.format_jxl_q_sl.setRange(1, 100)
+            self.format_jxl_q_sb.setRange(1, 100)
+            self.format_jxl_q_sl.setValue(80)
+            self.format_q_l.setText("Quality")
+
+    def onQualitySlChange(self):
+        self.format_jxl_q_sb.setValue(abs(self.format_jxl_q_sl.value()))
+
+    def onQualitySbChange(self):
+        if self.format_cmb.currentText() == "AVIF":
+            self.format_jxl_q_sl.setValue(-self.format_jxl_q_sb.value())
+        else:
+            self.format_jxl_q_sl.setValue(self.format_jxl_q_sb.value())
 
     def toggleEffort(self):
         if self.format_jxl_e_sb.isEnabled():
@@ -253,7 +275,11 @@ class OutputTab(QWidget):
 
     def resetToDefault(self):
         self.format_jxl_e_sb.setValue(7)
-        self.format_jxl_q_sl.setValue(80)
+        if self.format_cmb.currentText() == "AVIF":
+            self.format_jxl_q_sl.setValue(-24)
+        else:
+            self.format_jxl_q_sl.setValue(80)
+
         self.choose_output_src.setChecked(True)
         self.delete_original_cb.setChecked(False)
         self.clear_after_conv_cb.setChecked(False)

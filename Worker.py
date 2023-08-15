@@ -137,7 +137,12 @@ class Worker(QRunnable):
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 elif self.params["format"] == "AVIF":
-                    arguments = []
+                    arguments = [
+                        "--min 0",
+                        "--max 63",
+                        "-a end-usage=q",
+                        f"-a cq-level={self.params['quality']}"
+                    ]
                     if self.params["lossless"]:
                         arguments.append("-l")
 
