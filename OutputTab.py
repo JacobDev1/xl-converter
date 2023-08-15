@@ -122,7 +122,7 @@ class OutputTab(QWidget):
         format_grp.setLayout(format_grp_layout)
 
         self.format_cmb = QComboBox()
-        self.format_cmb.addItems(("JPEG XL", "WEBP", "AVIF", "JPG", "PNG"))
+        self.format_cmb.addItems(("JPEG XL", "WEBP", "JPG", "PNG"))
         self.format_cmb.currentIndexChanged.connect(self.onFormatChange)
 
         self.format_jxl_e_sb = QSpinBox()
