@@ -24,6 +24,8 @@ class FileView(QTreeWidget):
 
         self.select_all_sc = QShortcut(QKeySequence('Ctrl+A'), self)
         self.select_all_sc.activated.connect(self.selectAllItems)
+        self.delete_all_sc = QShortcut(QKeySequence("Ctrl+Shift+X"), self)
+        self.delete_all_sc.activated.connect(self.clear)
     
     def addItem(self, *fields):
         is_duplicate = False
