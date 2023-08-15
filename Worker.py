@@ -1,4 +1,4 @@
-from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, ALLOWED_INPUT_IMAGE_MAGICK
+from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, ALLOWED_INPUT_IMAGE_MAGICK, AVIFENC_PATH, AVIFDEC_PATH
 
 import os, subprocess
 from send2trash import send2trash
@@ -119,6 +119,9 @@ class Worker(QRunnable):
                     if self.item[1].lower() == "jxl":
                         out = subprocess.run(f'\"{DJXL_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
                         print(f"[Worker #{self.n}] {out}")
+                    elif self.item[1].lower() == "avif":
+                        out = subprocess.run(f'\"{AVIFDEC_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
+                        print(f"[Worker #{self.n}] {out}")
                     elif self.item[1].lower() in ALLOWED_INPUT_IMAGE_MAGICK:
                         out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
                         print(f"[Worker #{self.n}] {out}")
@@ -134,7 +137,11 @@ class Worker(QRunnable):
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 elif self.params["format"] == "AVIF":
-                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)
+                    arguments = []
+                    if self.params["lossless"]:
+                        arguments.append("-l")
+
+                    out = subprocess.run(f'\"{AVIFENC_PATH}\" {" ".join(arguments)} \"{self.item[3]}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 elif self.params["format"] == "JPG":
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)

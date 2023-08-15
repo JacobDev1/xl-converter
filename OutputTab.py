@@ -122,7 +122,7 @@ class OutputTab(QWidget):
         format_grp.setLayout(format_grp_layout)
 
         self.format_cmb = QComboBox()
-        self.format_cmb.addItems(("JPEG XL", "WEBP", "JPG", "PNG"))
+        self.format_cmb.addItems(("JPEG XL","AVIF", "WEBP", "JPG", "PNG"))
         self.format_cmb.currentIndexChanged.connect(self.onFormatChange)
 
         self.format_jxl_e_sb = QSpinBox()
@@ -213,19 +213,24 @@ class OutputTab(QWidget):
     def onFormatChange(self):
         cur_format = self.format_cmb.currentText()
         
-        if cur_format in ("JPEG XL", "WEBP"):    # Support lossless mode
+        # Enable Lossless Mode
+        if cur_format in ("JPEG XL", "WEBP"):
             self.format_jxl_q_lossless_cb.setEnabled(True)
         else:
             self.format_jxl_q_lossless_cb.setEnabled(False)
+        
+        self.format_jxl_q_lossless_cb.setChecked(False)
 
+        # Enable Effort Settings
         if cur_format == "JPEG XL":
             self.format_jxl_e_sb.setEnabled(True)
             self.format_jxl_e_int_cb.setEnabled(True)
         else:
             self.format_jxl_e_sb.setEnabled(False)
             self.format_jxl_e_int_cb.setEnabled(False)
-        
-        if cur_format == "PNG":
+
+        # Disable Quality Slider
+        if cur_format == "PNG" or cur_format == "AVIF" or self.format_jxl_q_lossless_cb.isChecked():
             self.format_jxl_q_sb.setEnabled(False)
             self.format_jxl_q_sl.setEnabled(False)
         else:
