@@ -100,4 +100,7 @@ Input -> Output
 - `stable` branch is meant for regular use
 - `unstable` branch is where all the development happens
 
-The current release is based on [libjxl](https://github.com/libjxl/libjxl) and ImageMagick.
+The current release is based on
+- [libjxl](https://github.com/libjxl/libjxl)
+- [libavif](https://github.com/AOMediaCodec/libavif)
+- ImageMagick
