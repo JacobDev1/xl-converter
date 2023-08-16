@@ -142,8 +142,13 @@ class OutputTab(QWidget):
         self.format_jxl_q_sl.valueChanged.connect(self.onQualitySlChange)
         self.format_jxl_q_sb.valueChanged.connect(self.onQualitySbChange)
 
+        self.format_lossless_if_cb = QCheckBox("Lossless (only if smaller)")
+        self.format_lossless_if_cb.toggled.connect(self.toggleLossless)
         self.format_jxl_q_lossless_cb = QCheckBox("Lossless")
         self.format_jxl_q_lossless_cb.toggled.connect(self.toggleLossless)
+        format_lossless_hbox = QHBoxLayout()
+        format_lossless_hbox.addWidget(self.format_jxl_q_lossless_cb)
+        format_lossless_hbox.addWidget(self.format_lossless_if_cb)
 
         format_cmb_hbox = QHBoxLayout()
         format_cmb_hbox.addWidget(QLabel("Format"))
@@ -161,7 +166,7 @@ class OutputTab(QWidget):
         format_jxl_q_hbox.addWidget(self.format_jxl_q_sl)
         format_jxl_q_hbox.addWidget(self.format_jxl_q_sb)
         format_grp_layout.addLayout(format_jxl_q_hbox)
-        format_grp_layout.addWidget(self.format_jxl_q_lossless_cb)
+        format_grp_layout.addLayout(format_lossless_hbox)
         output_page_lt.addWidget(format_grp,0,1)
 
         # Buttons
@@ -183,6 +188,7 @@ class OutputTab(QWidget):
             "format": self.format_cmb.currentText(),
             "quality": self.format_jxl_q_sb.value(),
             "lossless": self.format_jxl_q_lossless_cb.isChecked(),
+            "lossless_if_smaller": self.format_lossless_if_cb.isChecked(),
             "effort": self.format_jxl_e_sb.value(),
             "intelligent_effort": self.format_jxl_e_int_cb.isChecked(),
             "if_file_exists": self.if_file_exists_cmb.currentText(),
@@ -215,13 +221,16 @@ class OutputTab(QWidget):
     def onFormatChange(self):
         cur_format = self.format_cmb.currentText()
         
+        self.format_jxl_q_lossless_cb.setChecked(False)     # It needs to in the beginning
+        self.format_lossless_if_cb.setChecked(False)        # Widgets reenable themselves when you use setChecked() on a disabled widget
+
         # Enable Lossless Mode
         if cur_format in ("JPEG XL", "WEBP"):
             self.format_jxl_q_lossless_cb.setEnabled(True)
+            self.format_lossless_if_cb.setEnabled(True)
         else:
             self.format_jxl_q_lossless_cb.setEnabled(False)
-        
-        self.format_jxl_q_lossless_cb.setChecked(False)
+            self.format_lossless_if_cb.setEnabled(False)
 
         # Enable Effort Settings
         if cur_format == "JPEG XL":
@@ -236,7 +245,7 @@ class OutputTab(QWidget):
             self.format_jxl_e_sb.setEnabled(False)
 
         # Disable Quality Slider
-        if cur_format == "PNG" or self.format_jxl_q_lossless_cb.isChecked():
+        if cur_format == "PNG":
             self.format_jxl_q_sb.setEnabled(False)
             self.format_jxl_q_sl.setEnabled(False)
         else:
@@ -277,12 +286,21 @@ class OutputTab(QWidget):
             self.format_jxl_e_sb.setEnabled(True)
 
     def toggleLossless(self):
-        if self.format_jxl_q_lossless_cb.isChecked():
+        lossless = self.format_jxl_q_lossless_cb.isChecked()
+        lossless_if = self.format_lossless_if_cb.isChecked()
+
+        if lossless or lossless_if:
             self.format_jxl_q_sl.setEnabled(False)
             self.format_jxl_q_sb.setEnabled(False)
+            if lossless:
+                self.format_lossless_if_cb.setEnabled(False)
+            elif lossless_if:
+                self.format_jxl_q_lossless_cb.setEnabled(False)
         else:
             self.format_jxl_q_sl.setEnabled(True)
             self.format_jxl_q_sb.setEnabled(True)
+            self.format_lossless_if_cb.setEnabled(True)
+            self.format_jxl_q_lossless_cb.setEnabled(True)
 
     def resetToDefault(self):
         if self.format_cmb.currentText() == "AVIF":
@@ -298,4 +316,5 @@ class OutputTab(QWidget):
         self.if_file_exists_cmb.setCurrentIndex(1)
         self.delete_original_cmb.setCurrentIndex(0)
         self.format_jxl_q_lossless_cb.setChecked(False)
+        self.format_lossless_if_cb.setChecked(False)
         self.conv_cores_sl.setValue(self.MAX_THREAD_COUNT - 1 if self.MAX_THREAD_COUNT > 0 else 1)  # -1 because the OS needs some CPU time as well

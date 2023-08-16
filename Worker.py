@@ -115,6 +115,21 @@ class Worker(QRunnable):
                     else:
                         out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item[3]}\" \"{output}\"', shell=True) # The subprocess needs to be defined here. If you move it to a function, it will cause seg faults.
                         print(f"[Worker #{self.n}] {out}")
+                    
+                    if self.params["lossless_if_smaller"]:
+                        if self.params["intelligent_effort"]:
+                            self.params["effort"] = 9
+                        out = subprocess.run(f'\"{CJXL_PATH}\" -q 100 --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item[3]}\" \"{output}_l\"', shell=True)
+                        print(f"[Worker #{self.n}] {out}")
+                        lossy_size = os.path.getsize(output)
+                        lossless_size = os.path.getsize(f"{output}_l")
+                        if lossless_size < lossy_size:
+                            os.remove(output)
+                            os.rename(f"{output}_l", output)
+                            print(f"[Worker #{self.n}] Lossless is smaller ({round(lossless_size/1024,1)} KiB vs {round(lossy_size/1024,1)} KiB) ({self.item[3]})")
+                        else:
+                            os.remove(f"{output}_l")
+                            print(f"[Worker #{self.n}] Lossy is smaller ({round(lossy_size/1024,1)} KiB vs {round(lossless_size/1024,1)} KiB) ({self.item[3]})")
                 elif self.params["format"] == "PNG":
                     if self.item[1].lower() == "jxl":
                         out = subprocess.run(f'\"{DJXL_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
@@ -136,6 +151,21 @@ class Worker(QRunnable):
 
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
+
+                    if self.params["lossless_if_smaller"]:
+                        arguments.append("-define webp:lossless=true")
+                        out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"WEBP:{output}_l\"', shell=True)   # Remember about "WEBP:" format specifier, otherwise the output will be PNG
+                        print(f"[Worker #{self.n}] {out}")
+                        lossy_size = os.path.getsize(output)
+                        lossless_size = os.path.getsize(f"{output}_l")
+                        if lossless_size < lossy_size:
+                            os.remove(output)
+                            os.rename(f"{output}_l", output)
+                            print(f"[Worker #{self.n}] Lossless is smaller ({round(lossless_size/1024,1)} KiB vs {round(lossy_size/1024,1)} KiB) ({self.item[3]})")
+                        else:
+                            os.remove(f"{output}_l")
+                            print(f"[Worker #{self.n}] Lossy is smaller ({round(lossy_size/1024,1)} KiB vs {round(lossless_size/1024,1)} KiB) ({self.item[3]})")
+
                 elif self.params["format"] == "AVIF":
                     arguments = [
                         "--min 0",
