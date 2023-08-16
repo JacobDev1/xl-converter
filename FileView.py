@@ -7,11 +7,6 @@ from PySide6.QtWidgets import(
     QWidget
 )
 
-from PySide6.QtGui import(
-    QShortcut,
-    QKeySequence
-)
-
 from HelperFunctions import stripPathToFilename, scanDir
 from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL
 
@@ -21,11 +16,6 @@ class FileView(QTreeWidget):
         self.setAcceptDrops(True)
         self.setDragDropMode(QAbstractItemView.InternalMove)    # Required for dropEvent to fire
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
-
-        self.select_all_sc = QShortcut(QKeySequence('Ctrl+A'), self)
-        self.select_all_sc.activated.connect(self.selectAllItems)
-        self.delete_all_sc = QShortcut(QKeySequence("Ctrl+Shift+X"), self)
-        self.delete_all_sc.activated.connect(self.clear)
     
     def addItem(self, *fields):
         is_duplicate = False

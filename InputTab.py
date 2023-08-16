@@ -14,6 +14,11 @@ from PySide6.QtCore import(
     Signal
 )
 
+from PySide6.QtGui import(
+    QShortcut,
+    QKeySequence
+)
+
 class Signals(QObject):
     convert = Signal()
 
@@ -25,6 +30,12 @@ class InputTab(QWidget):
         self.file_view = FileView(self)
         self.file_view.setColumnCount(3)
         self.file_view.setHeaderLabels(("File Name", "Extension", "Location"))
+
+        # Shortcuts
+        self.select_all_sc = QShortcut(QKeySequence('Ctrl+A'), self)
+        self.select_all_sc.activated.connect(self.file_view.selectAllItems)
+        self.delete_all_sc = QShortcut(QKeySequence("Ctrl+Shift+X"), self)
+        self.delete_all_sc.activated.connect(self.file_view.clear)
 
         # UI
         input_l = QGridLayout()
