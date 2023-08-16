@@ -116,7 +116,7 @@ class Worker(QRunnable):
                         out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item[3]}\" \"{output}\"', shell=True) # The subprocess needs to be defined here. If you move it to a function, it will cause seg faults.
                         print(f"[Worker #{self.n}] {out}")
                     
-                    if self.params["lossless_if_smaller"]:
+                    if self.params["lossless_if_smaller"] and self.params["lossless"] == False:
                         if self.params["intelligent_effort"]:
                             self.params["effort"] = 9
                         out = subprocess.run(f'\"{CJXL_PATH}\" -q 100 --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item[3]}\" \"{output}_l\"', shell=True)
@@ -152,7 +152,7 @@ class Worker(QRunnable):
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
 
-                    if self.params["lossless_if_smaller"]:
+                    if self.params["lossless_if_smaller"] and self.params["lossless"] == False:
                         arguments.append("-define webp:lossless=true")
                         out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"WEBP:{output}_l\"', shell=True)   # Remember about "WEBP:" format specifier, otherwise the output will be PNG
                         print(f"[Worker #{self.n}] {out}")
