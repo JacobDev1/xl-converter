@@ -105,11 +105,11 @@ class Worker(QRunnable):
                         e7_size = os.path.getsize(f"{output}_e7")
                         e9_size = os.path.getsize(f"{output}_e9")
                         if e9_size > e7_size:
-                            os.rename(f"{output}_e7",f"{output}")
+                            os.rename(f"{output}_e7",output)
                             os.remove(f"{output}_e9")
                             print(f"[Worker #{self.n}] Effort 7 is smaller ({round(e7_size/1024,1)} KiB vs {round(e9_size/1024,1)} KiB) ({self.item[3]})")
                         else:
-                            os.rename(f"{output}_e9",f"{output}")
+                            os.rename(f"{output}_e9",output)
                             os.remove(f"{output}_e7")
                             print(f"[Worker #{self.n}] Effort 9 is smaller ({round(e9_size/1024,1)} KiB vs {round(e7_size/1024,1)} KiB) ({self.item[3]})")
                     else:
