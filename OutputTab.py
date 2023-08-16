@@ -258,7 +258,7 @@ class OutputTab(QWidget):
             self.format_jxl_q_sb.setRange(0, 63)
             self.format_jxl_e_sb.setRange(0, 10)
             self.format_jxl_e_sb.setValue(6)
-            self.format_jxl_q_sl.setValue(-24)
+            self.format_jxl_q_sl.setValue(-20)
             self.format_q_l.setText("Constant Quality")
             self.format_e_l.setText("Speed")
         else:
@@ -305,7 +305,7 @@ class OutputTab(QWidget):
     def resetToDefault(self):
         if self.format_cmb.currentText() == "AVIF":
             self.format_jxl_e_sb.setValue(6)
-            self.format_jxl_q_sl.setValue(-24)
+            self.format_jxl_q_sl.setValue(-20)
         else:
             self.format_jxl_e_sb.setValue(7)
             self.format_jxl_q_sl.setValue(80)
