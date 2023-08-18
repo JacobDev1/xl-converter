@@ -1,6 +1,6 @@
-from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, ALLOWED_INPUT_IMAGE_MAGICK, AVIFENC_PATH, AVIFDEC_PATH
+from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, ALLOWED_INPUT_IMAGE_MAGICK, AVIFENC_PATH, AVIFDEC_PATH, OXIPNG_PATH
 
-import os, subprocess
+import os, subprocess, shutil
 from send2trash import send2trash
 
 from PySide6.QtCore import (
@@ -35,8 +35,13 @@ class Worker(QRunnable):
         super().__init__()
         self.n = n
         self.signals = Signals()
-        self.item = item
         self.params = params
+        
+        self.item = item
+        self.item_name = item[0]
+        self.item_ext = item[1]
+        self.item_dir = item[2]
+        self.item_abs_path = item[3]
     
     @Slot()
     def run(self):
@@ -165,7 +170,6 @@ class Worker(QRunnable):
                         else:
                             os.remove(f"{output}_l")
                             print(f"[Worker #{self.n}] Lossy is smaller ({round(lossy_size/1024,1)} KiB vs {round(lossless_size/1024,1)} KiB) ({self.item[3]})")
-
                 elif self.params["format"] == "AVIF":
                     arguments = [
                         "--min 0",
@@ -182,6 +186,94 @@ class Worker(QRunnable):
                 elif self.params["format"] == "JPG":
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
+                elif self.params["format"] == "Smallest Lossless":
+                    max_efficiency = False  # To be replaced by a param later on
+                    
+                    # Create Proxy
+                    ext = self.item_ext.lower()
+                    out = ""
+                    proxy_abs_path = os.path.join(output_dir,self.item_name+"_tmp.png")
+                    proxy_exists = False
+                    if ext != "png":
+                        if ext == "avif":
+                            out = subprocess.run(f'\"{AVIFDEC_PATH}\" \"{self.item_abs_path}\" \"{proxy_abs_path}\"', shell=True)
+                        elif ext == "jxl":
+                            out = subprocess.run(f'\"{DJXL_PATH}\" \"{self.item_abs_path}\" \"{proxy_abs_path}\"', shell=True)
+                        elif ext in ALLOWED_INPUT_IMAGE_MAGICK:
+                            out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item_abs_path}\" \"PNG:{proxy_abs_path}\"', shell=True)
+                        else:
+                            print(f"[Worker #{self.n}] Input format not supported ({self.params['format']})")
+                            self.signals.completed.emit(self.n)
+                            return
+                        print(f"[Worker #{self.n}] {out}")
+                        print(f"[Worker #{self.n}] Proxy created at ({proxy_abs_path})")
+                        self.item_abs_path = proxy_abs_path
+                        proxy_exists = True
+
+                    # TMP files
+                    paths = {
+                        "png": os.path.join(output_dir,self.item_dir,self.item_name + ".png_t"),
+                        "webp": os.path.join(output_dir,self.item_dir, self.item_name + ".webp_t"),
+                        "jxl": os.path.join(output_dir,self.item_dir,self.item_name + ".jxl_t")
+                    }
+
+                    # PNG
+                    shutil.copy(self.item_abs_path, paths["png"])
+                    out = subprocess.run(f'\"{OXIPNG_PATH}\" {"-o 4" if max_efficiency else "-o 2"} \"{paths["png"]}\"', shell=True)
+                    print(f"[Worker #{self.n}] {out}")
+                    
+                    # WEBP
+                    arguments = [
+                    "-define webp:thread-level=0",
+                    "-define webp:method=6",
+                    "-define webp:lossless=true"
+                    ]
+
+                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item_abs_path}\" {" ".join(arguments)} \"WEBP:{paths["webp"]}\"', shell=True)
+                    print(f"[Worker #{self.n}] {out}")
+
+                    # JPEG XL
+                    out = subprocess.run(f'\"{CJXL_PATH}\" -q 100 --lossless_jpeg=0 {"-e 9" if max_efficiency else "-e 7"} \"{self.item_abs_path}\" \"{paths["jxl"]}\"', shell=True)
+                    print(f"[Worker #{self.n}] {out}")
+
+                    # Crunch Numbers
+                    file_sizes = []
+                    for i in paths:
+                        file_sizes.append((i, os.path.getsize(paths[i])))
+
+                    smallest_format = file_sizes[0]
+                    for i in range(1, len(file_sizes)):
+                        if smallest_format[1] > file_sizes[i][1]:
+                            smallest_format = file_sizes[i]
+                    
+                    print(print(f"[Worker #{self.n}] File Sizes: {file_sizes}"))
+                    print(print(f"[Worker #{self.n}] Smallest Format: {smallest_format}"))
+
+                    # Cleanup
+                    for i in paths:
+                        if i == smallest_format[0]:
+                            output = paths[i][:-2]
+                            output_ext = smallest_format[0]
+
+                            if self.params["if_file_exists"] == "Replace":
+                                if os.path.isfile(output):
+                                    os.remove(output)
+                                os.rename(paths[i], output)
+                            elif self.params["if_file_exists"] == "Rename":
+                                if os.path.isfile(output):
+                                    num = 1
+                                    while os.path.isfile(output):
+                                        output = os.path.abspath(os.path.join(output_dir, self.item_name + f" ({num})." + output_ext))
+                                        num += 1
+                                os.rename(paths[i], output)
+                            elif self.params["if_file_exists"] == "Skip":
+                                pass
+
+                        else:
+                            os.remove(paths[i])
+
+                    if proxy_exists:
+                        os.remove(proxy_abs_path)
                 else:
                     print(f"[Worker #{self.n}] Unknown Format ({self.params['format']})")
             

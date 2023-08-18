@@ -123,7 +123,7 @@ class OutputTab(QWidget):
 
         self.format_cmb = QComboBox()
         self.format_q_l = QLabel("Quality")
-        self.format_cmb.addItems(("JPEG XL","AVIF", "WEBP", "JPG", "PNG"))
+        self.format_cmb.addItems(("JPEG XL","AVIF", "WEBP", "JPG", "PNG", "Smallest Lossless"))
         self.format_cmb.currentIndexChanged.connect(self.onFormatChange)
 
         self.format_jxl_e_sb = QSpinBox()
@@ -245,7 +245,7 @@ class OutputTab(QWidget):
             self.format_jxl_e_sb.setEnabled(False)
 
         # Disable Quality Slider
-        if cur_format == "PNG":
+        if cur_format in ("PNG", "Smallest Lossless"):
             self.format_jxl_q_sb.setEnabled(False)
             self.format_jxl_q_sl.setEnabled(False)
         else:

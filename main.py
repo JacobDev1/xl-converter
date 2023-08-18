@@ -3,7 +3,7 @@
 import sys, os
 import qdarktheme
 
-from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, PROGRAM_FOLDER, ALLOWED_INPUT_IMAGE_MAGICK, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_AVIFDEC
+from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, PROGRAM_FOLDER, ALLOWED_INPUT_IMAGE_MAGICK, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_AVIFDEC, ALLOWED_INPUT
 from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
@@ -108,6 +108,8 @@ class MainWindow(QMainWindow):
             allowed = ALLOWED_INPUT_IMAGE_MAGICK
         elif params["format"] == "AVIF":
             allowed = ALLOWED_INPUT_AVIFENC
+        elif params["format"] == "Smallest Lossless":
+            allowed = ALLOWED_INPUT
 
         self.data.clear()
         self.data.parseData(self.input_tab.file_view.invisibleRootItem(), allowed)
