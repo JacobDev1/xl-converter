@@ -289,13 +289,12 @@ class OutputTab(QWidget):
         lossless = self.format_jxl_q_lossless_cb.isChecked()
         lossless_if = self.format_lossless_if_cb.isChecked()
 
-        if lossless or lossless_if:
+        if lossless:
             self.format_jxl_q_sl.setEnabled(False)
             self.format_jxl_q_sb.setEnabled(False)
-            if lossless:
-                self.format_lossless_if_cb.setEnabled(False)
-            elif lossless_if:
-                self.format_jxl_q_lossless_cb.setEnabled(False)
+            self.format_lossless_if_cb.setEnabled(False)
+        elif lossless_if:
+            self.format_jxl_q_lossless_cb.setEnabled(False)
         else:
             self.format_jxl_q_sl.setEnabled(True)
             self.format_jxl_q_sb.setEnabled(True)
