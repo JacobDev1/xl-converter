@@ -5,10 +5,10 @@ def stripPathToFilename(path):                              # D:/images/image.pn
     """Dissect an absolute path into file name, extension and its directory"""
     fp_split = re.split(r"\\|/", path)
     f_name_split = fp_split[len(fp_split)-1].split(".")     # directory/[file.jxl]
-    f_name = ".".join(f_name_split[:-1])        # picture
-    f_ext = f_name_split[len(f_name_split)-1]   # .jxl
-    f_dir = "/".join(fp_split[:-1])             # D:/Images
-    abs_path = path                             # D:/Images/picture.jxl
+    f_name = ".".join(f_name_split[:-1])        # 0 - picture
+    f_ext = f_name_split[len(f_name_split)-1]   # 1 - .jxl
+    f_dir = "/".join(fp_split[:-1])             # 2 - D:/Images
+    abs_path = path                             # 3 - D:/Images/picture.jxl
     if platform.system() == "Windows":
         abs_path = abs_path.replace('/','\\')   # Required for deleting files on Windows to work
         f_dir = f_dir.replace('/','\\')
