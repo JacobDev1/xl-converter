@@ -187,8 +187,7 @@ class Worker(QRunnable):
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 elif self.params["format"] == "Smallest Lossless":
-                    max_efficiency = False  # To be replaced by a param later on
-                    
+                                        
                     # Create Proxy
                     ext = self.item_ext.lower()
                     out = ""
@@ -219,7 +218,7 @@ class Worker(QRunnable):
 
                     # PNG
                     shutil.copy(self.item_abs_path, paths["png"])
-                    out = subprocess.run(f'\"{OXIPNG_PATH}\" {"-o 4" if max_efficiency else "-o 2"} \"{paths["png"]}\"', shell=True)
+                    out = subprocess.run(f'\"{OXIPNG_PATH}\" {"-o 4" if self.params["max_efficiency"] else "-o 2"} \"{paths["png"]}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                     
                     # WEBP
@@ -233,7 +232,7 @@ class Worker(QRunnable):
                     print(f"[Worker #{self.n}] {out}")
 
                     # JPEG XL
-                    out = subprocess.run(f'\"{CJXL_PATH}\" -q 100 --lossless_jpeg=0 {"-e 9" if max_efficiency else "-e 7"} \"{self.item_abs_path}\" \"{paths["jxl"]}\"', shell=True)
+                    out = subprocess.run(f'\"{CJXL_PATH}\" -q 100 --lossless_jpeg=0 {"-e 9" if self.params["max_efficiency"] else "-e 7"} \"{self.item_abs_path}\" \"{paths["jxl"]}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
 
                     # Crunch Numbers
