@@ -142,13 +142,17 @@ class OutputTab(QWidget):
         self.format_jxl_q_sl.valueChanged.connect(self.onQualitySlChange)
         self.format_jxl_q_sb.valueChanged.connect(self.onQualitySbChange)
 
+        # Lossless
         self.format_lossless_if_cb = QCheckBox("Lossless (only if smaller)")
         self.format_lossless_if_cb.toggled.connect(self.toggleLossless)
         self.format_jxl_q_lossless_cb = QCheckBox("Lossless")
         self.format_jxl_q_lossless_cb.toggled.connect(self.toggleLossless)
+        self.format_max_efc = QCheckBox("Maximum Efficiency")
+        self.format_max_efc.setVisible(False)
         format_lossless_hbox = QHBoxLayout()
         format_lossless_hbox.addWidget(self.format_jxl_q_lossless_cb)
         format_lossless_hbox.addWidget(self.format_lossless_if_cb)
+        format_lossless_hbox.addWidget(self.format_max_efc)
 
         format_cmb_hbox = QHBoxLayout()
         format_cmb_hbox.addWidget(QLabel("Format"))
@@ -189,6 +193,7 @@ class OutputTab(QWidget):
             "quality": self.format_jxl_q_sb.value(),
             "lossless": self.format_jxl_q_lossless_cb.isChecked(),
             "lossless_if_smaller": self.format_lossless_if_cb.isChecked(),
+            "max_efficiency": self.format_max_efc.isChecked(),
             "effort": self.format_jxl_e_sb.value(),
             "intelligent_effort": self.format_jxl_e_int_cb.isChecked(),
             "if_file_exists": self.if_file_exists_cmb.currentText(),
@@ -269,6 +274,16 @@ class OutputTab(QWidget):
             self.format_jxl_q_sl.setValue(80)
             self.format_q_l.setText("Quality")
             self.format_e_l.setText("Effort")
+        
+        # Smallest Lossless mode
+        if cur_format == "Smallest Lossless":
+            self.format_lossless_if_cb.setVisible(False)
+            self.format_jxl_q_lossless_cb.setVisible(False)
+            self.format_max_efc.setVisible(True)
+        else:
+            self.format_max_efc.setVisible(False)
+            self.format_lossless_if_cb.setVisible(True)
+            self.format_jxl_q_lossless_cb.setVisible(True)
 
     def onQualitySlChange(self):
         self.format_jxl_q_sb.setValue(abs(self.format_jxl_q_sl.value()))
@@ -310,10 +325,16 @@ class OutputTab(QWidget):
             self.format_jxl_q_sl.setValue(80)
 
         self.choose_output_src.setChecked(True)
+        
         self.delete_original_cb.setChecked(False)
         self.clear_after_conv_cb.setChecked(False)
-        self.if_file_exists_cmb.setCurrentIndex(1)
         self.delete_original_cmb.setCurrentIndex(0)
+        
+        self.conv_cores_sl.setValue(self.MAX_THREAD_COUNT - 1 if self.MAX_THREAD_COUNT > 0 else 1)  # -1 because the OS needs some CPU time as well
+        self.if_file_exists_cmb.setCurrentIndex(1)
+
+        # Lossless
         self.format_jxl_q_lossless_cb.setChecked(False)
         self.format_lossless_if_cb.setChecked(False)
-        self.conv_cores_sl.setValue(self.MAX_THREAD_COUNT - 1 if self.MAX_THREAD_COUNT > 0 else 1)  # -1 because the OS needs some CPU time as well
+        self.format_max_efc.setChecked(False)
+        
