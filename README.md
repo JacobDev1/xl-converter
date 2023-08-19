@@ -3,11 +3,15 @@
 </p>
 <h3 align="center">XL Converter</h3>
 
-Fast and easy to use JPEG XL converter with multithreading, intelligent effort and drag 'n drop support. Available for both Windows and Linux.
+Fast and simple image converter for the latest formats. It's fully multi-threaded, supports drag 'n drop and intelligent options.
+
+Available for both Windows and Linux.
 
 ![](screenshots/screenshot_0.png)
 ![](screenshots/screenshot_1.png)
 ![](screenshots/screenshot_2.png)
+
+Supported formats: JPEG XL, AVIF, WEBP, JPG, PNG, Smallest Lossless
 
 ## Donations
 
@@ -17,7 +21,9 @@ The programming market is difficult to get into and my IT degree doesn't seem to
 
 ![](screenshots/screenshot_3.png)
 
-## Install
+## Tutorials
+
+### Install
 
 Windows
 - Installer is included
@@ -25,15 +31,28 @@ Windows
 Linux
 - To Install - unpack it then run `./install.sh`
 - To Uninstall - `sudo rm -r /opt/xl-converter`
+- To Update - first uninstall the previous version
 
-## How to Open JPEG XL
+### How to Open JPEG XL
 
 - Windows - supported by [XnViewMP](https://www.xnview.com/en/) / [ImageGlass](https://imageglass.org/) / [PhotoQt](https://photoqt.org/) / [PicView](https://picview.org/) / [nomacs](https://nomacs.org/windows-10/) / [GIMP](https://www.gimp.org/)
 - Linux - [tutorial](https://codepoems.eu/posts/how-to-open-jpeg-xl-images-on-linux/)
 
-## What is "Intelligent Effort"?
+## Intelligent Features
 
-It's a feature I came up with that gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer convertion time**. I wrote an [article](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) demystifying the effort argument.
+### Lossless (If Smaller)
+
+Converts to both lossy and lossless, then picks the smallest file.
+
+### Smallest Lossless
+
+Every image is checked with each of the 3 formats (Optimized PNG, WEBP and JPEG XL) to deliver **the tiniest file size** without any loss of quality.
+
+**Maximum efficiency** option prolongs the convertion, but grants encoders more time to shrink the images.
+
+### Intelligent Effort
+
+Gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer convertion time**. I wrote an [article](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) demystifying the effort argument.
 
 ## Building
 
@@ -88,21 +107,3 @@ Install dependencies from the [Building](#building) section and replace the last
 
 - Windows - `python main.py`
 - Linux - `make run`
-
-## Supported Formats
-
-Encoding and decoding:
-- JPEG XL
-- AVIF
-- WEBP
-- JPG
-
-## Development
-
-- `stable` branch is meant for regular use
-- `unstable` branch is where all the development happens
-
-The current release is based on
-- [libjxl](https://github.com/libjxl/libjxl)
-- [libavif](https://github.com/AOMediaCodec/libavif)
-- ImageMagick
