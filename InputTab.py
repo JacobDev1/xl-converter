@@ -81,6 +81,8 @@ class InputTab(QWidget):
                 file_data = stripPathToFilename(i)
                 print(file_data)
                 self.file_view.addItem(file_data[0], file_data[1], file_data[3])
+        
+        self.file_view.resizeToContent()
 
     def addFolder(self):
         dlg = QFileDialog()
@@ -92,6 +94,8 @@ class InputTab(QWidget):
                 file_data = stripPathToFilename(i)
                 if file_data[1] in ALLOWED_INPUT:
                     self.file_view.addItem(file_data[0], file_data[1], file_data[3])
+        
+        self.file_view.resizeToContent()
 
     def clearInput(self):
         self.file_view.clear()
