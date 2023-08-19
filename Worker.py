@@ -187,7 +187,15 @@ class Worker(QRunnable):
                     out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 elif self.params["format"] == "Smallest Lossless":
-                                        
+                    
+                    # Set Output Dir
+                    if self.params["custom_output_dir"]:
+                        output_dir = self.params["custom_output_dir_path"]
+                        if os.path.isdir(output_dir) == False:
+                            os.makedirs(output_dir, exist_ok=True)
+                    else:
+                        output_dir = self.item_dir
+
                     # Create Proxy
                     ext = self.item_ext.lower()
                     out = ""
@@ -211,9 +219,9 @@ class Worker(QRunnable):
 
                     # TMP files
                     paths = {
-                        "png": os.path.join(output_dir,self.item_dir,self.item_name + ".png_t"),
-                        "webp": os.path.join(output_dir,self.item_dir, self.item_name + ".webp_t"),
-                        "jxl": os.path.join(output_dir,self.item_dir,self.item_name + ".jxl_t")
+                        "png": os.path.join(output_dir,self.item_name + ".png_t"),
+                        "webp": os.path.join(output_dir, self.item_name + ".webp_t"),
+                        "jxl": os.path.join(output_dir,self.item_name + ".jxl_t")
                     }
 
                     # PNG
@@ -251,8 +259,8 @@ class Worker(QRunnable):
                     # Cleanup
                     for i in paths:
                         if i == smallest_format[0]:
-                            output = paths[i][:-2]
                             output_ext = smallest_format[0]
+                            output = os.path.join(output_dir, self.item_name + f".{output_ext}")
 
                             if self.params["if_file_exists"] == "Replace":
                                 if os.path.isfile(output):
@@ -265,9 +273,6 @@ class Worker(QRunnable):
                                         output = os.path.abspath(os.path.join(output_dir, self.item_name + f" ({num})." + output_ext))
                                         num += 1
                                 os.rename(paths[i], output)
-                            elif self.params["if_file_exists"] == "Skip":
-                                pass
-
                         else:
                             os.remove(paths[i])
 
