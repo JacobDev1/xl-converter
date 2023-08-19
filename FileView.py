@@ -60,6 +60,7 @@ class FileView(QTreeWidget):
                             self.addItem(file_data[0],file_data[1],file_data[3])
                 else:
                     path = str(i.toString())
+            self.resizeToContent()
 
     def keyPressEvent(self, event):
         if event.key() == 16777223: # Delete
@@ -84,3 +85,7 @@ class FileView(QTreeWidget):
         if item_count > 0:
             for i in range(item_count):
                 item = self.invisibleRootItem().child(i).setSelected(True)
+
+    def resizeToContent(self):
+        for i in range(0, self.columnCount() - 1):  # The last one resizes with the window
+            self.resizeColumnToContents(i)
