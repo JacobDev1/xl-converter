@@ -147,7 +147,7 @@ class OutputTab(QWidget):
         self.format_lossless_if_cb.toggled.connect(self.toggleLossless)
         self.format_jxl_q_lossless_cb = QCheckBox("Lossless")
         self.format_jxl_q_lossless_cb.toggled.connect(self.toggleLossless)
-        self.format_max_efc = QCheckBox("Maximum Efficiency")
+        self.format_max_efc = QCheckBox("Max Efficiency")
         self.format_max_efc.setVisible(False)
         format_lossless_hbox = QHBoxLayout()
         format_lossless_hbox.addWidget(self.format_jxl_q_lossless_cb)
