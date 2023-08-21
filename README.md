@@ -38,7 +38,7 @@ Linux
 - Windows - supported by [XnViewMP](https://www.xnview.com/en/) / [ImageGlass](https://imageglass.org/) / [PhotoQt](https://photoqt.org/) / [PicView](https://picview.org/) / [nomacs](https://nomacs.org/windows-10/) / [GIMP](https://www.gimp.org/)
 - Linux
     - JPEG XL - [my tutorial](https://codepoems.eu/posts/how-to-open-jpeg-xl-images-on-linux/)
-    - AVIF - type `sudo apt install libavif-gdk-pixbuf`
+    - AVIF - run `sudo apt install libavif-gdk-pixbuf`
 
 ## Intelligent Features
 
