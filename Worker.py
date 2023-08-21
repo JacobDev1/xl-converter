@@ -179,7 +179,7 @@ class Worker(QRunnable):
                     "--max 63",
                     "-a end-usage=q",
                     f"-a cq-level={self.params['quality']}",
-                    f"-s {self.params['effort']}"
+                    f"-s {self.params['effort']}" if not self.params["intelligent_effort"] else "-s 0",
                 ]
                 if self.params["lossless"]:
                     arguments.append("-l")

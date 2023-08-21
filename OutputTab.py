@@ -237,11 +237,12 @@ class OutputTab(QWidget):
             self.format_jxl_q_lossless_cb.setEnabled(False)
             self.format_lossless_if_cb.setEnabled(False)
 
-        # Enable Effort Settings
-        if cur_format == "JPEG XL":
+        # Enable Intelligent Effort Settings
+        if cur_format in ("JPEG XL", "AVIF"):
             self.format_jxl_e_int_cb.setEnabled(True)
         else:
             self.format_jxl_e_int_cb.setEnabled(False)
+
         
         # Effort / Speed
         if cur_format in ("JPEG XL", "AVIF"):
@@ -266,6 +267,7 @@ class OutputTab(QWidget):
             self.format_jxl_q_sl.setValue(-20)
             self.format_q_l.setText("Constant Quality")
             self.format_e_l.setText("Speed")
+            self.format_jxl_e_int_cb.setText("Best Quality")
         else:
             self.format_jxl_q_sl.setRange(1, 100)
             self.format_jxl_q_sb.setRange(1, 100)
@@ -274,6 +276,7 @@ class OutputTab(QWidget):
             self.format_jxl_q_sl.setValue(80)
             self.format_q_l.setText("Quality")
             self.format_e_l.setText("Effort")
+            self.format_jxl_e_int_cb.setText("Intelligent")
         
         # Smallest Lossless mode
         if cur_format == "Smallest Lossless":
