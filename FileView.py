@@ -7,8 +7,14 @@ from PySide6.QtWidgets import(
     QWidget
 )
 
+from PySide6.QtCore import(
+    Qt
+)
+
 from HelperFunctions import stripPathToFilename, scanDir
 from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL
+
+# Before adding files disable sorting
 
 class FileView(QTreeWidget):
     def __init__(self, parent):
@@ -16,6 +22,7 @@ class FileView(QTreeWidget):
         self.setAcceptDrops(True)
         self.setDragDropMode(QAbstractItemView.InternalMove)    # Required for dropEvent to fire
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.sortByColumn(1, Qt.SortOrder.DescendingOrder)
     
     def addItem(self, *fields):
         is_duplicate = False
@@ -42,6 +49,7 @@ class FileView(QTreeWidget):
         if event.mimeData().hasUrls():
             event.accept()
             
+            self.setSortingEnabled(False)
             for i in event.mimeData().urls():
                 path = ""
                 if i.isLocalFile():
@@ -60,6 +68,7 @@ class FileView(QTreeWidget):
                             self.addItem(file_data[0],file_data[1],file_data[3])
                 else:
                     path = str(i.toString())
+            self.setSortingEnabled(True)
             self.resizeToContent()
 
     def keyPressEvent(self, event):
