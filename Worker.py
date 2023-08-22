@@ -1,4 +1,5 @@
-from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, ALLOWED_INPUT_IMAGE_MAGICK, AVIFENC_PATH, AVIFDEC_PATH, OXIPNG_PATH
+from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, AVIFENC_PATH, AVIFDEC_PATH, OXIPNG_PATH
+from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, PROGRAM_FOLDER, ALLOWED_INPUT_IMAGE_MAGICK, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_AVIFDEC, ALLOWED_INPUT
 
 import os, subprocess, shutil
 from send2trash import send2trash
@@ -37,7 +38,9 @@ class Worker(QRunnable):
         self.signals = Signals()
         self.params = params
         
-        self.item = item
+        self.item = item    # Original file
+
+        # These can be reassigned
         self.item_name = item[0]
         self.item_ext = item[1]
         self.item_dir = item[2]
@@ -66,22 +69,30 @@ class Worker(QRunnable):
             else:
                 output_dir = self.item[2]
 
-            # Convert
-            
+            # Check If proxy needed / Assign extensions
             output_ext = ""
+            need_proxy = True
             if self.params["format"] == "JPEG XL":
                 output_ext = ".jxl"
+                if self.item_ext in ALLOWED_INPUT_CJXL:
+                    need_proxy = False
             elif self.params["format"] == "PNG":
                 output_ext = ".png"
+                need_proxy = False
             elif self.params["format"] == "AVIF":
                 output_ext = ".avif"
-            elif self.params["format"] == "WEBP":
+                if self.item_ext in ALLOWED_INPUT_AVIFENC:
+                    need_proxy = False
+            elif self.params["format"] == "WEBP":   # Proxy not needed for ImageMagick
                 output_ext = ".webp"
+                need_proxy = False
             elif self.params["format"] == "JPG":
                 output_ext = ".jpg"
+                need_proxy = False
 
             output = os.path.abspath(os.path.join(output_dir, self.item[0] + output_ext))
             
+            # Check for existing files
             if self.params["if_file_exists"] == "Replace":
                 if os.path.isfile(output):
                     os.remove(output)
@@ -96,6 +107,35 @@ class Worker(QRunnable):
                     self.signals.completed.emit(self.n)
                     return
             
+            # Create Proxy
+            if need_proxy:
+                proxy_path = os.path.join(output_dir, self.item_name + "_tmp.png")
+                i = 1
+                while os.path.isfile(proxy_path):   # In case of leftover tmp files
+                    proxy_path = os.path.join(output_dir, self.item_name + f"_tmp ({i}).png")
+                    i += 1
+                
+                if self.item_ext == "png":
+                    shutil.copy(self.item_abs_path, proxy_path)     # For Smallest Lossless
+                elif self.item_ext == "jxl":
+                    subprocess.run(f'\"{DJXL_PATH}\" \"{self.item_abs_path}\" \"{proxy_path}\"', shell=True)
+                elif self.item_ext == "avif":
+                    subprocess.run(f'\"{AVIFDEC_PATH}\" \"{self.item_abs_path}\" \"{proxy_path}\"', shell=True)
+                elif self.item_ext in ALLOWED_INPUT:
+                    subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item_abs_path}\" \"{proxy_path}\"', shell=True)
+                else:
+                    print(f"[Worker #{self.n}] Proxy cannot be created ({self.item_name}.{self.item_ext})")
+                    self.signals.completed.emit(self.n)
+                    return
+                
+                if os.path.isfile(proxy_path):
+                    self.item_abs_path = proxy_path
+                else:
+                    print(f"[Worker #{self.n}] Proxy cannot be found ({self.item_name}.{self.item_ext})")
+                    self.signals.completed.emit(self.n)
+                    return
+
+            # Convert
             if self.params["format"] == "JPEG XL":
                 if self.params["lossless"]:
                     self.params["quality"] = 100
@@ -105,9 +145,9 @@ class Worker(QRunnable):
                     self.params["effort"] = 9
 
                 if self.params["intelligent_effort"]:
-                    out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e 7 \"{self.item[3]}\" \"{output}\"_e7', shell=True)
+                    out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e 7 \"{self.item_abs_path}\" \"{output}\"_e7', shell=True)
                     print(f"[Worker #{self.n}] {out}")
-                    out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e 9 \"{self.item[3]}\" \"{output}\"_e9', shell=True)
+                    out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e 9 \"{self.item_abs_path}\" \"{output}\"_e9', shell=True)
                     print(f"[Worker #{self.n}] {out}")
 
                     e7_size = os.path.getsize(f"{output}_e7")
@@ -115,38 +155,38 @@ class Worker(QRunnable):
                     if e9_size > e7_size:
                         os.rename(f"{output}_e7",output)
                         os.remove(f"{output}_e9")
-                        print(f"[Worker #{self.n}] Effort 7 is smaller ({round(e7_size/1024,1)} KiB vs {round(e9_size/1024,1)} KiB) ({self.item[3]})")
+                        print(f"[Worker #{self.n}] Effort 7 is smaller ({round(e7_size/1024,1)} KiB vs {round(e9_size/1024,1)} KiB) ({self.item_abs_path})")
                     else:
                         os.rename(f"{output}_e9",output)
                         os.remove(f"{output}_e7")
-                        print(f"[Worker #{self.n}] Effort 9 is smaller ({round(e9_size/1024,1)} KiB vs {round(e7_size/1024,1)} KiB) ({self.item[3]})")
+                        print(f"[Worker #{self.n}] Effort 9 is smaller ({round(e9_size/1024,1)} KiB vs {round(e7_size/1024,1)} KiB) ({self.item_abs_path})")
                 else:
-                    out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item[3]}\" \"{output}\"', shell=True) # The subprocess needs to be defined here. If you move it to a function, it will cause seg faults.
+                    out = subprocess.run(f'\"{CJXL_PATH}\" -q {self.params["quality"]} --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item_abs_path}\" \"{output}\"', shell=True) # The subprocess needs to be defined here. If you move it to a function, it will cause seg faults.
                     print(f"[Worker #{self.n}] {out}")
                 
                 if self.params["lossless_if_smaller"] and self.params["lossless"] == False:
                     if self.params["intelligent_effort"]:
                         self.params["effort"] = 9
-                    out = subprocess.run(f'\"{CJXL_PATH}\" -q 100 --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item[3]}\" \"{output}_l\"', shell=True)
+                    out = subprocess.run(f'\"{CJXL_PATH}\" -q 100 --lossless_jpeg=0 -e {self.params["effort"]} \"{self.item_abs_path}\" \"{output}_l\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                     lossy_size = os.path.getsize(output)
                     lossless_size = os.path.getsize(f"{output}_l")
                     if lossless_size < lossy_size:
                         os.remove(output)
                         os.rename(f"{output}_l", output)
-                        print(f"[Worker #{self.n}] Lossless is smaller ({round(lossless_size/1024,1)} KiB vs {round(lossy_size/1024,1)} KiB) ({self.item[3]})")
+                        print(f"[Worker #{self.n}] Lossless is smaller ({round(lossless_size/1024,1)} KiB vs {round(lossy_size/1024,1)} KiB) ({self.item_name}.{self.item_ext})")
                     else:
                         os.remove(f"{output}_l")
-                        print(f"[Worker #{self.n}] Lossy is smaller ({round(lossy_size/1024,1)} KiB vs {round(lossless_size/1024,1)} KiB) ({self.item[3]})")
+                        print(f"[Worker #{self.n}] Lossy is smaller ({round(lossy_size/1024,1)} KiB vs {round(lossless_size/1024,1)} KiB) ({self.item_name}.{self.item_ext})")
             elif self.params["format"] == "PNG":
                 if self.item[1].lower() == "jxl":
-                    out = subprocess.run(f'\"{DJXL_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
+                    out = subprocess.run(f'\"{DJXL_PATH}\" \"{self.item_abs_path}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 elif self.item[1].lower() == "avif":
-                    out = subprocess.run(f'\"{AVIFDEC_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
+                    out = subprocess.run(f'\"{AVIFDEC_PATH}\" \"{self.item_abs_path}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
                 elif self.item[1].lower() in ALLOWED_INPUT_IMAGE_MAGICK:
-                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" \"{output}\"', shell=True)
+                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item_abs_path}\" \"{output}\"', shell=True)
                     print(f"[Worker #{self.n}] {out}")
             elif self.params["format"] == "WEBP":
                 arguments = [
@@ -157,22 +197,22 @@ class Worker(QRunnable):
                 if self.params["lossless"]:
                     arguments.append("-define webp:lossless=true")
 
-                out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"{output}\"', shell=True)
+                out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item_abs_path}\" {" ".join(arguments)} \"{output}\"', shell=True)
                 print(f"[Worker #{self.n}] {out}")
 
                 if self.params["lossless_if_smaller"] and self.params["lossless"] == False:
                     arguments.append("-define webp:lossless=true")
-                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item[3]}\" {" ".join(arguments)} \"WEBP:{output}_l\"', shell=True)   # Remember about "WEBP:" format specifier, otherwise the output will be PNG
+                    out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item_abs_path}\" {" ".join(arguments)} \"WEBP:{output}_l\"', shell=True)   # Remember about "WEBP:" format specifier, otherwise the output will be PNG
                     print(f"[Worker #{self.n}] {out}")
                     lossy_size = os.path.getsize(output)
                     lossless_size = os.path.getsize(f"{output}_l")
                     if lossless_size < lossy_size:
                         os.remove(output)
                         os.rename(f"{output}_l", output)
-                        print(f"[Worker #{self.n}] Lossless is smaller ({round(lossless_size/1024,1)} KiB vs {round(lossy_size/1024,1)} KiB) ({self.item[3]})")
+                        print(f"[Worker #{self.n}] Lossless is smaller ({round(lossless_size/1024,1)} KiB vs {round(lossy_size/1024,1)} KiB) ({self.item_name}.{self.item_ext})")
                     else:
                         os.remove(f"{output}_l")
-                        print(f"[Worker #{self.n}] Lossy is smaller ({round(lossy_size/1024,1)} KiB vs {round(lossless_size/1024,1)} KiB) ({self.item[3]})")
+                        print(f"[Worker #{self.n}] Lossy is smaller ({round(lossy_size/1024,1)} KiB vs {round(lossless_size/1024,1)} KiB) ({self.item_name}.{self.item_ext})")
             elif self.params["format"] == "AVIF":
                 arguments = [
                     "--min 0",
@@ -184,41 +224,12 @@ class Worker(QRunnable):
                 if self.params["lossless"]:
                     arguments.append("-l")
 
-                out = subprocess.run(f'\"{AVIFENC_PATH}\" {" ".join(arguments)} \"{self.item[3]}\" \"{output}\"', shell=True)
+                out = subprocess.run(f'\"{AVIFENC_PATH}\" {" ".join(arguments)} \"{self.item_abs_path}\" \"{output}\"', shell=True)
                 print(f"[Worker #{self.n}] {out}")
             elif self.params["format"] == "JPG":
-                out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item[3]}\" \"{output}\"', shell=True)
+                out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" -quality {self.params["quality"]} \"{self.item_abs_path}\" \"{output}\"', shell=True)
                 print(f"[Worker #{self.n}] {out}")
             elif self.params["format"] == "Smallest Lossless":
-                
-                # Set Output Dir
-                if self.params["custom_output_dir"]:
-                    output_dir = self.params["custom_output_dir_path"]
-                    if os.path.isdir(output_dir) == False:
-                        os.makedirs(output_dir, exist_ok=True)
-                else:
-                    output_dir = self.item_dir
-
-                # Create Proxy
-                ext = self.item_ext.lower()
-                out = ""
-                proxy_abs_path = os.path.join(output_dir,self.item_name+"_tmp.png")
-                proxy_exists = False
-                if ext != "png":
-                    if ext == "avif":
-                        out = subprocess.run(f'\"{AVIFDEC_PATH}\" \"{self.item_abs_path}\" \"{proxy_abs_path}\"', shell=True)
-                    elif ext == "jxl":
-                        out = subprocess.run(f'\"{DJXL_PATH}\" \"{self.item_abs_path}\" \"{proxy_abs_path}\"', shell=True)
-                    elif ext in ALLOWED_INPUT_IMAGE_MAGICK:
-                        out = subprocess.run(f'\"{IMAGE_MAGICK_PATH}\" \"{self.item_abs_path}\" \"PNG:{proxy_abs_path}\"', shell=True)
-                    else:
-                        print(f"[Worker #{self.n}] Input format not supported ({self.params['format']})")
-                        self.signals.completed.emit(self.n)
-                        return
-                    print(f"[Worker #{self.n}] {out}")
-                    print(f"[Worker #{self.n}] Proxy created at ({proxy_abs_path})")
-                    self.item_abs_path = proxy_abs_path
-                    proxy_exists = True
 
                 # TMP files
                 paths = {
@@ -280,12 +291,14 @@ class Worker(QRunnable):
                             os.remove(paths[i])
                     else:
                         os.remove(paths[i])
-
-                if proxy_exists:
-                    os.remove(proxy_abs_path)
             else:
                 print(f"[Worker #{self.n}] Unknown Format ({self.params['format']})")
             
+            # Delete proxy
+            if need_proxy:
+                os.remove(self.item_abs_path)
+                self.item_abs_path = self.item[3]
+
             # After Conversion
             if self.params["delete_original"]:
                 if os.path.isfile(output):   # In case convertion failed, don't delete the original
