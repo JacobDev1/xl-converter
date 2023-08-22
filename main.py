@@ -3,7 +3,7 @@
 import sys, os
 import qdarktheme
 
-from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, PROGRAM_FOLDER, ALLOWED_INPUT_IMAGE_MAGICK, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_AVIFDEC, ALLOWED_INPUT
+from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT
 from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
@@ -97,22 +97,8 @@ class MainWindow(QMainWindow):
         
         params = self.output_tab.getSettings()
 
-        allowed = ()
-        if params["format"] == "JPEG XL":
-            allowed = ALLOWED_INPUT_CJXL
-        elif params["format"] == "WEBP":
-            allowed = ALLOWED_INPUT_IMAGE_MAGICK
-        elif params["format"] == "PNG":
-            allowed = ALLOWED_INPUT_IMAGE_MAGICK + ALLOWED_INPUT_DJXL + ALLOWED_INPUT_AVIFDEC
-        elif params["format"] == "JPG":
-            allowed = ALLOWED_INPUT_IMAGE_MAGICK
-        elif params["format"] == "AVIF":
-            allowed = ALLOWED_INPUT_AVIFENC
-        elif params["format"] == "Smallest Lossless":
-            allowed = ALLOWED_INPUT
-
         self.data.clear()
-        self.data.parseData(self.input_tab.file_view.invisibleRootItem(), allowed)
+        self.data.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
         if self.data.getItemCount() == 0:
             return
         
