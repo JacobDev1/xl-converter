@@ -19,6 +19,10 @@ from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL
 class FileView(QTreeWidget):
     def __init__(self, parent):
         super(FileView, self).__init__(parent)
+
+        self.setColumnCount(3)
+        self.setHeaderLabels(("File Name", "Ext.", "Location"))
+
         self.setAcceptDrops(True)
         self.setDragDropMode(QAbstractItemView.InternalMove)    # Required for dropEvent to fire
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)

@@ -26,10 +26,7 @@ class InputTab(QWidget):
     def __init__(self):
         super(InputTab, self).__init__()
         self.signals = Signals()
-
         self.file_view = FileView(self)
-        self.file_view.setColumnCount(3)
-        self.file_view.setHeaderLabels(("File Name", "Extension", "Location"))
 
         # Shortcuts
         self.select_all_sc = QShortcut(QKeySequence('Ctrl+A'), self)
