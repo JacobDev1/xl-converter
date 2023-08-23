@@ -58,11 +58,11 @@ Gives you **smaller file sizes** and quite possibly **better quality**. The down
 
 ## Building
 
-Make sure [Python3](https://www.python.org/downloads/) is installed beforehand.
-
 The build will be generated to `dist/xl-converter`.
 
 ### Windows
+
+Install [Python3](https://www.python.org/downloads/).
 
 Install dependencies
 
