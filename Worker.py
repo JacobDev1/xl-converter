@@ -99,7 +99,7 @@ class Worker(QRunnable):
             # Check for existing files
             if self.params["if_file_exists"] == "Replace":
                 if os.path.isfile(output):
-                    os.remove(output)
+                    self.convert.delete(output)
             elif self.params["if_file_exists"] == "Rename":
                 output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, False)    
             elif self.params["if_file_exists"] == "Skip":
@@ -283,7 +283,7 @@ class Worker(QRunnable):
 
                         if self.params["if_file_exists"] == "Replace":
                             if os.path.isfile(output):
-                                os.remove(output)
+                                self.convert.delete(output)
                             os.rename(paths[i], output)
                         elif self.params["if_file_exists"] == "Rename":
                             if os.path.isfile(output):
@@ -293,9 +293,9 @@ class Worker(QRunnable):
                                     num += 1
                             os.rename(paths[i], output)
                         elif self.params["if_file_exists"] == "Skip":
-                            os.remove(paths[i])
+                            self.convert.delete(paths[i])
                     else:
-                        os.remove(paths[i])
+                        self.convert.delete(paths[i])
             else:
                 self.convert.log(f"Unknown Format ({self.params['format']})", self.n)
             
