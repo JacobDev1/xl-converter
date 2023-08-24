@@ -235,9 +235,9 @@ class Worker(QRunnable):
 
                 # TMP files
                 paths = {
-                    "png": self.convert.getUniqueFilePath(output_dir, self.item_name + "_t", "png", True),
-                    "webp": self.convert.getUniqueFilePath(output_dir, self.item_name + "_t", "webp", True),
-                    "jxl": self.convert.getUniqueFilePath(output_dir, self.item_name + "_t", "jxl", True)
+                    "png": self.convert.getUniqueFilePath(output_dir, self.item_name, "png", True),
+                    "webp": self.convert.getUniqueFilePath(output_dir, self.item_name, "webp", True),
+                    "jxl": self.convert.getUniqueFilePath(output_dir, self.item_name, "jxl", True)
                 }
 
                 # PNG
