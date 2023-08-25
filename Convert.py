@@ -7,7 +7,7 @@ class Convert():
     def __init__(self):
         pass
     
-    def getUniqueFilePath(self, dir, file_name: str, ext: str, add_rnd: bool):
+    def getUniqueFilePath(self, dir, file_name: str, ext: str, add_rnd = False):
         # Generate Random String
         rnd = ""
         if add_rnd:
