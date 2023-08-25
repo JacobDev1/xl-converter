@@ -170,8 +170,25 @@ class OutputTab(QWidget):
         format_jxl_q_hbox.addWidget(self.format_jxl_q_sl)
         format_jxl_q_hbox.addWidget(self.format_jxl_q_sb)
         format_grp_layout.addLayout(format_jxl_q_hbox)
-        format_grp_layout.addLayout(format_lossless_hbox)
+        
         output_page_lt.addWidget(format_grp,0,1)
+
+        # Smallest Lossless - Format Pool
+        format_sm_l_hb = QHBoxLayout()
+        self.format_sm_l_l = QLabel("Format Pool")
+        self.format_sm_l_png_cb = QCheckBox("PNG")
+        self.format_sm_l_webp_cb = QCheckBox("WEBP")
+        self.format_sm_l_jxl_cb = QCheckBox("JPEG XL")
+
+        format_sm_l_hb.addWidget(self.format_sm_l_png_cb)
+        format_sm_l_hb.addWidget(self.format_sm_l_webp_cb)
+        format_sm_l_hb.addWidget(self.format_sm_l_jxl_cb)
+
+        self.setFormatPoolVisible(False)
+        format_grp_layout.addLayout(format_sm_l_hb)
+
+        # Format
+        format_grp_layout.addLayout(format_lossless_hbox)
 
         # Buttons
         reset_to_default_btn = QPushButton("Reset to Default")
@@ -200,7 +217,12 @@ class OutputTab(QWidget):
             "custom_output_dir": self.choose_output_ct_rb.isChecked(),
             "custom_output_dir_path": self.choose_output_ct_le.text(),
             "delete_original": self.delete_original_cb.isChecked(),
-            "delete_original_mode": self.delete_original_cmb.currentText()
+            "delete_original_mode": self.delete_original_cmb.currentText(),
+            "smallest_format_pool": {
+                "png": self.format_sm_l_png_cb.isChecked(),
+                "webp": self.format_sm_l_webp_cb.isChecked(),
+                "jxl": self.format_sm_l_jxl_cb.isChecked()
+                },
         }
         return parameters
     
@@ -280,13 +302,15 @@ class OutputTab(QWidget):
         
         # Smallest Lossless mode
         if cur_format == "Smallest Lossless":
-            self.format_lossless_if_cb.setVisible(False)
-            self.format_jxl_q_lossless_cb.setVisible(False)
+            self.setLosslessVisible(False)
+            self.setEffortVisible(False)
+            self.setFormatPoolVisible(True)
             self.format_max_efc.setVisible(True)
         else:
+            self.setFormatPoolVisible(False)
             self.format_max_efc.setVisible(False)
-            self.format_lossless_if_cb.setVisible(True)
-            self.format_jxl_q_lossless_cb.setVisible(True)
+            self.setLosslessVisible(True)
+            self.setEffortVisible(True)
 
     def onQualitySlChange(self):
         self.format_jxl_q_sb.setValue(abs(self.format_jxl_q_sl.value()))
@@ -340,4 +364,24 @@ class OutputTab(QWidget):
         self.format_jxl_q_lossless_cb.setChecked(False)
         self.format_lossless_if_cb.setChecked(False)
         self.format_max_efc.setChecked(False)
-        
+
+        # Smallest Lossless
+        self.format_sm_l_png_cb.setChecked(True)
+        self.format_sm_l_webp_cb.setChecked(True)
+        self.format_sm_l_jxl_cb.setChecked(True)
+    
+    def setFormatPoolVisible(self, visible):
+        self.format_sm_l_png_cb.setVisible(visible)
+        self.format_sm_l_webp_cb.setVisible(visible)
+        self.format_sm_l_jxl_cb.setVisible(visible)
+    
+    def setEffortVisible(self, visible):
+        self.format_e_l.setVisible(visible)
+        self.format_jxl_e_sb.setVisible(visible)
+        self.format_e_l.setVisible(visible)
+        self.format_jxl_e_int_cb.setVisible(visible)
+    
+    def setLosslessVisible(self, visible):
+        self.format_lossless_if_cb.setVisible(visible)
+        self.format_jxl_q_lossless_cb.setVisible(visible)
+        self.format_lossless_if_cb.setVisible(visible)
