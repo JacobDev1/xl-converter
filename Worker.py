@@ -93,6 +93,7 @@ class Worker(QRunnable):
                 output_ext = "jpg"
                 if self.item_ext in ALLOWED_INPUT_IMAGE_MAGICK:
                     need_proxy = False
+            # need_proxy is always True for "Smallest Lossless"
 
             output = os.path.abspath(os.path.join(output_dir, f"{self.item[0]}.{output_ext}"))
             
@@ -233,69 +234,78 @@ class Worker(QRunnable):
                 self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, output, [f"-quality {self.params['quality']}"], self.n)
             elif self.params["format"] == "Smallest Lossless":
 
-                # TMP files
-                paths = {
-                    "png": self.convert.getUniqueFilePath(output_dir, self.item_name, "png", True),
-                    "webp": self.convert.getUniqueFilePath(output_dir, self.item_name, "webp", True),
-                    "jxl": self.convert.getUniqueFilePath(output_dir, self.item_name, "jxl", True)
+                # Populate path pool
+                path_pool = {}
+                for key in self.params["smallest_format_pool"]:     # Iterate through formats ("png", "webp", "jxl")
+                    if self.params["smallest_format_pool"][key]:    # If format enabled
+                        path_pool[key] = self.convert.getUniqueFilePath(output_dir, self.item_name, key, True) # Add format
+
+                # Check if no formats selected
+                if len(path_pool) == 0:
+                    self.convert.log("No formats selected for Smallest Lossless", self.n)
+                    self.signals.completed.emit(self.n)
+                    return
+
+                # Set arguments
+                args = {
+                    "png": ["-o 4" if self.params["max_efficiency"] else "-o 2"],
+                    "webp": [
+                        "-define webp:thread-level=0",
+                        "-define webp:method=6",
+                        "-define webp:lossless=true"
+                    ],
+                    "jxl": [
+                        "-q 100",
+                        "--lossless_jpeg=0",
+                        "-e 9" if self.params["max_efficiency"] else "-e 7",
+                    ]
                 }
 
-                # PNG
-                shutil.copy(self.item_abs_path, paths["png"])
-                args = ["-o 4" if self.params["max_efficiency"] else "-o 2"]
-                self.convert.optimize(OXIPNG_PATH, paths["png"], args, self.n)
+                # Generate files
+                for key in path_pool:
+                    if key == "png":
+                        shutil.copy(self.item_abs_path, path_pool["png"])
+                        self.convert.optimize(OXIPNG_PATH, path_pool["png"], args["png"], self.n)
+                    elif key == "webp":
+                        self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, path_pool["webp"], args["webp"], self.n)
+                    elif key == "jxl":
+                        self.convert.convert(CJXL_PATH, self.item_abs_path, path_pool["jxl"], args["jxl"], self.n)
                 
-                # WEBP
-                args = [
-                "-define webp:thread-level=0",
-                "-define webp:method=6",
-                "-define webp:lossless=true"
-                ]
+                # Get file sizes
+                file_sizes = {}
+                for key in path_pool:
+                    file_sizes[key] = os.path.getsize(path_pool[key])
 
-                self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, paths["webp"], args, self.n)
-
-                # JPEG XL
-                args = [
-                    "-q 100",
-                    "--lossless_jpeg=0",
-                    "-e 9" if self.params["max_efficiency"] else "-e 7",
-                ]
-                self.convert.convert(CJXL_PATH, self.item_abs_path, paths["jxl"], args, self.n)
-
-                # Crunch Numbers
-                file_sizes = []
-                for i in paths:
-                    file_sizes.append((i, os.path.getsize(paths[i])))
-
-                smallest_format = file_sizes[0]
-                for i in range(1, len(file_sizes)):
-                    if smallest_format[1] > file_sizes[i][1]:
-                        smallest_format = file_sizes[i]
-                
-                print(print(f"[Worker #{self.n}] File Sizes: {file_sizes}"))
-                print(print(f"[Worker #{self.n}] Smallest Format: {smallest_format}"))
-
-                # Cleanup
-                for i in paths:
-                    if i == smallest_format[0]:
-                        output_ext = smallest_format[0]
-                        output = os.path.join(output_dir, self.item_name + f".{output_ext}")
-
-                        if self.params["if_file_exists"] == "Replace":
-                            if os.path.isfile(output):
-                                self.convert.delete(output)
-                            os.rename(paths[i], output)
-                        elif self.params["if_file_exists"] == "Rename":
-                            if os.path.isfile(output):
-                                num = 1
-                                while os.path.isfile(output):
-                                    output = os.path.abspath(os.path.join(output_dir, self.item_name + f" ({num})." + output_ext))
-                                    num += 1
-                            os.rename(paths[i], output)
-                        elif self.params["if_file_exists"] == "Skip":
-                            self.convert.delete(paths[i])
+                # Get smallest item
+                sm_f_key = None # Smallest format key
+                for key in path_pool:
+                    if sm_f_key == None:
+                        sm_f_key = key
                     else:
-                        self.convert.delete(paths[i])
+                        if file_sizes[key] < file_sizes[sm_f_key]:
+                            sm_f_key = key
+
+                # Remove bigger files
+                for key in path_pool:
+                    if key != sm_f_key:
+                        self.convert.delete(path_pool[key])
+                
+                # Rename the smallest file
+                output = os.path.join(output_dir, f"{self.item_name}.{sm_f_key}")
+                if self.params["if_file_exists"] == "Replace":
+                    if os.path.isfile(output):
+                        self.convert.delete(output)
+                    os.rename(path_pool[sm_f_key], output)
+                elif self.params["if_file_exists"] == "Rename":
+                    output = self.convert.getUniqueFilePath(output_dir, self.item_name, sm_f_key)
+                    os.rename(path_pool[sm_f_key], output)
+                elif self.params["if_file_exists"] == "Skip":
+                    self.convert.delete(path_pool[sm_f_key])
+                
+                # Log
+                self.convert.log(f"File Sizes: {file_sizes}", self.n)
+                self.convert.log(f"Smallest Format: {sm_f_key}", self.n)
+
             else:
                 self.convert.log(f"Unknown Format ({self.params['format']})", self.n)
             
