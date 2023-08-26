@@ -149,8 +149,8 @@ class Worker(QRunnable):
 
                 if self.params["intelligent_effort"]:
                     path_pool = [
-                        self.convert.getUniqueFilePath(output_dir,self.item_name + "_e7", output_ext, True),
-                        self.convert.getUniqueFilePath(output_dir,self.item_name + "_e9", output_ext, True),
+                        self.convert.getUniqueFilePath(output_dir,self.item_name + "_e7", "jxl", True),
+                        self.convert.getUniqueFilePath(output_dir,self.item_name + "_e9", "jxl", True),
                     ]
                     args[1] = "-e 7"
                     self.convert.convert(CJXL_PATH, self.item_abs_path, path_pool[0], args, self.n)
