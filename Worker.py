@@ -56,8 +56,27 @@ class Worker(QRunnable):
         else:
             self.signals.started.emit(self.n)
 
-            if os.path.isfile(self.item[3]) == False:   # If input file is still in the data, but was removed
+            # Check If input file is still in the list, but was physically removed
+            if os.path.isfile(self.item[3]) == False:   
                 print(f"[Worker #{self.n}] File not found ({self.item[3]})")
+                self.signals.completed.emit(self.n)
+                return
+
+            # Solve conflicts with overlapping formats
+            conflict = False
+            if self.item_ext == "gif":
+                match self.params["format"]:
+                    case "AVIF":
+                        conflict = True
+                        self.convert.log(f"Animated AVIF not supported",self.n)
+                    case "JPG":
+                        conflict = True
+                        self.convert.log(f"JPG doesn't support animation",self.n)
+                    case "Smallest Lossless":
+                        conflict = True
+                        self.convert.log(f"Smallest Lossless doesn't support animation",self.n)
+            
+            if conflict:
                 self.signals.completed.emit(self.n)
                 return
 
@@ -96,7 +115,7 @@ class Worker(QRunnable):
             # need_proxy is always True for "Smallest Lossless"
 
             output = os.path.abspath(os.path.join(output_dir, f"{self.item[0]}.{output_ext}"))
-            
+
             # Check for existing files
             if self.params["if_file_exists"] == "Replace":
                 if os.path.isfile(output):
