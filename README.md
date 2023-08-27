@@ -11,7 +11,9 @@ Available for both Windows and Linux.
 ![](screenshots/screenshot_1.png)
 ![](screenshots/screenshot_2.png)
 
-Supported formats: JPEG XL, AVIF, WEBP, JPG, PNG, Smallest Lossless
+Supported formats:
+- Encoding: JPEG XL, AVIF, WEBP, JPG, PNG, Smallest Lossless
+- Decoding: JPEG XL, AVIF, WEBP, JPG, GIF, HEIF, WEBP, TIFF, JP2, BMP
 
 ## Donations
 
