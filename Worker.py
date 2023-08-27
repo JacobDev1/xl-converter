@@ -128,7 +128,7 @@ class Worker(QRunnable):
                 if os.path.isfile(proxy_path):
                     self.item_abs_path = proxy_path
                 else:
-                    self.convert.convert.log(f"Proxy cannot be found ({self.item_name}.{self.item_ext})", self.n)
+                    self.convert.log(f"Proxy cannot be found ({self.item_name}.{self.item_ext})", self.n)
                     self.signals.completed.emit(self.n)
                     return
 
