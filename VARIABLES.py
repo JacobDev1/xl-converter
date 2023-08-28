@@ -1,6 +1,7 @@
 import os, platform
 
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
+DEBUG = False    # More verbose output
 
 CJXL_PATH = "cjxl"
 DJXL_PATH = "djxl"
