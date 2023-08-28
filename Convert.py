@@ -1,5 +1,6 @@
 import os, random, subprocess
 from send2trash import send2trash
+from VARIABLES import DEBUG
 
 # Methods for converting files
 
@@ -40,7 +41,10 @@ class Convert():
             command = f'\"{encoder_path}\" \"{src}\" \"{dst}\"'
         
         # Run
-        subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        if DEBUG:
+            subprocess.run(command, shell=True)
+        else:
+            subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
         # Log
         if n != None:
