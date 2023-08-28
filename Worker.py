@@ -32,13 +32,15 @@ class Signals(QObject):
     canceled = Signal(int)
 
 class Worker(QRunnable):
-    def __init__(self, n, item, params):
+    def __init__(self, n, item, params, burst_thread_pool = []):
         super().__init__()
-        self.n = n
         self.signals = Signals()
         self.convert = Convert()
-
         self.params = params
+
+        # Threading
+        self.n = n  # Thread number
+        self.available_threads = 1
         
         # Item info
         self.item = item    # Original file
@@ -47,6 +49,11 @@ class Worker(QRunnable):
         self.item_ext = item[1]
         self.item_dir = item[2]
         self.item_abs_path = item[3]
+
+        # Burst mode (for small data sets)
+        if burst_thread_pool:
+            self.available_threads = burst_thread_pool[self.n]
+            self.convert.log(f"Burst mode active (threads: {self.available_threads})", self.n)
     
     @Slot()
     def run(self):
@@ -126,7 +133,7 @@ class Worker(QRunnable):
                 if os.path.isfile(output) and self.params["format"] not in ("Smallest Lossless"):    # Special modes are handled later on
                     self.signals.completed.emit(self.n)
                     return
-            
+
             # Create Proxy
             if need_proxy:
                 proxy_path = self.convert.getUniqueFilePath(output_dir, self.item_name, "png", True)
@@ -157,6 +164,7 @@ class Worker(QRunnable):
                         f"-q {self.params['quality']}",
                         f"-e {self.params['effort']}",
                         "--lossless_jpeg=0",
+                        f"--num_threads={self.available_threads}"
                     ]
 
                 if self.params["lossless"]:
@@ -214,9 +222,10 @@ class Worker(QRunnable):
                 self.convert.convert(decoder_path, self.item_abs_path, output, [], self.n)
                 
             elif self.params["format"] == "WEBP":
+                multithreading = 1 if self.available_threads > 1 else 0
                 args = [
                     f"-quality {self.params['quality']}",
-                    "-define webp:thread-level=0",
+                    f"-define webp:thread-level={multithreading}",
                     "-define webp:method=6"
                     ]
                 if self.params["lossless"]:
@@ -246,6 +255,7 @@ class Worker(QRunnable):
                     "-a end-usage=q",
                     f"-a cq-level={self.params['quality']}",
                     f"-s {self.params['effort']}" if not self.params["intelligent_effort"] else "-s 0",
+                    f"-j {self.available_threads}"
                 ]
 
                 self.convert.convert(AVIFENC_PATH, self.item_abs_path, output, args, self.n)
@@ -266,10 +276,14 @@ class Worker(QRunnable):
                     return
 
                 # Set arguments
+                webp_thread_level = 1 if self.available_threads > 1 else 0
                 args = {
-                    "png": ["-o 4" if self.params["max_efficiency"] else "-o 2"],
+                    "png": [
+                        "-o 4" if self.params["max_efficiency"] else "-o 2",
+                        f"-t {self.available_threads}"
+                        ],
                     "webp": [
-                        "-define webp:thread-level=0",
+                        f"-define webp:thread-level={webp_thread_level}",
                         "-define webp:method=6",
                         "-define webp:lossless=true"
                     ],
@@ -277,6 +291,7 @@ class Worker(QRunnable):
                         "-q 100",
                         "--lossless_jpeg=0",
                         "-e 9" if self.params["max_efficiency"] else "-e 7",
+                        f"--num_threads={self.available_threads}"
                     ]
                 }
 

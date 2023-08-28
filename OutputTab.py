@@ -230,6 +230,9 @@ class OutputTab(QWidget):
         self.conv_cores_l.setText(str(self.conv_cores_sl.value()))
         self.threadpool.setMaxThreadCount(self.conv_cores_sl.value())
     
+    def getUsedThreadCount(self):
+        return self.conv_cores_sl.value()
+    
     def chooseOutput(self):
         dlg = QFileDialog()
         dlg.setFileMode(QFileDialog.Directory)

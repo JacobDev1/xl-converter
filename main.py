@@ -10,7 +10,7 @@ from OutputTab import OutputTab
 # from SettingsTab import SettingsTab    # For future implementation
 from Worker import Worker, task_status
 from Data import Data
-from HelperFunctions import stripPathToFilename, scanDir
+from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
         self.setUIEnabled(False)
 
         for i in range(0,self.data.getItemCount()):
-            worker = Worker(i, self.data.getItem(i), params)
+            worker = Worker(i, self.data.getItem(i), params, burstThreadPool(self.data.getItemCount(), self.output_tab.getUsedThreadCount()))
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
