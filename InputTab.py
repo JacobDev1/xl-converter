@@ -71,7 +71,7 @@ class InputTab(QWidget):
         name_filter += ")"
         dlg.setNameFilter(name_filter)
 
-        self.file_view.setSortingEnabled(False)
+        self.file_view.beforeAddingItems()
         filepaths = ""
         if dlg.exec():
             filepaths = dlg.selectedFiles()
@@ -80,14 +80,13 @@ class InputTab(QWidget):
                 print(file_data)
                 self.file_view.addItem(file_data[0], file_data[1], file_data[3])
         
-        self.file_view.setSortingEnabled(True)
-        self.file_view.resizeToContent()
+        self.file_view.finishAddingItems()
 
     def addFolder(self):
         dlg = QFileDialog()
         dlg.setFileMode(QFileDialog.Directory)
         
-        self.file_view.setSortingEnabled(False)
+        self.file_view.beforeAddingItems()
         if dlg.exec():
             files = scanDir(dlg.selectedFiles()[0])
             for i in files:
@@ -95,8 +94,7 @@ class InputTab(QWidget):
                 if file_data[1] in ALLOWED_INPUT:
                     self.file_view.addItem(file_data[0], file_data[1], file_data[3])
         
-        self.file_view.setSortingEnabled(True)
-        self.file_view.resizeToContent()
+        self.file_view.finishAddingItems()
 
     def clearInput(self):
         self.file_view.clear()
