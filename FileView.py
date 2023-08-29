@@ -29,19 +29,18 @@ class FileView(QTreeWidget):
         self.sortByColumn(1, Qt.SortOrder.DescendingOrder)
     
     def addItem(self, *fields):
-        is_duplicate = False
-        item_count = self.invisibleRootItem().childCount()
+        self.addTopLevelItem(QTreeWidgetItem(None, (fields[0],fields[1],fields[2])))
 
-        if item_count > 0:
-            for i in range(item_count):
-                item = self.invisibleRootItem().child(i)
-                if item.text(2) == fields[2]:
-                    is_duplicate = True
-        if is_duplicate:
-           print(f"[FileView] Duplicate entry ({fields[2]})")
-        else:
-            self.addTopLevelItem(QTreeWidgetItem(None, (fields[0],fields[1],fields[2])))
-            self.scrollToItem(self.invisibleRootItem().child(item_count))   # Not -1, because we just added one
+    def beforeAddingItems(self):
+        """Run before adding items"""
+        self.setSortingEnabled(False)
+
+    def finishAddingItems(self):
+        """Run after all items have been added."""
+        self.resizeToContent()
+        self.removeDuplicates()
+        self.scrollToLastItem()
+        self.setSortingEnabled(True)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -53,7 +52,7 @@ class FileView(QTreeWidget):
         if event.mimeData().hasUrls():
             event.accept()
             
-            self.setSortingEnabled(False)
+            self.beforeAddingItems()
             for i in event.mimeData().urls():
                 path = ""
                 if i.isLocalFile():
@@ -72,8 +71,8 @@ class FileView(QTreeWidget):
                             self.addItem(file_data[0],file_data[1],file_data[3])
                 else:
                     path = str(i.toString())
-            self.setSortingEnabled(True)
-            self.resizeToContent()
+            
+            self.finishAddingItems()
 
     def keyPressEvent(self, event):
         if event.key() == 16777223: # Delete
@@ -102,3 +101,23 @@ class FileView(QTreeWidget):
     def resizeToContent(self):
         for i in range(0, self.columnCount() - 1):  # The last one resizes with the window
             self.resizeColumnToContents(i)
+    
+    def scrollToLastItem(self):
+        item_count = self.invisibleRootItem().childCount()
+        self.scrollToItem(self.invisibleRootItem().child(item_count - 1))
+
+    def removeDuplicates(self):
+        """Remove all duplicates. Avoid calling often."""
+        item_count = self.invisibleRootItem().childCount()
+        unique_items = []
+        
+        n = 0
+        while n < item_count:
+            item = self.invisibleRootItem().child(n)
+            if item.text(2) not in unique_items:
+                unique_items.append(item.text(2))
+                n += 1
+            else:
+                print(f"[FileView] Duplicate found: {item.text(2)}")
+                self.takeTopLevelItem(n)
+                item_count -= 1
