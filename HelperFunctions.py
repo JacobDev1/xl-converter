@@ -1,18 +1,22 @@
 import os, re, platform
 from pathlib import Path
 
-def stripPathToFilename(path):                              # D:/images/image.png
-    """Dissect an absolute path into file name, extension and its directory"""
-    fp_split = re.split(r"\\|/", path)
-    f_name_split = fp_split[len(fp_split)-1].split(".")     # directory/[file.jxl]
-    f_name = ".".join(f_name_split[:-1])        # 0 - picture
-    f_ext = f_name_split[len(f_name_split)-1]   # 1 - .jxl
-    f_dir = "/".join(fp_split[:-1])             # 2 - D:/Images
-    abs_path = path                             # 3 - D:/Images/picture.jxl
-    if platform.system() == "Windows":
-        abs_path = abs_path.replace('/','\\')   # Required for deleting files on Windows to work
-        f_dir = f_dir.replace('/','\\')
-    return (f_name,f_ext, f_dir, abs_path)
+def stripPathToFilename(path):
+    """Dissect path into its parts.
+    
+    argument:
+        path - D:/images/image.png
+    returns:
+        0 - image
+        1 - png
+        2 - D:/images
+        3 - D:/images/image.png
+    """
+    f_dir = os.path.split(path)[0]
+    f_name = Path(path).stem
+    f_ext = Path(path).suffix
+
+    return (f_name, f_ext[1:], f_dir, path)
 
 def scanDir(path):
     """Recursively scan a directory for files"""
