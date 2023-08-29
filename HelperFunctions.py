@@ -23,7 +23,15 @@ def scanDir(path):
     return files    # table
 
 def burstThreadPool(workers_n, cores_a):
-        """Returns a list of how many threads each worker can use. workers_n - number of workers. cores_a - available cores."""
+        """Returns a list of how many threads each worker can use. 
+        arguments:
+            workers_n - number of workers.
+            cores_a - available cores.
+        returns (examples):
+            burstThreadPool(3, 6) -> [2,2,2]
+            burstThreadPool(3, 5) -> [2,2,1]
+            burstThreadPool(2, 5) -> [3,2]
+        """
         if workers_n >= cores_a:
             return []
         
