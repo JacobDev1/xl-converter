@@ -75,21 +75,30 @@ class FileView(QTreeWidget):
             self.finishAddingItems()
 
     def keyPressEvent(self, event):
-        if event.key() == 16777223: # Delete
+        if event.key() == Qt.Key_Delete:
             print(f"[FileView] Pressed \"Delete\"")
-            indexes = self.selectionModel().selectedIndexes()
+            selected_indexes = self.selectionModel().selectedIndexes()
             deleted_indexes = []
-            if len(indexes) > 0:
-                for i in range(len(indexes)-1,0,-1): # Descending, not to shift order
-                    row = indexes[i].row()
+            if len(selected_indexes) > 0:
+                for i in range(len(selected_indexes)-1,0,-1): # Descending, not to shift order
+                    row = selected_indexes[i].row()
                     if row not in deleted_indexes:
                         deleted_indexes.append(row)
                         self.takeTopLevelItem(row)
                         print(f"[FileView] Removed item from list (index {row})")
-        # elif event.key() == Qt.Key_Up:        # For future implementation
-        #     print(f"[FileView] Pressed \"Key_Up\"")
+                
+                # Select next item
+                item_count = self.invisibleRootItem().childCount()
+                if item_count > 0:
+                    row = selected_indexes[0].row()
+                    next_row = row
+                    if row == item_count:
+                        next_row -= 1
+                    self.invisibleRootItem().child(next_row).setSelected(True)
+        # elif event.key() == Qt.Key_Up:
+        #     pass
         # elif event.key() == Qt.Key_Down:
-        #     print(f"[FileView] Pressed \"Key_Down\"")
+        #     pass
     
     def selectAllItems(self):
         item_count = self.invisibleRootItem().childCount()
