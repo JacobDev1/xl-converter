@@ -16,7 +16,7 @@ def stripPathToFilename(path):
     f_name = Path(path).stem
     f_ext = Path(path).suffix
 
-    return (f_name, f_ext[1:], f_dir, path)
+    return (f_name, f_ext[1:], f_dir, os.path.abspath(path))
 
 def scanDir(path):
     """Recursively scan a directory for files"""
