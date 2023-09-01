@@ -77,7 +77,6 @@ class InputTab(QWidget):
             filepaths = dlg.selectedFiles()
             for i in filepaths:
                 file_data = stripPathToFilename(i)
-                print(file_data)
                 self.file_view.addItem(file_data[0], file_data[1], file_data[3])
         
         self.file_view.finishAddingItems()
