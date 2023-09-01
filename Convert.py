@@ -33,34 +33,20 @@ class Convert():
         return path
     
     def convert(self, encoder_path, src, dst, args = [], n = None):
-        # Handle commands with or without arguments
-        command = ""
-        if len(args):
-            command = f'\"{encoder_path}\" \"{src}\" {" ".join(args)} \"{dst}\"'
-        else:
-            command = f'\"{encoder_path}\" \"{src}\" \"{dst}\"'
+        command = f'\"{encoder_path}\" \"{src}\" {" ".join(args) + " " if args else ""}\"{dst}\"'
         
-        # Run
-        if DEBUG:
-            subprocess.run(command, shell=True)
-        else:
-            subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        if DEBUG:   subprocess.run(command, shell=True)
+        else:       subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-        # Log
-        if n != None:
-            self.log(command, n)
+        if n != None:   self.log(command, n)
 
     def optimize(self, bin_path, src, args = [], n = None):
-        command = ""
-        if len(args):
-            command = f'\"{bin_path}\" {" ".join(args)} \"{src}\"'
-        else:
-            command = f'\"{bin_path}\" \"{src}\"'
+        command = f'\"{bin_path}\" {" ".join(args) + " " if args else ""}\"{src}\"'
 
-        subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        if DEBUG:   subprocess.run(command, shell=True)
+        else:       subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-        if n != None:
-            self.log(command, n)
+        if n != None:   self.log(command, n)
 
     def delete(self, path, trash = False):
         try:
