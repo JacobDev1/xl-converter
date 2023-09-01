@@ -82,6 +82,10 @@ class Worker(QRunnable):
                     case "Smallest Lossless":
                         conflict = True
                         self.convert.log(f"Smallest Lossless doesn't support animation",self.n)
+            elif self.item_ext == "apng":
+                if self.params["format"] != "JPEG XL":
+                    conflict = True
+                    self.convert.log(f"{self.params['format']} encoder doesn't support APNG ({self.item_name}.{self.item_ext})",self.n)
             
             if conflict:
                 self.signals.completed.emit(self.n)
