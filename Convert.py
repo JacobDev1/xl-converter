@@ -1,6 +1,6 @@
 import os, random, subprocess
 from send2trash import send2trash
-from VARIABLES import DEBUG
+from VARIABLES import DEBUG, IMAGE_MAGICK_PATH
 
 # Methods for converting files
 
@@ -100,3 +100,41 @@ class Convert():
             else:
                 if paths[i] != new_path:
                     os.rename(paths[i], new_path)
+    
+    # Prototype functions for resizing
+    # def downscaleByPercent(self, src, dst, amount=10, n=None):
+    #     """Resize the image by percentage. Keeps the same aspect ratio."""
+    #     args = [
+    #         f"-resize {100 - amount}%"
+    #     ]
+
+    #     self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
+
+    # def downscaleToMaxPixelSize(self, src, dst, max_w, max_h, n=None):
+    #     args = [
+    #         f"-resize {max_w}x{max_h}"
+    #     ]
+
+    #     self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
+    
+    # Sample implementation. To be moved into Worker.py and made to calc size based on desired output format (e.g. AVIF)
+    # def downscaleToMaxFileSize(self, src, dst, max_size, step=10, n=None):
+    #     """Downscale image to fit under a certain file size.
+
+    #         max_size - takes KiB (e.g. 500 KiB)
+    #         step - takes % (e.g. 10%). Keep between 5% - 10%
+    #     """
+    #     amount = step
+    #     while True:
+    #         self.downscaleByPercent(src, dst, amount, n)
+
+    #         print(f"[DEBUG] {amount}; {os.path.getsize(dst) / 1024}")
+    #         if (os.path.getsize(dst) / 1024) > max_size:
+    #             amount += step
+    #             if amount < 1:
+    #                 self.log("[Error] Cannot downscale to less than 1%", n)
+    #                 return False
+    #             self.delete(dst)
+    #             continue
+    #         else:
+    #             return True
