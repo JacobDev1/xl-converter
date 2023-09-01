@@ -8,6 +8,7 @@ from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
 # from SettingsTab import SettingsTab    # For future implementation
+# from ModifyTab import ModifyTab
 from Worker import Worker, task_status
 from Data import Data
 from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool
@@ -53,6 +54,10 @@ class MainWindow(QMainWindow):
         self.output_tab = OutputTab()
         self.output_tab.signals.convert.connect(self.convert)
         self.tab.addTab(self.output_tab, "Output")
+
+        # Modify Tab
+        # self.modify_tab = ModifyTab()
+        # self.tab.addTab(self.modify_tab, "Modify")
 
         # Settings Tab
         # self.settings_tab = SettingsTab()
