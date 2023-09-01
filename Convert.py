@@ -75,8 +75,11 @@ class Convert():
         """Outputs rounded size in KiB"""
         return round(size/1024,1) 
 
-    def log(self, msg, n):
-        print(f"[Worker #{n}] {msg}")
+    def log(self, msg, n = None):
+        if n == None:
+            print(msg)
+        else:
+            print(f"[Worker #{n}] {msg}")
     
     def leaveOnlySmallestFile(self, paths: [], new_path):
         """Delete all except the smallest file."""
