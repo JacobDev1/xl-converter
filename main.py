@@ -37,8 +37,6 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(PROGRAM_FOLDER,"icons/logo.svg")))
         self.resize(650,300)
 
-        main_layout = QGridLayout(self)
-        self.setLayout(main_layout)
         self.tab = QTabWidget(self)
 
         self.threadpool = QThreadPool.globalInstance()
@@ -68,7 +66,6 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.about_tab, "About")
 
         # Main
-        main_layout.addWidget(self.tab,0,0,2,1)
         self.setCentralWidget(self.tab)
 
     def start(self, n):
