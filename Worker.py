@@ -214,7 +214,7 @@ class Worker(QRunnable):
                 elif input_ext in ALLOWED_INPUT_IMAGE_MAGICK:
                     decoder_path = IMAGE_MAGICK_PATH
                 else:
-                    self.convert.log(f"No supported decoder found for ({self.item_name}.{self.item_ext})")
+                    self.convert.log(f"No supported decoder found for ({self.item_name}.{self.item_ext})", self.n)
                     self.signals.completed.emit(self.n)
                     return
 
