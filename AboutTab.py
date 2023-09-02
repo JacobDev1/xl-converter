@@ -23,7 +23,7 @@ class AboutTab(QWidget):
         self.setLayout(about_tab_lt)
 
         # Left Side
-        credits_l = QLabel("<h3><a href=\"https://codepoems.eu\">CodePoems.eu</a></h3>Version 0.8<br>contact@codepoems.eu<br>XL Converter is licensed under <a href=\"LICENSE.txt\">GPL v3</a><br><a href=\"LICENSE_3RD_PARTY.txt\">3rd party licenses")
+        credits_l = QLabel("<h3>XL Converter</h3>Version 0.8<br>contact@codepoems.eu<br>XL Converter is licensed under <a href=\"LICENSE.txt\">GPL v3</a><br><a href=\"LICENSE_3RD_PARTY.txt\">3rd party licenses")
         credits_l.setAlignment(Qt.AlignCenter)
         credits_l.setOpenExternalLinks(True)
         about_tab_lt.addWidget(credits_l,0,0)
