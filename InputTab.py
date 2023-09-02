@@ -62,6 +62,7 @@ class InputTab(QWidget):
 
     def addFiles(self):
         dlg = QFileDialog()
+        dlg.setWindowTitle("Add Images")
         dlg.setFileMode(QFileDialog.ExistingFiles)
         name_filter = "Images ("
         for i in ALLOWED_INPUT:
@@ -83,6 +84,7 @@ class InputTab(QWidget):
 
     def addFolder(self):
         dlg = QFileDialog()
+        dlg.setWindowTitle("Add Images from a Folder")
         dlg.setFileMode(QFileDialog.Directory)
         
         self.file_view.beforeAddingItems()
