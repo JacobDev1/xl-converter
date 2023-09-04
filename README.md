@@ -40,8 +40,8 @@ Linux
 
 - Windows - supported by [XnViewMP](https://www.xnview.com/en/) / [ImageGlass](https://imageglass.org/) / [PhotoQt](https://photoqt.org/) / [PicView](https://picview.org/) / [nomacs](https://nomacs.org/windows-10/) / [GIMP](https://www.gimp.org/)
 - Linux
-    - JPEG XL - [my tutorial](https://codepoems.eu/posts/how-to-open-jpeg-xl-images-on-linux/)
-    - AVIF - run `sudo apt install libavif-gdk-pixbuf`
+    - JPEG XL - [tutorial](https://codepoems.eu/posts/how-to-open-jpeg-xl-images-on-linux/)
+    - AVIF - [tutorial](https://codepoems.eu/posts/how-to-open-avif-images-on-linux/)
 
 ## Intelligent Features
 
