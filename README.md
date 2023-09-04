@@ -38,7 +38,7 @@ Linux
 
 ### How to Open Modern Formats
 
-- Windows - supported by [XnViewMP](https://www.xnview.com/en/) / [ImageGlass](https://imageglass.org/) / [PhotoQt](https://photoqt.org/) / [PicView](https://picview.org/) / [nomacs](https://nomacs.org/windows-10/) / [GIMP](https://www.gimp.org/)
+- Windows - supported by [ImageGlass](https://imageglass.org/) / [XnViewMP](https://www.xnview.com/en/) / [PhotoQt](https://photoqt.org/) / [PicView](https://picview.org/) / [nomacs](https://nomacs.org/windows-10/) / [GIMP](https://www.gimp.org/)
 - Linux
     - JPEG XL - [tutorial](https://codepoems.eu/posts/how-to-open-jpeg-xl-images-on-linux/)
     - AVIF - [tutorial](https://codepoems.eu/posts/how-to-open-avif-images-on-linux/)
