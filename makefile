@@ -1,4 +1,4 @@
-.PHONY: run clean
+.PHONY: run clean setup linux
 
 clean:
 	rm -rf __pycache__ dist
