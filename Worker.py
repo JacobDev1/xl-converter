@@ -124,17 +124,15 @@ class Worker(QRunnable):
                 if self.item_ext in ALLOWED_INPUT_IMAGE_MAGICK:
                     need_proxy = False
             # need_proxy is always True for "Smallest Lossless"
-
-            output = os.path.abspath(os.path.join(output_dir, f"{self.item[0]}.{output_ext}"))
-
-            # Check for existing files
-            if self.params["if_file_exists"] == "Replace":
-                if os.path.isfile(output):
-                    self.convert.delete(output)
-            elif self.params["if_file_exists"] == "Rename":
-                output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, False)    
-            elif self.params["if_file_exists"] == "Skip":
-                if os.path.isfile(output) and self.params["format"] not in ("Smallest Lossless"):    # Special modes are handled later on
+           
+            # Assign output paths
+            output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
+            final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # The output previous var will be renamed to
+            # It is done this way to avoid mutlithreaded 
+            
+            # Skip If needed
+            if self.params["if_file_exists"] == "Skip":
+                if os.path.isfile(final_output) and self.params["format"] not in ("Smallest Lossless"):
                     self.signals.completed.emit(self.n)
                     return
 
@@ -328,17 +326,10 @@ class Worker(QRunnable):
                     if key != sm_f_key:
                         self.convert.delete(path_pool[key])
                 
-                # Rename the smallest file
-                output = os.path.join(output_dir, f"{self.item_name}.{sm_f_key}")
-                if self.params["if_file_exists"] == "Replace":
-                    if os.path.isfile(output):
-                        self.convert.delete(output)
-                    os.rename(path_pool[sm_f_key], output)
-                elif self.params["if_file_exists"] == "Rename":
-                    output = self.convert.getUniqueFilePath(output_dir, self.item_name, sm_f_key)
-                    os.rename(path_pool[sm_f_key], output)
-                elif self.params["if_file_exists"] == "Skip":
-                    self.convert.delete(path_pool[sm_f_key])
+                # Handle the smallest file
+                output = path_pool[sm_f_key]
+                final_output = os.path.join(output_dir, f"{self.item_name}.{sm_f_key}")
+                output_ext = sm_f_key
                 
                 # Log
                 self.convert.log(f"File Sizes: {file_sizes}", self.n)
@@ -347,14 +338,30 @@ class Worker(QRunnable):
             else:
                 self.convert.log(f"Unknown Format ({self.params['format']})", self.n)
             
-            # Delete proxy
+            # Check for existing files
+            match self.params["if_file_exists"]:
+                case "Replace":
+                    if os.path.isfile(final_output):
+                        self.convert.delete(final_output)
+                    os.rename(output, final_output)
+                case "Rename":
+                    final_output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, False)
+                    os.rename(output, final_output)
+                case "Skip":    # Only for "Smallest Lossless", other cases were handled before
+                    if self.params["format"] == "Smallest Lossless":
+                        if os.path.isfile(final_output):
+                            self.convert.delete(output)
+                        else:
+                            os.rename(output, final_output)
+                
+            # Clean-up proxy
             if need_proxy:
                 self.convert.delete(self.item_abs_path)
                 self.item_abs_path = self.item[3]
 
             # After Conversion
             if self.params["delete_original"]:
-                if os.path.isfile(output):   # In case convertion failed, don't delete the original
+                if os.path.isfile(final_output):   # In case convertion failed, don't delete the original
                     if self.params["delete_original_mode"] == "To Trash":
                         self.convert.delete(self.item[3], True)
                     elif self.params["delete_original_mode"] == "Permanently":
