@@ -104,25 +104,26 @@ class Worker(QRunnable):
             # Check If proxy needed / Assign extensions
             output_ext = ""
             need_proxy = True
-            if self.params["format"] == "JPEG XL":
-                output_ext = "jxl"
-                if self.item_ext in ALLOWED_INPUT_CJXL:
+            match self.params["format"]:
+                case "JPEG XL":
+                    output_ext = "jxl"
+                    if self.item_ext in ALLOWED_INPUT_CJXL:
+                        need_proxy = False          
+                case "PNG":
+                    output_ext = "png"
                     need_proxy = False
-            elif self.params["format"] == "PNG":
-                output_ext = "png"
-                need_proxy = False
-            elif self.params["format"] == "AVIF":
-                output_ext = "avif"
-                if self.item_ext in ALLOWED_INPUT_AVIFENC:
-                    need_proxy = False
-            elif self.params["format"] == "WEBP":
-                output_ext = "webp"
-                if self.item_ext in ALLOWED_INPUT_IMAGE_MAGICK:
-                    need_proxy = False
-            elif self.params["format"] == "JPG":
-                output_ext = "jpg"
-                if self.item_ext in ALLOWED_INPUT_IMAGE_MAGICK:
-                    need_proxy = False
+                case "AVIF":
+                    output_ext = "avif"
+                    if self.item_ext in ALLOWED_INPUT_AVIFENC:
+                        need_proxy = False
+                case "WEBP":
+                    output_ext = "webp"
+                    if self.item_ext in ALLOWED_INPUT_IMAGE_MAGICK:
+                        need_proxy = False
+                case "JPG":
+                    output_ext = "jpg"
+                    if self.item_ext in ALLOWED_INPUT_IMAGE_MAGICK:
+                        need_proxy = False
             # need_proxy is always True for "Smallest Lossless"
            
             # Assign output paths
