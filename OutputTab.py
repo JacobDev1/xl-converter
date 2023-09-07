@@ -53,7 +53,7 @@ class OutputTab(QWidget):
         self.conv_cores_sl.valueChanged.connect(lambda: self.onThreadCountChange())
 
         if_file_exists_hbox = QHBoxLayout()
-        if_file_exists_hbox.addWidget(QLabel("If File Already Exists"))
+        if_file_exists_hbox.addWidget(QLabel("Duplicates"))
         if_file_exists_hbox.addWidget(self.if_file_exists_cmb)
 
         self.conv_cores_l = QLabel("1")
