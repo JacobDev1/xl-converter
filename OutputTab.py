@@ -235,6 +235,7 @@ class OutputTab(QWidget):
     
     def chooseOutput(self):
         dlg = QFileDialog()
+        dlg.setWindowTitle("Choose Output Folder")
         dlg.setFileMode(QFileDialog.Directory)
 
         if dlg.exec():
