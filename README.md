@@ -47,7 +47,7 @@ Linux
 
 ### Lossless (If Smaller)
 
-Converts to both lossy and lossless, then picks the smallest file.
+Converts to both lossy and lossless then picks the smallest file.
 
 ### Smallest Lossless
 
