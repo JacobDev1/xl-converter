@@ -82,6 +82,11 @@ class Worker(QRunnable):
                 case "Smallest Lossless":
                     conflict = True
                     self.convert.log(f"Smallest Lossless doesn't support animation",self.n)
+                case "JPEG XL":
+                    # Hotfix
+                    # Efforts bigger than 7 cause the encoder to crash when processing GIFs
+                    self.params["effort"] = 7
+                    self.params["intelligent_effort"] = False
         elif self.item_ext == "apng":
             if self.params["format"] != "JPEG XL":
                 conflict = True
