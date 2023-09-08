@@ -200,7 +200,7 @@ class ModifyTab(QWidget):
                 "filesize_step": self.scl_fs_s_sb.value(),
                 "width": self.scl_px_w_sb.value(),
                 "height": self.scl_px_w_sb.value(),
-                "filesize": self.scl_fs_sb_sb.value(),
+                "filesize": self.scl_fs_sb.value(),
                 "resample": self.rs_cmb.currentText().lower()
             },
             "misc": {
