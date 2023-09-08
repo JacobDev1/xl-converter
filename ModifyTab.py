@@ -38,7 +38,7 @@ class ModifyTab(QWidget):
         self.downscale_lt.addLayout(self.mode_lt)
 
         self.mode_cmb = QComboBox()
-        self.mode_cmb.addItems(("Percent", "Pixels", "Max Filesize"))
+        self.mode_cmb.addItems(("Max Filesize", "Percent", "Pixels"))
         self.mode_cmb.currentIndexChanged.connect(self.onModeChanged)
         self.mode_lt.addWidget(self.mode_cmb)
 
