@@ -8,7 +8,7 @@ from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
 # from SettingsTab import SettingsTab    # For future implementation
-# from ModifyTab import ModifyTab
+from ModifyTab import ModifyTab
 from Worker import Worker, task_status
 from Data import Data
 from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool
@@ -54,8 +54,8 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.output_tab, "Output")
 
         # Modify Tab
-        # self.modify_tab = ModifyTab()
-        # self.tab.addTab(self.modify_tab, "Modify")
+        self.modify_tab = ModifyTab()
+        self.tab.addTab(self.modify_tab, "Modify")
 
         # Settings Tab
         # self.settings_tab = SettingsTab()
@@ -97,7 +97,9 @@ class MainWindow(QMainWindow):
         if self.input_tab.file_view.topLevelItemCount() == 0:
             return
         
+        # Fill in the parameters
         params = self.output_tab.getSettings()
+        params.update(self.modify_tab.getSettings())
 
         self.data.clear()
         self.data.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
