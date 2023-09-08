@@ -90,7 +90,7 @@ class OutputTab(QWidget):
         output_page_lt.addWidget(after_conv_grp,1,1)
 
         # Output Group
-        output_grp = QGroupBox("Where to Save Files")
+        output_grp = QGroupBox("Save To")
         output_grp_layout = QVBoxLayout()
         output_grp.setLayout(output_grp_layout)
 
