@@ -55,6 +55,7 @@ class MainWindow(QMainWindow):
 
         # Modify Tab
         self.modify_tab = ModifyTab()
+        self.modify_tab.signals.convert.connect(self.convert)
         self.tab.addTab(self.modify_tab, "Modify")
 
         # Settings Tab

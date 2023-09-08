@@ -12,12 +12,21 @@ from PySide6.QtWidgets import(
     QGroupBox
 )
 
+from PySide6.QtCore import(
+    QObject,
+    Signal
+)
+
 MAX_RES_PX = 999999999
 MAX_FILE_SIZE = 1024**2   # KiB
+
+class Signals(QObject):
+    convert = Signal()
 
 class ModifyTab(QWidget):
     def __init__(self):
         super(ModifyTab, self).__init__()
+        self.signals = Signals()
 
         # Set Main Layout
         tab_lt = QGridLayout()
@@ -129,6 +138,7 @@ class ModifyTab(QWidget):
         default_btn = QPushButton("Reset to Default")
         default_btn.clicked.connect(self.resetToDefault)
         convert_btn = QPushButton("Convert")    # To be removed??
+        convert_btn.clicked.connect(lambda: self.signals.convert.emit())
 
         tab_lt.addWidget(default_btn,2,0)
         tab_lt.addWidget(convert_btn,2,1)
