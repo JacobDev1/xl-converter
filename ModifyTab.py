@@ -47,7 +47,7 @@ class ModifyTab(QWidget):
         self.downscale_lt.addLayout(self.mode_lt)
 
         self.mode_cmb = QComboBox()
-        self.mode_cmb.addItems(("Max Filesize", "Percent", "Pixels"))
+        self.mode_cmb.addItems(("Max File Size", "Percent", "Pixels"))
         self.mode_cmb.currentIndexChanged.connect(self.onModeChanged)
         self.mode_lt.addWidget(self.mode_cmb)
 
@@ -190,7 +190,7 @@ class ModifyTab(QWidget):
             self.scl_px_w_l.setVisible(False)
             self.scl_px_w_sb.setVisible(False)
         
-        if index == "Max Filesize":
+        if index == "Max File Size":
             self.scl_fs_l.setVisible(True)
             self.scl_fs_sb.setVisible(True)
             self.scl_fs_s_sb.setVisible(True)
@@ -204,13 +204,13 @@ class ModifyTab(QWidget):
     def getSettings(self):
         params = {
             "downscaling": {
-                "enable": self.downscaling_cb.isChecked(),
+                "enabled": self.downscaling_cb.isChecked(),
                 "mode": self.mode_cmb.currentText(),
                 "percent": self.scl_p_sb.value(),
-                "filesize_step": self.scl_fs_s_sb.value(),
+                "file_size_step": self.scl_fs_s_sb.value(),
                 "width": self.scl_px_w_sb.value(),
                 "height": self.scl_px_w_sb.value(),
-                "filesize": self.scl_fs_sb.value(),
+                "file_size": self.scl_fs_sb.value(),
                 "resample": self.rs_cmb.currentText().lower()
             },
             "misc": {
