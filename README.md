@@ -59,6 +59,18 @@ Every image is checked with each of the 3 formats (Optimized PNG, WEBP and JPEG 
 
 Gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer conversion time**. I wrote an [article](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) demystifying the effort argument.
 
+### Image Proxy
+
+Encoders are picky, but XL Converter isn't. Feed it any format it can decode and the conversion will still be finished despite the encoder not supporting it.
+
+For example: HEIF to JPEG XL
+
+### Burst Mode
+
+For small amounts of images, the extra threads will be spread out for maximum performance.
+
+Works best in AVIF. Other encoders don't seem to use extra threads much.
+
 ## Building
 
 The build will be generated to `dist/xl-converter`.
