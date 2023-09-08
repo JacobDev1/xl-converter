@@ -18,7 +18,7 @@ Supported formats:
 
 ## Donations
 
-I'm currently without a job, so I'd appreciete [your donation](https://liberapay.com/CodePoems).
+I'm currently without a job, so I'd appreciate [your donation](https://liberapay.com/CodePoems).
 
 The programming market is difficult to get into and my IT degree doesn't seem to be of any help. Donations will be used to pay for the hosting of my [website](https://codepoems.eu) where I post tutorials and software.
 
@@ -53,11 +53,11 @@ Converts to both lossy and lossless, then picks the smallest file.
 
 Every image is checked with each of the 3 formats (Optimized PNG, WEBP and JPEG XL) to deliver **the tiniest file size** without any loss of quality.
 
-**Maximum efficiency** option prolongs the convertion, but grants encoders more time to shrink the images.
+**Maximum efficiency** option prolongs the conversion, but grants encoders more time to shrink the images.
 
 ### Intelligent Effort
 
-Gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer convertion time**. I wrote an [article](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) demystifying the effort argument.
+Gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer conversion time**. I wrote an [article](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) demystifying the effort argument.
 
 ## Building
 
