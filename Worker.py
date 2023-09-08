@@ -91,6 +91,18 @@ class Worker(QRunnable):
             self.signals.completed.emit(self.n)
             return
 
+        # Check If "Smallest Lossless" has any formats enabled
+        if self.params["format"] == "Smallest Lossless":
+            is_empty = True
+            for key, value in self.params["smallest_format_pool"].items():
+                if value:
+                    is_empty = False
+            
+            if is_empty:
+                self.convert.log("Smallest Lossless needs at least one format enabled", self.n)
+                self.signals.completed.emit(self.n)
+                return
+
         # Choose Output Dir           
         output_dir = ""
         output = ""
@@ -137,18 +149,6 @@ class Worker(QRunnable):
                 self.signals.completed.emit(self.n)
                 return
         
-        # Check If "Smallest Lossless" has any formats enabled
-        if self.params["format"] == "Smallest Lossless":
-            is_empty = True
-            for key, value in self.params["smallest_format_pool"].items():
-                if value:
-                    is_empty = False
-            
-            if is_empty:
-                self.convert.log("Smallest Lossless needs at least one format enabled", self.n)
-                self.signals.completed.emit(self.n)
-                return
-
         # Create Proxy
         if need_proxy:
             proxy_path = self.convert.getUniqueFilePath(output_dir, self.item_name, "png", True)
