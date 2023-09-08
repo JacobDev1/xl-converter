@@ -101,16 +101,19 @@ class MainWindow(QMainWindow):
         params = self.output_tab.getSettings()
         params.update(self.modify_tab.getSettings())
 
+        # Parse data
         self.data.clear()
         self.data.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
         if self.data.getItemCount() == 0:
             return
         
+        # Set progress dialog
         self.progress_dialog = QProgressDialog("Converting Items...", "Cancel",0,self.data.getItemCount(), self)
         self.progress_dialog.setWindowTitle("XL Converter")
         self.progress_dialog.setMinimumWidth(300)
         self.progress_dialog.show()
 
+        # Start workers
         task_status.reset()
         self.setUIEnabled(False)
 
