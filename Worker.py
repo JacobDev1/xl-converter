@@ -85,7 +85,8 @@ class Worker(QRunnable):
                 case "JPEG XL":
                     # Hotfix
                     # Efforts bigger than 7 cause the encoder to crash when processing GIFs
-                    self.params["effort"] = 7
+                    if self.params["effort"] > 7:
+                        self.params["effort"] = 7
                     self.params["intelligent_effort"] = False
         elif self.item_ext == "apng":
             if self.params["format"] != "JPEG XL":
