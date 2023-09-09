@@ -47,7 +47,7 @@ class ModifyTab(QWidget):
         self.downscale_lt.addLayout(self.mode_lt)
 
         self.mode_cmb = QComboBox()
-        self.mode_cmb.addItems(("Max File Size", "Percent", "Pixels"))
+        self.mode_cmb.addItems(("Max File Size", "Percent", "Max Resolution"))
         self.mode_cmb.currentIndexChanged.connect(self.onModeChanged)
         self.mode_lt.addWidget(self.mode_cmb)
 
@@ -179,7 +179,7 @@ class ModifyTab(QWidget):
             self.scl_p_l.setVisible(False)
             self.scl_p_sb.setVisible(False)
 
-        if index == "Pixels":
+        if index == "Max Resolution":
             self.scl_px_h_l.setVisible(True)
             self.scl_px_h_sb.setVisible(True)
             self.scl_px_w_l.setVisible(True)
@@ -211,7 +211,7 @@ class ModifyTab(QWidget):
                 "width": self.scl_px_w_sb.value(),
                 "height": self.scl_px_w_sb.value(),
                 "file_size": self.scl_fs_sb.value(),
-                "resample": self.rs_cmb.currentText().lower()
+                "resample": self.rs_cmb.currentText(),
             },
             "misc": {
                 "metadata": self.metadata_cb.isChecked(),
