@@ -147,12 +147,12 @@ class OutputTab(QWidget):
         self.format_lossless_if_cb.toggled.connect(self.toggleLossless)
         self.format_lossless_cb = QCheckBox("Lossless")
         self.format_lossless_cb.toggled.connect(self.toggleLossless)
-        self.format_max_efc = QCheckBox("Max Efficiency")
-        self.format_max_efc.setVisible(False)
+        self.format_max_cmp = QCheckBox("Max Compression")
+        self.format_max_cmp.setVisible(False)
         format_lossless_hbox = QHBoxLayout()
         format_lossless_hbox.addWidget(self.format_lossless_cb)
         format_lossless_hbox.addWidget(self.format_lossless_if_cb)
-        format_lossless_hbox.addWidget(self.format_max_efc)
+        format_lossless_hbox.addWidget(self.format_max_cmp)
 
         format_cmb_hbox = QHBoxLayout()
         format_cmb_hbox.addWidget(QLabel("Format"))
@@ -210,7 +210,7 @@ class OutputTab(QWidget):
             "quality": self.format_q_sb.value(),
             "lossless": self.format_lossless_cb.isChecked(),
             "lossless_if_smaller": self.format_lossless_if_cb.isChecked(),
-            "max_efficiency": self.format_max_efc.isChecked(),
+            "max_compression": self.format_max_cmp.isChecked(),
             "effort": self.format_e_sb.value(),
             "intelligent_effort": self.format_jxl_e_int_cb.isChecked(),
             "if_file_exists": self.if_file_exists_cmb.currentText(),
@@ -309,10 +309,10 @@ class OutputTab(QWidget):
             self.setLosslessVisible(False)
             self.setEffortVisible(False)
             self.setFormatPoolVisible(True)
-            self.format_max_efc.setVisible(True)
+            self.format_max_cmp.setVisible(True)
         else:
             self.setFormatPoolVisible(False)
-            self.format_max_efc.setVisible(False)
+            self.format_max_cmp.setVisible(False)
             self.setLosslessVisible(True)
             self.setEffortVisible(True)
 
@@ -367,7 +367,7 @@ class OutputTab(QWidget):
         # Lossless
         self.format_lossless_cb.setChecked(False)
         self.format_lossless_if_cb.setChecked(False)
-        self.format_max_efc.setChecked(False)
+        self.format_max_cmp.setChecked(False)
 
         # Smallest Lossless
         self.format_sm_l_png_cb.setChecked(True)
