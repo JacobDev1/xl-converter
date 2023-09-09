@@ -215,7 +215,7 @@ class ModifyTab(QWidget):
             },
             "misc": {
                 "metadata": self.metadata_cb.isChecked(),
-                "date_time": self.date_time_cb.isChecked()
+                "attributes": self.date_time_cb.isChecked()
             }
         }
         return params
