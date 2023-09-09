@@ -11,10 +11,7 @@ Available for both Windows and Linux.
 ![](screenshots/screenshot_1.png)
 ![](screenshots/screenshot_2.png)
 
-Supported formats:
-- Encoding: JPEG XL, AVIF, WEBP, JPG
-- Encoding Animation: GIF -> WEBP, JPEG XL; APNG -> JPEG XL
-- Decoding: JPEG XL, AVIF, WEBP, JPG, GIF, HEIF, WEBP, TIFF, JP2, BMP
+Focused on JPEG XL, AVIF, WEBP and "Smallest Lossless".
 
 ## Donations
 
@@ -42,6 +39,14 @@ Linux
 - Linux
     - JPEG XL - [tutorial](https://codepoems.eu/posts/how-to-open-jpeg-xl-images-on-linux/)
     - AVIF - [tutorial](https://codepoems.eu/posts/how-to-open-avif-images-on-linux/)
+
+## Supported Formats
+
+- Encoding: JPEG XL, AVIF, WEBP, JPG
+- Decoding: JPEG XL, AVIF, WEBP, JPG, GIF, HEIF, WEBP, TIFF, JP2, BMP
+- Encoding Animation:
+    - GIF -> WEBP
+    - GIF / APNG -> JPEG XL (limited to Effort 7)
 
 ## Intelligent Features
 
