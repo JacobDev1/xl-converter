@@ -42,11 +42,12 @@ class Worker(QRunnable):
         self.n = n  # Thread number
         self.available_threads = 1
         
-        # Item info
+        # Original Item info
         self.item = item    # Original file
         
-        self.item_name = item[0]    # These can be reassigned
-        self.item_ext = item[1]
+        # Item info - these can be reassigned
+        self.item_name = item[0]    
+        self.item_ext = item[1].lower()     # lowercase, for original value use self.item[1]
         self.item_dir = item[2]
         self.item_abs_path = item[3]
 
