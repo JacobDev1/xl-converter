@@ -304,7 +304,7 @@ class Worker(QRunnable):
             webp_thread_level = 1 if self.available_threads > 1 else 0
             args = {
                 "png": [
-                    "-o 4" if self.params["max_efficiency"] else "-o 2",
+                    "-o 4" if self.params["max_compression"] else "-o 2",
                     f"-t {self.available_threads}"
                     ],
                 "webp": [
@@ -315,7 +315,7 @@ class Worker(QRunnable):
                 "jxl": [
                     "-q 100",
                     "--lossless_jpeg=0",
-                    "-e 9" if self.params["max_efficiency"] else "-e 7",
+                    "-e 9" if self.params["max_compression"] else "-e 7",
                     f"--num_threads={self.available_threads}"
                 ]
             }
