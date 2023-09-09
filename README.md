@@ -3,7 +3,7 @@
 </p>
 <h3 align="center">XL Converter</h3>
 
-Fast and simple image converter for the latest formats. It's fully multi-threaded, supports drag 'n drop and intelligent options.
+Fast and simple image converter for the latest formats. It supports multi-threading, drag 'n drop and intelligent options.
 
 Available for both Windows and Linux.
 
