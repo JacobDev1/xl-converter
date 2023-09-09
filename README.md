@@ -53,7 +53,7 @@ Converts to both lossy and lossless, then picks the smallest file.
 
 Every image is checked with each of the 3 formats (Optimized PNG, WEBP and JPEG XL) to deliver **the tiniest file size** without any loss of quality.
 
-**Maximum efficiency** option prolongs the conversion, but grants encoders more time to shrink the images.
+**Max Compression** option prolongs the conversion, but grants encoders more time to shrink the images.
 
 ### Intelligent Effort
 
