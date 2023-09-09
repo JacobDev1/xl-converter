@@ -150,9 +150,9 @@ class Worker(QRunnable):
         
         # Assign output paths
         output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
-        final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # The output previous var will be renamed to
-        # It is done this way to avoid mutlithreaded 
-        
+        final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # Final destination. File from "output" will be renamed to it after conversion to prevent naming collisions
+
+
         # Skip If needed
         if self.params["if_file_exists"] == "Skip":
             if os.path.isfile(final_output) and self.params["format"] not in ("Smallest Lossless"):
