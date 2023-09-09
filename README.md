@@ -129,3 +129,9 @@ Install dependencies from the [Building](#building) section and replace the last
 
 - Windows - `python main.py`
 - Linux - `make run`
+
+## Contributions
+
+Branches
+- `unstable` - all changes are committed here first
+- `stable` - current stable release
