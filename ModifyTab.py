@@ -113,11 +113,6 @@ class ModifyTab(QWidget):
         self.rs_cmb = QComboBox()
         self.rs_cmb.addItems(("Default", "Point"))
 
-        # Regarding Resampling - resources
-        # https://imagemagick.org/script/command-line-options.php#filter
-        # https://github.com/ImageMagick/ImageMagick/blob/main/MagickCore/resize.c
-        # https://imagemagick.org/script/command-line-options.php#list
-
         rs_lt.addWidget(self.rs_cmb)
         self.downscale_lt.addLayout(rs_lt)
 
@@ -137,7 +132,7 @@ class ModifyTab(QWidget):
         # Bottom
         default_btn = QPushButton("Reset to Default")
         default_btn.clicked.connect(self.resetToDefault)
-        convert_btn = QPushButton("Convert")    # To be removed??
+        convert_btn = QPushButton("Convert")
         convert_btn.clicked.connect(lambda: self.signals.convert.emit())
 
         tab_lt.addWidget(default_btn,2,0)
