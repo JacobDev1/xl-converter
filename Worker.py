@@ -446,7 +446,7 @@ class Worker(QRunnable):
 
         # Apply attributes
         if self.params["misc"]["attributes"]:
-            shutil.copystat(self.item[3], final_output)
+            self.convert.copyAttributes(self.item[3], final_output)
 
         # After Conversion
         if self.params["delete_original"]:
