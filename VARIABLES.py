@@ -18,6 +18,7 @@ ALLOWED_INPUT_AVIFENC = ["jpg","jpeg","png"]
 ALLOWED_INPUT_AVIFDEC = ["avif"]
 ALLOWED_INPUT_OXIPNG = ["png"]
 ALLOWED_INPUT = []
+ALLOWED_RESAMPLING = ("Point", "Cubic", "Hermite", "Box", "Gaussian", "Catrom", "Triangle", "Quadratic", "Mitchell", "CubicSpline", "Lanczos", "Hamming", "Parzen", "Blackman", "Kaiser", "Welsh", "Hanning", "Bartlett", "Bohman")
 
 if platform.system() == "Windows":
     CJXL_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/cjxl.exe"))
