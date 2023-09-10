@@ -205,6 +205,8 @@ class Worker(QRunnable):
                 "percent": self.params["downscaling"]["percent"],
                 "width": self.params["downscaling"]["width"],
                 "height": self.params["downscaling"]["height"],
+                "shortest_side": self.params["downscaling"]["shortest_side"],
+                "longest_side": self.params["downscaling"]["longest_side"],
                 "resample": self.params["downscaling"]["resample"],
                 "n": self.n,
             }
