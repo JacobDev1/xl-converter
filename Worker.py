@@ -70,7 +70,7 @@ class Worker(QRunnable):
             self.signals.completed.emit(self.n)
             return
 
-        # Solve conflicts
+        # Solve conflicts with animated images
         conflict = False
         if self.item_ext == "gif":
             match self.params["format"]:
@@ -153,6 +153,7 @@ class Worker(QRunnable):
         output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
         final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # Final destination. File from "output" will be renamed to it after conversion to prevent naming collisions
 
+        # Solve conflict with GIF
         if self.item_ext == "gif":  # GIF gets decoded to a PNG sequence
             output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext)
             final_output = output
