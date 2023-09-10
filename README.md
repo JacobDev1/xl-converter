@@ -64,6 +64,12 @@ Every image is checked with each of the 3 formats (Optimized PNG, WEBP and JPEG 
 
 Gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer conversion time**. I wrote an [article](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) demystifying the effort argument.
 
+### Downscaling
+
+Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you. Yes, it's compatible with intelligent effort.
+
+Traditional downscaling methods (by percent and resolution) are also available.
+
 ### Image Proxy
 
 Encoders are picky, but XL Converter isn't. Feed it any format it can decode and the conversion will still be finished despite the encoder not supporting it.
