@@ -89,7 +89,7 @@ class ModifyTab(QWidget):
         scl_fs_lt = QHBoxLayout()
         self.scl_fs_l = QLabel("Max File Size")
         self.scl_fs_sb = QSpinBox()
-        self.scl_fs_sb.setRange(0, MAX_FILE_SIZE)
+        self.scl_fs_sb.setRange(1, MAX_FILE_SIZE)
         self.scl_fs_sb.setSuffix(" KiB")
         
         scl_fs_lt.addWidget(self.scl_fs_l)
@@ -100,7 +100,7 @@ class ModifyTab(QWidget):
         scl_fs_s_lt = QHBoxLayout()
         self.scl_fs_s_l = QLabel("Step")
         self.scl_fs_s_sb = QSpinBox()
-        self.scl_fs_s_sb.setRange(0, MAX_FILE_SIZE)
+        self.scl_fs_s_sb.setRange(1, MAX_FILE_SIZE)
         self.scl_fs_s_sb.setSuffix(" %")
         
         scl_fs_s_lt.addWidget(self.scl_fs_s_l)
