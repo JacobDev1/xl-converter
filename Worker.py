@@ -70,7 +70,7 @@ class Worker(QRunnable):
             self.signals.completed.emit(self.n)
             return
 
-        # Solve conflicts with overlapping formats
+        # Solve conflicts
         conflict = False
         if self.item_ext == "gif":
             match self.params["format"]:
@@ -83,20 +83,21 @@ class Worker(QRunnable):
                 case "Smallest Lossless":
                     conflict = True
                     self.convert.log(f"Smallest Lossless doesn't support animation",self.n)
-                case "JPEG XL":
-                    # Hotfix
-                    if self.params["effort"] > 7:   # Efforts bigger than 7 cause the encoder to crash when processing GIFs
-                        self.params["effort"] = 7
-                    self.params["intelligent_effort"] = False
         elif self.item_ext == "apng":
             if self.params["format"] != "JPEG XL":
                 conflict = True
                 self.convert.log(f"{self.params['format']} encoder doesn't support APNG ({self.item_name}.{self.item_ext})",self.n)
-            else:
+
+        if self.item_ext in ("gif", "apng"):
+            if self.params["format"] == "JPEG XL":
                 if self.params["effort"] > 7:   # Efforts bigger than 7 cause the encoder to crash when processing APNGs
                     self.params["effort"] = 7
-                    self.params["intelligent_effort"] = False
-        
+                self.params["intelligent_effort"] = False
+
+            if self.params["downscaling"]["enabled"]:
+                conflict = True
+                self.convert.log(f"Downscaling not supported for animated media ({self.item_name}.{self.item_ext})", self.n)
+
         if conflict:
             self.signals.completed.emit(self.n)
             return
