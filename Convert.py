@@ -106,6 +106,22 @@ class Convert():
         args.append(f"-resize {max_w}x{max_h}")
 
         self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
+    
+    def downscaleToShortestSide(self, src, dst, max_res, resample="Default", n=None):
+        args = []
+        if resample != "Default" and resample in ALLOWED_RESAMPLING:
+            args.append(f"-filter {resample}")
+        args.append(f"-resize \"{max_res}x{max_res}^>\"")
+
+        self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
+
+    def downscaleToLongestSide(self, src, dst, max_res, resample="Default", n=None):
+        args = []
+        if resample != "Default" and resample in ALLOWED_RESAMPLING:
+            args.append(f"-filter {resample}")
+        args.append(f"-resize \"{max_res}x{max_res}>\"")    # Yes, the only difference between the two methods is the ^ sign
+
+        self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
             
     def downscaleToMaxFileSize(self, params):
         """Downscale image to fit under a certain file size."""
@@ -184,6 +200,10 @@ class Convert():
                 self.downscaleByPercent(params["src"], params["dst"], 100 - params["percent"], params["resample"], params["n"])
             case "Max Resolution":
                 self.downscaleToMaxRes(params["src"], params["dst"], params["width"], params["height"], params["resample"], params["n"])
+            case "Shortest Side":
+                self.downscaleToShortestSide(params["src"], params["dst"], params["shortest_side"], params["resample"], params["n"])
+            case "Longest Side":
+                self.downscaleToLongestSide(params["src"], params["dst"], params["longest_side"], params["resample"], params["n"])
             case _:
                 self.log(f"[Error] Downscaling mode not recognized ({params['mode']})")
 

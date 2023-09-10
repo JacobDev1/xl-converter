@@ -47,7 +47,7 @@ class ModifyTab(QWidget):
         self.downscale_lt.addLayout(self.mode_lt)
 
         self.mode_cmb = QComboBox()
-        self.mode_cmb.addItems(("Max File Size", "Percent", "Max Resolution"))
+        self.mode_cmb.addItems(("Max File Size", "Percent", "Max Resolution", "Shortest Side", "Longest Side"))
         self.mode_cmb.currentIndexChanged.connect(self.onModeChanged)
         self.mode_lt.addWidget(self.mode_cmb)
 
@@ -107,6 +107,28 @@ class ModifyTab(QWidget):
         scl_fs_s_lt.addWidget(self.scl_fs_s_sb)
         self.downscale_lt.addLayout(scl_fs_s_lt)
 
+        # Longest Side
+        scl_lngst_lt = QHBoxLayout()
+        self.scl_lngst_l = QLabel("Max Size")
+        self.scl_lngst_sb = QSpinBox()
+        self.scl_lngst_sb.setRange(1, MAX_RES_PX)
+        self.scl_lngst_sb.setSuffix(" px")
+        
+        scl_lngst_lt.addWidget(self.scl_lngst_l)
+        scl_lngst_lt.addWidget(self.scl_lngst_sb)
+        self.downscale_lt.addLayout(scl_lngst_lt)
+
+        # Shortest Side
+        scl_shrtst_lt = QHBoxLayout()
+        self.scl_shrtst_l = QLabel("Max Size")
+        self.scl_shrtst_sb = QSpinBox()
+        self.scl_shrtst_sb.setRange(1, MAX_RES_PX)
+        self.scl_shrtst_sb.setSuffix(" px")
+        
+        scl_shrtst_lt.addWidget(self.scl_shrtst_l)
+        scl_shrtst_lt.addWidget(self.scl_shrtst_sb)
+        self.downscale_lt.addLayout(scl_shrtst_lt)
+
         # Resample
         rs_lt = QHBoxLayout()
         rs_lt.addWidget(QLabel("Resample"))
@@ -164,6 +186,8 @@ class ModifyTab(QWidget):
         self.scl_p_sb.setValue(80)
         self.scl_px_w_sb.setValue(2000)
         self.scl_px_h_sb.setValue(2000)
+        self.scl_shrtst_sb.setValue(1080)
+        self.scl_lngst_sb.setValue(1920)
     
     def onModeChanged(self):
         index = self.mode_cmb.currentText()
@@ -195,6 +219,20 @@ class ModifyTab(QWidget):
             self.scl_fs_sb.setVisible(False)
             self.scl_fs_s_sb.setVisible(False)
             self.scl_fs_s_l.setVisible(False)
+        
+        if index == "Shortest Side":
+            self.scl_shrtst_l.setVisible(True)
+            self.scl_shrtst_sb.setVisible(True)
+        else:
+            self.scl_shrtst_l.setVisible(False)
+            self.scl_shrtst_sb.setVisible(False)
+
+        if index == "Longest Side":
+            self.scl_lngst_l.setVisible(True)
+            self.scl_lngst_sb.setVisible(True)
+        else:
+            self.scl_lngst_l.setVisible(False)
+            self.scl_lngst_sb.setVisible(False)
     
     def getSettings(self):
         params = {
@@ -206,6 +244,8 @@ class ModifyTab(QWidget):
                 "width": self.scl_px_w_sb.value(),
                 "height": self.scl_px_w_sb.value(),
                 "file_size": self.scl_fs_sb.value(),
+                "shortest_side": self.scl_shrtst_sb.value(),
+                "longest_side": self.scl_lngst_sb.value(),
                 "resample": self.rs_cmb.currentText(),
             },
             "misc": {
