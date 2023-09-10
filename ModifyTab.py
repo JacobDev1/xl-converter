@@ -111,7 +111,7 @@ class ModifyTab(QWidget):
         rs_lt = QHBoxLayout()
         rs_lt.addWidget(QLabel("Resample"))
         self.rs_cmb = QComboBox()
-        self.rs_cmb.addItems(("Default", "Point"))
+        self.rs_cmb.addItems(("Default", "Lanczos", "Point", "Box"))
 
         rs_lt.addWidget(self.rs_cmb)
         self.downscale_lt.addLayout(rs_lt)

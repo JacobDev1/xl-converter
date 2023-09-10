@@ -1,6 +1,6 @@
 import os, random, subprocess, shutil
 from send2trash import send2trash
-from VARIABLES import DEBUG, IMAGE_MAGICK_PATH
+from VARIABLES import DEBUG, IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING
 
 # Methods for converting files
 
@@ -90,18 +90,20 @@ class Convert():
                 if paths[i] != new_path:
                     os.rename(paths[i], new_path)
     
-    def downscaleByPercent(self, src, dst, amount=10, n=None):
+    def downscaleByPercent(self, src, dst, amount=10, resample="Default", n=None):
         """Resize the image by percentage. Keeps the same aspect ratio."""
-        args = [
-            f"-resize {100 - amount}%"
-        ]
+        args = []
+        if resample != "Default" and resample in ALLOWED_RESAMPLING:
+            args.append(f"-filter {resample}")
+        args.append(f"-resize {100 - amount}%")
 
         self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
 
-    def downscaleToMaxRes(self, src, dst, max_w, max_h, n=None):
-        args = [
-            f"-resize {max_w}x{max_h}"
-        ]
+    def downscaleToMaxRes(self, src, dst, max_w, max_h, resample="Default", n=None):
+        args = []
+        if resample != "Default" and resample in ALLOWED_RESAMPLING:
+            args.append(f"-filter {resample}")
+        args.append(f"-resize {max_w}x{max_h}")
 
         self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
             
@@ -131,7 +133,7 @@ class Convert():
                     self.log("[Error] Cannot downscale to less than 1%", params["n"])
                     # return False
                 
-                self.downscaleByPercent(params["src"], proxy_src, amount, params["n"])
+                self.downscaleByPercent(params["src"], proxy_src, amount, params["resample"], params["n"])
             else:
                 # JPEG XL - intelligent effort
                 if params["jxl_int_e"]: 
@@ -179,9 +181,9 @@ class Convert():
             case "Max File Size":
                 self.downscaleToMaxFileSize(params)
             case "Percent":
-                self.downscaleByPercent(params["src"], params["dst"], 100 - params["percent"], params["n"])
+                self.downscaleByPercent(params["src"], params["dst"], 100 - params["percent"], params["resample"], params["n"])
             case "Max Resolution":
-                self.downscaleToMaxRes(params["src"], params["dst"], params["width"], params["height"], params["n"])
+                self.downscaleToMaxRes(params["src"], params["dst"], params["width"], params["height"], params["resample"], params["n"])
             case _:
                 self.log(f"[Error] Downscaling mode not recognized ({params['mode']})")
 
