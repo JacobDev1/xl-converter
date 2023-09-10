@@ -100,7 +100,7 @@ class ModifyTab(QWidget):
         scl_fs_s_lt = QHBoxLayout()
         self.scl_fs_s_l = QLabel("Step")
         self.scl_fs_s_sb = QSpinBox()
-        self.scl_fs_s_sb.setRange(1, MAX_FILE_SIZE)
+        self.scl_fs_s_sb.setRange(1, 99)
         self.scl_fs_s_sb.setSuffix(" %")
         
         scl_fs_s_lt.addWidget(self.scl_fs_s_l)
