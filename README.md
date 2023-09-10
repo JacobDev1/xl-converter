@@ -66,9 +66,9 @@ Gives you **smaller file sizes** and quite possibly **better quality**. The down
 
 ### Downscaling
 
-Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you. Yes, it's compatible with intelligent effort.
+Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you. It works regardless of format and is compatible with intelligent effort.
 
-Traditional downscaling methods (by percent and resolution) are also available.
+More downscaling methods are also available: to percent, max resolution, shortest and longest side.
 
 ### Image Proxy
 
