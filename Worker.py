@@ -159,6 +159,10 @@ class Worker(QRunnable):
                 self.signals.completed.emit(self.n)
                 return
         
+        # Downscaling - prepare proxy
+        if self.params["downscaling"]["enabled"]:
+            need_proxy = True
+
         # Create Proxy
         if need_proxy:
             proxy_path = self.convert.getUniqueFilePath(output_dir, self.item_name, "png", True)
@@ -183,6 +187,27 @@ class Worker(QRunnable):
                 self.signals.completed.emit(self.n)
                 return
 
+        # Downscaling - prepare params
+        scl_params = {}
+        if self.params["downscaling"]["enabled"]:
+            scl_params = {    # "None" values are assigned later on
+                "mode": self.params["downscaling"]["mode"],
+                "enc": None,
+                "jxl_int_e": None,   # An exception to handle intelligent effort
+                "src": self.item_abs_path,
+                "dst": output,
+                "dst_dir": output_dir,
+                "name": self.item_name,
+                "args": None,
+                "max_size": self.params["downscaling"]["file_size"],
+                "step": self.params["downscaling"]["file_size_step"],
+                "percent": self.params["downscaling"]["percent"],
+                "width": self.params["downscaling"]["width"],
+                "height": self.params["downscaling"]["height"],
+                "resample": self.params["downscaling"]["resample"],
+                "n": self.n,
+            }
+        
         # Convert
         if self.params["format"] == "JPEG XL":
             args = [
@@ -195,11 +220,20 @@ class Worker(QRunnable):
             if self.params["lossless"]:
                 args[0] = "-q 100"
 
+            # For lossless best Effort is always 9
             if self.params["intelligent_effort"] and (self.params["quality"] == 100 or self.params["lossless"]):
                 self.params["intelligent_effort"] = False
                 args[1] = "-e 9"
 
-            if self.params["intelligent_effort"]:
+            # Set downscaling params
+            if self.params["downscaling"]["enabled"]:
+                scl_params["enc"] = CJXL_PATH
+                if self.params["intelligent_effort"]:   scl_params["jxl_int_e"] = True
+                scl_params["args"] = args
+
+            if self.params["downscaling"]["enabled"] and self.params["intelligent_effort"]:
+                self.convert.downscale(scl_params)
+            elif self.params["intelligent_effort"]:
                 path_pool = [
                     self.convert.getUniqueFilePath(output_dir,self.item_name + "_e7", "jxl", True),
                     self.convert.getUniqueFilePath(output_dir,self.item_name + "_e9", "jxl", True),
@@ -211,7 +245,10 @@ class Worker(QRunnable):
 
                 self.convert.leaveOnlySmallestFile(path_pool, output)
             else:
-                self.convert.convert(CJXL_PATH, self.item_abs_path, output, args, self.n)                
+                if self.params["downscaling"]["enabled"]:
+                    self.convert.downscale(scl_params)
+                else:
+                    self.convert.convert(CJXL_PATH, self.item_abs_path, output, args, self.n)                
             
             if self.params["lossless_if_smaller"] and self.params["lossless"] == False:
                 if self.params["intelligent_effort"]:
@@ -244,7 +281,12 @@ class Worker(QRunnable):
                 return
 
             # Decode
-            self.convert.convert(decoder_path, self.item_abs_path, output, [], self.n)
+            if self.params["downscaling"]["enabled"]:
+                scl_params["enc"] = decoder_path
+                scl_params["args"] = []
+                self.convert.downscale(scl_params)
+            else:
+                self.convert.convert(decoder_path, self.item_abs_path, output, [], self.n)
             
         elif self.params["format"] == "WEBP":
             multithreading = 1 if self.available_threads > 1 else 0
@@ -253,11 +295,17 @@ class Worker(QRunnable):
                 f"-define webp:thread-level={multithreading}",
                 "-define webp:method=6"
                 ]
+
             if self.params["lossless"]:
                 args.pop(0) # Remove quality
                 args.append("-define webp:lossless=true")
 
-            self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, output, args, self.n)
+            if self.params["downscaling"]["enabled"]:
+                scl_params["enc"] = IMAGE_MAGICK_PATH
+                scl_params["args"] = args
+                self.convert.downscale(scl_params)
+            else:
+                self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, output, args, self.n)
 
             if self.params["lossless_if_smaller"] and self.params["lossless"] == False:
                 args.pop(0) # Remove quality
@@ -283,9 +331,22 @@ class Worker(QRunnable):
                 f"-j {self.available_threads}"
             ]
 
-            self.convert.convert(AVIFENC_PATH, self.item_abs_path, output, args, self.n)
+            if self.params["downscaling"]["enabled"]:
+                scl_params["enc"] = AVIFENC_PATH
+                scl_params["args"] = args
+                self.convert.downscale(scl_params)
+            else:
+                self.convert.convert(AVIFENC_PATH, self.item_abs_path, output, args, self.n)
+                    
         elif self.params["format"] == "JPG":
-            self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, output, [f"-quality {self.params['quality']}"], self.n)
+            args = [f"-quality {self.params['quality']}"]
+
+            if self.params["downscaling"]["enabled"]:
+                scl_params["enc"] = IMAGE_MAGICK_PATH
+                scl_params["args"] = args
+                self.convert.downscale(scl_params)
+            else:
+                self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, output, args, self.n)
         elif self.params["format"] == "Smallest Lossless":
 
             # Populate path pool
