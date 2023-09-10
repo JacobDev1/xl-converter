@@ -90,38 +90,26 @@ class Convert():
                 if paths[i] != new_path:
                     os.rename(paths[i], new_path)
     
-    def downscaleByPercent(self, src, dst, amount=10, resample="Default", n=None):
-        """Resize the image by percentage. Keeps the same aspect ratio."""
+    def downscaleTemplate(self, src, dst, _args, resample="Default", n=None):
+        """Template - only for use within this class."""
         args = []
         if resample != "Default" and resample in ALLOWED_RESAMPLING:
-            args.append(f"-filter {resample}")
-        args.append(f"-resize {100 - amount}%")
+            args.append(f"-filter {resample}")  # Needs to come first
+        args.extend(_args)
 
         self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
+
+    def downscaleByPercent(self, src, dst, amount=10, resample="Default", n=None):
+        self.downscaleTemplate(src, dst, [f"-resize {100 - amount}%"], resample, n)
 
     def downscaleToMaxRes(self, src, dst, max_w, max_h, resample="Default", n=None):
-        args = []
-        if resample != "Default" and resample in ALLOWED_RESAMPLING:
-            args.append(f"-filter {resample}")
-        args.append(f"-resize {max_w}x{max_h}")
+        self.downscaleTemplate(src, dst, [f"-resize {max_w}x{max_h}"], resample, n)
 
-        self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
-    
     def downscaleToShortestSide(self, src, dst, max_res, resample="Default", n=None):
-        args = []
-        if resample != "Default" and resample in ALLOWED_RESAMPLING:
-            args.append(f"-filter {resample}")
-        args.append(f"-resize \"{max_res}x{max_res}^>\"")
-
-        self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
+        self.downscaleTemplate(src, dst, [f"-resize \"{max_res}x{max_res}^>\""], resample, n)
 
     def downscaleToLongestSide(self, src, dst, max_res, resample="Default", n=None):
-        args = []
-        if resample != "Default" and resample in ALLOWED_RESAMPLING:
-            args.append(f"-filter {resample}")
-        args.append(f"-resize \"{max_res}x{max_res}>\"")    # Yes, the only difference between the two methods is the ^ sign
-
-        self.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
+        self.downscaleTemplate(src, dst, [f"-resize \"{max_res}x{max_res}>\""], resample, n)
             
     def downscaleToMaxFileSize(self, params):
         """Downscale image to fit under a certain file size."""
@@ -167,7 +155,7 @@ class Convert():
                 return True
     
     def downscale(self, params):
-        """A wrapper for all downscaling methods.
+        """A wrapper for all downscaling methods. Keeps the same aspect ratio.
         
             "mode" - downscaling mode
             "enc" - encoder path
