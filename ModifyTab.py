@@ -63,7 +63,7 @@ class ModifyTab(QWidget):
         scl_p_lt.addWidget(self.scl_p_sb)
         self.downscale_lt.addLayout(scl_p_lt)
 
-        # Pixels - Width
+        # Max Resolution - Width
         scl_px_w_lt = QHBoxLayout()
         self.scl_px_w_l = QLabel("Max Width")
         self.scl_px_w_sb = QSpinBox()
@@ -74,7 +74,7 @@ class ModifyTab(QWidget):
         scl_px_w_lt.addWidget(self.scl_px_w_sb)
         self.downscale_lt.addLayout(scl_px_w_lt)
         
-        # Pixels - Height
+        # Max Resolution - Height
         scl_px_h_lt = QHBoxLayout()
         self.scl_px_h_l = QLabel("Max Height")
         self.scl_px_h_sb = QSpinBox()
@@ -85,7 +85,7 @@ class ModifyTab(QWidget):
         scl_px_h_lt.addWidget(self.scl_px_h_sb)
         self.downscale_lt.addLayout(scl_px_h_lt)
 
-        # Filesize
+        # File Size
         scl_fs_lt = QHBoxLayout()
         self.scl_fs_l = QLabel("Max File Size")
         self.scl_fs_sb = QSpinBox()
@@ -96,7 +96,7 @@ class ModifyTab(QWidget):
         scl_fs_lt.addWidget(self.scl_fs_sb)
         self.downscale_lt.addLayout(scl_fs_lt)
 
-        # Filesize - Step
+        # File Size - Step
         scl_fs_s_lt = QHBoxLayout()
         self.scl_fs_s_l = QLabel("Step")
         self.scl_fs_s_sb = QSpinBox()
