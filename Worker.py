@@ -153,6 +153,9 @@ class Worker(QRunnable):
         output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
         final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # Final destination. File from "output" will be renamed to it after conversion to prevent naming collisions
 
+        if self.item_ext == "gif":  # GIF gets decoded to a PNG sequence
+            output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext)
+            final_output = output
 
         # Skip If needed
         if self.params["if_file_exists"] == "Skip":
@@ -426,7 +429,7 @@ class Worker(QRunnable):
             self.convert.log(f"Unknown Format ({self.params['format']})", self.n)
         
         # Check for existing files
-        match self.params["if_file_exists"]:
+        match self.params["if_file_exists"] and self.item_ext != "gif":
             case "Replace":
                 if os.path.isfile(final_output):
                     self.convert.delete(final_output)
