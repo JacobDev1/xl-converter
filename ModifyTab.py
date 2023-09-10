@@ -127,8 +127,8 @@ class ModifyTab(QWidget):
         misc_grp.setLayout(misc_grp_lt)
 
         # Metadata
-        self.metadata_cb = QCheckBox("Preserve Metadata")
-        misc_grp_lt.addWidget(self.metadata_cb)
+        # self.metadata_cb = QCheckBox("Preserve Metadata")
+        # misc_grp_lt.addWidget(self.metadata_cb)
 
         # Date / Time
         self.date_time_cb = QCheckBox("Preserve Date && Time")
@@ -214,8 +214,8 @@ class ModifyTab(QWidget):
                 "resample": self.rs_cmb.currentText(),
             },
             "misc": {
-                "metadata": self.metadata_cb.isChecked(),
-                "attributes": self.date_time_cb.isChecked()
+                # "metadata": self.metadata_cb.isChecked(),
+                "attributes": self.date_time_cb.isChecked(),
             }
         }
         return params
