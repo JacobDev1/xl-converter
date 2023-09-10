@@ -43,7 +43,7 @@ class ModifyTab(QWidget):
 
         # Scale by
         self.mode_lt = QHBoxLayout()
-        self.mode_lt.addWidget(QLabel("Scale by"))
+        self.mode_lt.addWidget(QLabel("Scale to"))
         self.downscale_lt.addLayout(self.mode_lt)
 
         self.mode_cmb = QComboBox()
