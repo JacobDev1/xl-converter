@@ -13,7 +13,7 @@ OXIPNG_PATH = "oxipng"
 # Proper usage is "if 'extension'.lower() in ALLOWED_INPUT:"
 ALLOWED_INPUT_DJXL = ["jxl"]
 ALLOWED_INPUT_CJXL = ["jpg","jpeg","jfif","png","apng","gif"]
-ALLOWED_INPUT_IMAGE_MAGICK = ["jpg","jpeg","jfif","png","gif", "heif", "heifs", "heic", "heics", "avci", "avcs", "hif", "webp","tiff","jp2","bmp"]     # Before adding more, make sure the included ImageMagick works with it. Some formats (like FLIF) seem not to have been included
+ALLOWED_INPUT_IMAGE_MAGICK = ["jpg","jpeg","jfif", "jif", "png","gif", "heif", "heifs", "heic", "heics", "avci", "avcs", "hif", "webp","tiff","jp2","bmp", "ico"]     # Before adding more, make sure the included ImageMagick works with it. Some formats (like FLIF) seem not to have been included
 ALLOWED_INPUT_AVIFENC = ["jpg","jpeg","png"]
 ALLOWED_INPUT_AVIFDEC = ["avif"]
 ALLOWED_INPUT_OXIPNG = ["png"]
