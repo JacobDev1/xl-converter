@@ -184,3 +184,10 @@ class Convert():
                 self.downscaleToMaxRes(params["src"], params["dst"], params["width"], params["height"], params["n"])
             case _:
                 self.log(f"[Error] Downscaling mode not recognized ({params['mode']})")
+
+    def copyAttributes(self, src, dst):
+        """Copy all attributes from one file onto another."""
+        try:
+            shutil.copystat(src, dst)
+        except OSError as e:
+            self.log(f"[Error] copystat failed ({e})")
