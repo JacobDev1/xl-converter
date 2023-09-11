@@ -72,23 +72,20 @@ class Worker(QRunnable):
 
         # Solve conflicts with animated images
         conflict = False
-        if self.item_ext == "gif":
-            match self.params["format"]:
-                case "AVIF":
-                    conflict = True
-                    self.convert.log(f"Animated AVIF not supported",self.n)
-                case "JPG":
-                    conflict = True
-                    self.convert.log(f"JPG doesn't support animation",self.n)
-                case "Smallest Lossless":
-                    conflict = True
-                    self.convert.log(f"Smallest Lossless doesn't support animation",self.n)
-        elif self.item_ext == "apng":
-            if self.params["format"] != "JPEG XL":
-                conflict = True
-                self.convert.log(f"{self.params['format']} encoder doesn't support APNG ({self.item_name}.{self.item_ext})",self.n)
-
         if self.item_ext in ("gif", "apng"):
+            conflict = True
+
+            match self.item_ext:
+                case "gif":
+                    if self.params["format"] in ("JPEG XL", "WEBP", "PNG"):    # Support GIF
+                        conflict = False
+                case "apng":
+                    if self.params["format"] in ("JPEG XL"):                   # Support APNG
+                        conflict = False
+
+            if conflict:
+                self.convert.log(f"Animation not supported for {self.params['format']}", self.n)
+
             if self.params["format"] == "JPEG XL":
                 if self.params["effort"] > 7:   # Efforts bigger than 7 cause the encoder to crash when processing APNGs
                     self.params["effort"] = 7
@@ -96,7 +93,7 @@ class Worker(QRunnable):
 
             if self.params["downscaling"]["enabled"]:
                 conflict = True
-                self.convert.log(f"Downscaling not supported for animated media ({self.item_name}.{self.item_ext})", self.n)
+                self.convert.log(f"Downscaling not supported for animated media", self.n)
 
         if conflict:
             self.signals.completed.emit(self.n)
