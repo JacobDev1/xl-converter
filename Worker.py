@@ -433,20 +433,23 @@ class Worker(QRunnable):
             self.convert.log(f"Unknown Format ({self.params['format']})", self.n)
         
         # Check for existing files
-        match self.params["if_file_exists"] and self.item_ext != "gif":
-            case "Replace":
-                if os.path.isfile(final_output):
-                    self.convert.delete(final_output)
-                os.rename(output, final_output)
-            case "Rename":
-                final_output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, False)
-                os.rename(output, final_output)
-            case "Skip":    # Only for "Smallest Lossless", other cases were handled before
-                if self.params["format"] == "Smallest Lossless":
+        if self.item_ext == "gif" and self.params["format"] == "PNG":
+            pass    # Already handled
+        else:
+            match self.params["if_file_exists"]:
+                case "Replace":
                     if os.path.isfile(final_output):
-                        self.convert.delete(output)
-                    else:
-                        os.rename(output, final_output)
+                        self.convert.delete(final_output)
+                    os.rename(output, final_output)
+                case "Rename":
+                    final_output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, False)
+                    os.rename(output, final_output)
+                case "Skip":    # Only for "Smallest Lossless", other cases were handled before
+                    if self.params["format"] == "Smallest Lossless":
+                        if os.path.isfile(final_output):
+                            self.convert.delete(output)
+                        else:
+                            os.rename(output, final_output)
             
         # Clean-up proxy
         if need_proxy:
