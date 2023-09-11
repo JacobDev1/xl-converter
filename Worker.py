@@ -404,7 +404,7 @@ class Worker(QRunnable):
         # Check for existing files
         if self.item_ext == "gif" and self.params["format"] == "PNG":
             pass    # Already handled
-        else:
+        elif os.path.isfile(output):    # In case conversion failed
             match self.params["if_file_exists"]:
                 case "Replace":
                     if os.path.isfile(final_output):
@@ -419,13 +419,13 @@ class Worker(QRunnable):
                             self.convert.delete(output)
                         else:
                             os.rename(output, final_output)
-            
+
         # Clean-up proxy
         if need_proxy:
             self.convert.delete(self.item_abs_path)
             self.item_abs_path = self.item[3]
 
-        if os.path.isfile(final_output):    # In case conversion failed
+        if os.path.isfile(final_output):    # In case renaming failed
             # Apply attributes
             if self.params["misc"]["attributes"]:
                 self.convert.copyAttributes(self.item[3], final_output)
