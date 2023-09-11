@@ -32,19 +32,19 @@ class ModifyTab(QWidget):
         tab_lt = QGridLayout()
         self.setLayout(tab_lt)
         
-        self.downscale_lt = QVBoxLayout()
+        self.downscaling_lt = QVBoxLayout()
         downscale_grp = QGroupBox("Downscaling")
-        downscale_grp.setLayout(self.downscale_lt)
+        downscale_grp.setLayout(self.downscaling_lt)
 
         # Enable Downscaling
-        self.downscaling_cb = QCheckBox("Downscale")
-        self.downscale_lt.addWidget(self.downscaling_cb)
-        self.downscaling_cb.stateChanged.connect(self.toggleDownscaleUI)
+        self.downscale_cb = QCheckBox("Downscale")
+        self.downscaling_lt.addWidget(self.downscale_cb)
+        self.downscale_cb.stateChanged.connect(self.toggleDownscaleUI)
 
         # Scale by
         self.mode_lt = QHBoxLayout()
         self.mode_lt.addWidget(QLabel("Scale to"))
-        self.downscale_lt.addLayout(self.mode_lt)
+        self.downscaling_lt.addLayout(self.mode_lt)
 
         self.mode_cmb = QComboBox()
         self.mode_cmb.addItems(("Max File Size", "Percent", "Max Resolution", "Shortest Side", "Longest Side"))
@@ -61,7 +61,7 @@ class ModifyTab(QWidget):
         
         scl_p_lt.addWidget(self.scl_p_l)
         scl_p_lt.addWidget(self.scl_p_sb)
-        self.downscale_lt.addLayout(scl_p_lt)
+        self.downscaling_lt.addLayout(scl_p_lt)
 
         # Max Resolution - Width
         scl_px_w_lt = QHBoxLayout()
@@ -72,7 +72,7 @@ class ModifyTab(QWidget):
         
         scl_px_w_lt.addWidget(self.scl_px_w_l)
         scl_px_w_lt.addWidget(self.scl_px_w_sb)
-        self.downscale_lt.addLayout(scl_px_w_lt)
+        self.downscaling_lt.addLayout(scl_px_w_lt)
         
         # Max Resolution - Height
         scl_px_h_lt = QHBoxLayout()
@@ -83,7 +83,7 @@ class ModifyTab(QWidget):
         
         scl_px_h_lt.addWidget(self.scl_px_h_l)
         scl_px_h_lt.addWidget(self.scl_px_h_sb)
-        self.downscale_lt.addLayout(scl_px_h_lt)
+        self.downscaling_lt.addLayout(scl_px_h_lt)
 
         # File Size
         scl_fs_lt = QHBoxLayout()
@@ -94,7 +94,7 @@ class ModifyTab(QWidget):
         
         scl_fs_lt.addWidget(self.scl_fs_l)
         scl_fs_lt.addWidget(self.scl_fs_sb)
-        self.downscale_lt.addLayout(scl_fs_lt)
+        self.downscaling_lt.addLayout(scl_fs_lt)
 
         # File Size - Step
         scl_fs_s_lt = QHBoxLayout()
@@ -105,7 +105,7 @@ class ModifyTab(QWidget):
         
         scl_fs_s_lt.addWidget(self.scl_fs_s_l)
         scl_fs_s_lt.addWidget(self.scl_fs_s_sb)
-        self.downscale_lt.addLayout(scl_fs_s_lt)
+        self.downscaling_lt.addLayout(scl_fs_s_lt)
 
         # Longest Side
         scl_lngst_lt = QHBoxLayout()
@@ -116,7 +116,7 @@ class ModifyTab(QWidget):
         
         scl_lngst_lt.addWidget(self.scl_lngst_l)
         scl_lngst_lt.addWidget(self.scl_lngst_sb)
-        self.downscale_lt.addLayout(scl_lngst_lt)
+        self.downscaling_lt.addLayout(scl_lngst_lt)
 
         # Shortest Side
         scl_shrtst_lt = QHBoxLayout()
@@ -127,7 +127,7 @@ class ModifyTab(QWidget):
         
         scl_shrtst_lt.addWidget(self.scl_shrtst_l)
         scl_shrtst_lt.addWidget(self.scl_shrtst_sb)
-        self.downscale_lt.addLayout(scl_shrtst_lt)
+        self.downscaling_lt.addLayout(scl_shrtst_lt)
 
         # Resample
         rs_lt = QHBoxLayout()
@@ -136,7 +136,7 @@ class ModifyTab(QWidget):
         self.rs_cmb.addItems(("Default", "Lanczos", "Point", "Box"))
 
         rs_lt.addWidget(self.rs_cmb)
-        self.downscale_lt.addLayout(rs_lt)
+        self.downscaling_lt.addLayout(rs_lt)
 
         # Misc
         misc_grp = QGroupBox("Misc.")
@@ -237,7 +237,7 @@ class ModifyTab(QWidget):
     def getSettings(self):
         params = {
             "downscaling": {
-                "enabled": self.downscaling_cb.isChecked(),
+                "enabled": self.downscale_cb.isChecked(),
                 "mode": self.mode_cmb.currentText(),
                 "percent": self.scl_p_sb.value(),
                 "file_size_step": self.scl_fs_s_sb.value(),
