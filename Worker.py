@@ -153,24 +153,12 @@ class Worker(QRunnable):
         output = self.convert.getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
         final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # Final destination. File from "output" will be renamed to it after conversion to prevent naming collisions
 
-        # GIF decoding to image sequence
+        # If file exists - for decoding GIF only
         if self.item_ext == "gif" and self.params["format"] == "PNG":
-            output = os.path.join(output_dir, f"{self.item_name}.png")
-
-            match self.params["if_file_exists"]:
-                case "Rename":
-                    if os.path.isfile(os.path.join(output_dir, f"{self.item_name}-0.png")):
-                        n = 0
-                        while os.path.isfile(os.path.join(output_dir, f"{self.item_name} ({n})-0.png")):
-                            n += 1
-                        output = os.path.join(output_dir, f"{self.item_name} ({n}).png")
-                case "Replace":
-                    output = final_output
-                case "Skip":
-                    if os.path.isfile(os.path.join(output_dir, f"{self.item_name}-0.png")):
-                        self.signals.completed.emit(self.n)
-                        return
-            
+            output = self.convert.getPathGIF(output_dir, self.item_name, self.params["if_file_exists"])
+            if output == "Skip":
+                self.signals.completed.emit(self.n)
+                return
             final_output = output
 
         # Skip If needed

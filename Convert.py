@@ -32,6 +32,25 @@ class Convert():
             n += 1
         return path
     
+    def getPathGIF(self, output_dir, item_name, mode):
+        """Single-purpose helper method for decoding GIF to PNG for ImageMagick.
+        
+        Returns either path or "Skip"
+        """
+        new_path = os.path.join(output_dir, f"{item_name}.png")
+        match mode:
+            case "Rename":
+                if os.path.isfile(os.path.join(output_dir, f"{item_name}-0.png")):
+                    n = 0
+                    while os.path.isfile(os.path.join(output_dir, f"{item_name} ({n})-0.png")):
+                        n += 1
+                    new_path = os.path.join(output_dir, f"{item_name} ({n}).png")
+                return new_path
+            case "Replace":
+                return new_path
+            case "Skip":
+                return "Skip"
+
     def convert(self, encoder_path, src, dst, args = [], n = None):
         command = f'\"{encoder_path}\" \"{src}\" {" ".join(args) + " " if args else ""}\"{dst}\"'
         
