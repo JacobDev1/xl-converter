@@ -172,18 +172,7 @@ class Worker(QRunnable):
         if need_proxy:
             proxy_path = self.convert.getUniqueFilePath(output_dir, self.item_name, "png", True)
             
-            if self.item_ext == "png":
-                shutil.copy(self.item_abs_path, proxy_path)     # For Smallest Lossless
-            elif self.item_ext == "jxl":
-                self.convert.convert(DJXL_PATH, self.item_abs_path, proxy_path, [], self.n)
-            elif self.item_ext == "avif":
-                self.convert.convert(AVIFDEC_PATH, self.item_abs_path, proxy_path, [], self.n)
-            elif self.item_ext in ALLOWED_INPUT:
-                self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, proxy_path, [], self.n)
-            else:
-                self.convert.log(f"Proxy cannot be created ({self.item_name}.{self.item_ext})", self.n)
-                self.signals.completed.emit(self.n)
-                return
+            self.convert.decode(self.item_abs_path, proxy_path, self.item_ext, self.n)
             
             if os.path.isfile(proxy_path):
                 self.item_abs_path = proxy_path
@@ -271,29 +260,12 @@ class Worker(QRunnable):
                 ]
                 self.convert.leaveOnlySmallestFile(path_pool, output)
 
-        elif self.params["format"] == "PNG":
-            decoder_path = ""
-            input_ext = self.item[1].lower()
-            
-            # Set Encoder
-            if input_ext == "jxl":
-                decoder_path = DJXL_PATH
-            elif input_ext == "avif":
-                decoder_path = AVIFDEC_PATH
-            elif input_ext in ALLOWED_INPUT_IMAGE_MAGICK:
-                decoder_path = IMAGE_MAGICK_PATH
-            else:
-                self.convert.log(f"No supported decoder found for ({self.item_name}.{self.item_ext})", self.n)
-                self.signals.completed.emit(self.n)
-                return
-
-            # Decode
+        elif self.params["format"] == "PNG":            
             if self.params["downscaling"]["enabled"]:
-                scl_params["enc"] = decoder_path
                 scl_params["args"] = []
-                self.convert.downscale(scl_params)
+                self.convert.decodeAndDownscale(scl_params, self.item_ext)
             else:
-                self.convert.convert(decoder_path, self.item_abs_path, output, [], self.n)
+                self.convert.decode(self.item_abs_path, output, self.item_ext, self.n)
             
         elif self.params["format"] == "WEBP":
             multithreading = 1 if self.available_threads > 1 else 0
