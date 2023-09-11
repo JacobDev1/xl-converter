@@ -425,15 +425,16 @@ class Worker(QRunnable):
             self.convert.delete(self.item_abs_path)
             self.item_abs_path = self.item[3]
 
-        # Apply attributes
-        if self.params["misc"]["attributes"]:
-            self.convert.copyAttributes(self.item[3], final_output)
+        if os.path.isfile(final_output):    # In case conversion failed
+            # Apply attributes
+            if self.params["misc"]["attributes"]:
+                self.convert.copyAttributes(self.item[3], final_output)
 
-        # After Conversion
-        if self.params["delete_original"]:
-            if os.path.isfile(final_output):   # In case convertion failed, don't delete the original
+            # After Conversion
+            if self.params["delete_original"]:
                 if self.params["delete_original_mode"] == "To Trash":
                     self.convert.delete(self.item[3], True)
                 elif self.params["delete_original_mode"] == "Permanently":
                     self.convert.delete(self.item[3])
+
         self.signals.completed.emit(self.n)
