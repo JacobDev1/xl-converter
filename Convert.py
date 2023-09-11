@@ -1,6 +1,6 @@
 import os, random, subprocess, shutil
 from send2trash import send2trash
-from VARIABLES import DEBUG, IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING
+from VARIABLES import DEBUG, IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH
 
 # Methods for converting files
 
@@ -52,12 +52,61 @@ class Convert():
                 return "Skip"
 
     def convert(self, encoder_path, src, dst, args = [], n = None):
+        """Universal method for all encoders."""
         command = f'\"{encoder_path}\" \"{src}\" {" ".join(args) + " " if args else ""}\"{dst}\"'
         
         if DEBUG:   subprocess.run(command, shell=True)
         else:       subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
         if n != None:   self.log(command, n)
+
+    def getDecoder(self, ext):
+        """Helper function, use within this class only. Returns encoder for specific format.
+        
+            ext - extension
+        """
+        ext = ext.lower()   # Safeguard in case of a mistake
+
+        match ext:
+            case "png":
+                return IMAGE_MAGICK_PATH
+            case "jxl":
+                return DJXL_PATH
+            case "avif":
+                return AVIFDEC_PATH
+            case _:
+                if ext in ALLOWED_INPUT_IMAGE_MAGICK:
+                    return IMAGE_MAGICK_PATH
+                else:
+                    return None
+
+    def decode(self, src, dst, src_ext, n = None):
+        """Decode to PNG.
+        
+            src - source path
+            dst - destination path
+            src_ext - source extension
+            n - worker number
+        """
+        encoder_path = self.getDecoder(src_ext)
+
+        if encoder_path == None:
+            self.log(f"Cannot find decoder for {src_ext}", n)
+            return False
+        else:
+            self.convert(encoder_path, src, dst, [], n)
+            return True
+    
+    def decodeAndDownscale(self, params, ext):
+        """Decode to PNG with downscaling support."""
+        params["enc"] = self.getDecoder(ext)
+
+        if params["enc"] == None:
+            self.log(f"Cannot find decoder for {ext}", n)
+            return False
+        else:
+            self.downscale(params)
+            return True
 
     def optimize(self, bin_path, src, args = [], n = None):
         command = f'\"{bin_path}\" {" ".join(args) + " " if args else ""}\"{src}\"'
