@@ -40,14 +40,6 @@ Linux
     - JPEG XL - [tutorial](https://codepoems.eu/posts/how-to-open-jpeg-xl-images-on-linux/)
     - AVIF - [tutorial](https://codepoems.eu/posts/how-to-open-avif-images-on-linux/)
 
-## Supported Formats
-
-- Encoding: JPEG XL, AVIF, WEBP, JPG
-- Decoding: JPEG XL, AVIF, WEBP, JPG, GIF, HEIF, WEBP, TIFF, JP2, BMP
-- Encoding Animation:
-    - GIF -> WEBP
-    - GIF / APNG -> JPEG XL (limited to Effort 7)
-
 ## Intelligent Features
 
 ### Lossless (If Smaller)
@@ -81,6 +73,36 @@ For example: HEIF to JPEG XL
 For small amounts of images, the extra threads will be spread out for maximum performance.
 
 Works best in AVIF. Other encoders don't seem to use extra threads much.
+
+
+## Supported Formats
+### Images
+
+Encoding is supported for all latest formats.
+
+|Format|Encoding|Decoding |Downscaling|
+|-|:-:|:-:|:-:|
+|JPEG XL|Yes|Yes|Yes|
+|AVIF|Yes|Yes|Yes|
+|WEBP|Yes|Yes|Yes|
+|JPG|Yes|Yes|Yes|
+|PNG|Yes|Yes|Yes|
+|Smallest Lossless|Yes|Yes|-|
+|HEIF|-|Yes|to PNG|
+|TIFF|-|Yes|to PNG|
+|JP2|-|Yes|to PNG|
+|BMP|-|Yes|to PNG|
+|ICO|-|Yes|to PNG|
+
+### Animation
+
+XL Converter is an image-only tool. Animation support is limited, will not be expanded and may be removed in the future.
+
+|Format|Encoding|Decoding|Encoding Input|Notes|
+|-|:-:|:-:|:-:|-|
+|JPEG XL|Yes|-|GIF, APNG|Limited to Effort 7|
+|WEBP|Yes|-|GIF|-|
+|GIF|-|Yes|-|-|
 
 ## Building
 
