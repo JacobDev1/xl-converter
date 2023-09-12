@@ -111,11 +111,15 @@ XL Converter is an image-only tool. Animation support is limited, will not be ex
 
 Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you. It works regardless of format and is compatible with intelligent effort.
 
+![](screenshots/screenshot_4.png)
+
 More downscaling methods are also available: to percent, max resolution, shortest, and longest side.
 
 #### JPEG XL and AVIF
 
 Encode to both of these great formats. Each one has its strengths.
+
+![](screenshots/screenshot_5.png)
 
 #### Lossless (If Smaller)
 
@@ -125,7 +129,11 @@ Converts to both lossy and lossless then picks the smallest file.
 
 Every image is checked with each of the 3 formats (Optimized PNG, WEBP, and JPEG XL) to deliver **the tiniest file size** without any loss of quality.
 
+![](screenshots/screenshot_6.png)
+
 **Max Compression** option prolongs the conversion but grants encoders more time to shrink the images.
+
+You can also use it to **optimize your PNGs**, so they'd take up less space. To do this leave only the PNG checked.
 
 ### JPEG XL
 
