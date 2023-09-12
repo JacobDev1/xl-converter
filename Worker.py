@@ -1,5 +1,5 @@
 from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, AVIFENC_PATH, AVIFDEC_PATH, OXIPNG_PATH
-from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, PROGRAM_FOLDER, ALLOWED_INPUT_IMAGE_MAGICK, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_AVIFDEC, ALLOWED_INPUT
+from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, PROGRAM_FOLDER, ALLOWED_INPUT_IMAGE_MAGICK, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_AVIFDEC, ALLOWED_INPUT, JPEG_ALIASES
 from Convert import Convert
 
 import os, subprocess, shutil
@@ -215,6 +215,7 @@ class Worker(QRunnable):
 
             if self.params["lossless"]:
                 args[0] = "-q 100"
+                args[3] = "--lossless_jpeg=1"   # JPG reconstruction
 
             # For lossless best Effort is always 9
             if self.params["intelligent_effort"] and (self.params["quality"] == 100 or self.params["lossless"]):
@@ -354,7 +355,6 @@ class Worker(QRunnable):
                 ],
                 "jxl": [
                     "-q 100",
-                    "--lossless_jpeg=0",
                     "-e 9" if self.params["max_compression"] else "-e 7",
                     f"--num_threads={self.available_threads}"
                 ]
@@ -368,8 +368,11 @@ class Worker(QRunnable):
                 elif key == "webp":
                     self.convert.convert(IMAGE_MAGICK_PATH, self.item_abs_path, path_pool["webp"], args["webp"], self.n)
                 elif key == "jxl":
-                    self.convert.convert(CJXL_PATH, self.item_abs_path, path_pool["jxl"], args["jxl"], self.n)
-            
+                    src = self.item_abs_path
+                    if self.item_ext in JPEG_ALIASES:  # Exception for handling JPG reconstruction
+                        src = self.item[3]
+                    self.convert.convert(CJXL_PATH, src, path_pool["jxl"], args["jxl"], self.n)
+
             # Get file sizes
             file_sizes = {}
             for key in path_pool:
