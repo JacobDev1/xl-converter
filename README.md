@@ -3,15 +3,11 @@
 </p>
 <h3 align="center">XL Converter</h3>
 
-Fast and simple image converter for the latest formats. It supports multithreading, drag 'n drop, and intelligent options.
+Powerful image converter for the latest formats with support for multithreading, dynamic downscaling, drag 'n drop, and intelligent features.
 
 Available for both Windows and Linux.
 
 ![](screenshots/screenshot_0.png)
-![](screenshots/screenshot_1.png)
-![](screenshots/screenshot_2.png)
-
-Focused on JPEG XL, AVIF, WEBP, and "Smallest Lossless".
 
 ## Donations
 
@@ -23,17 +19,11 @@ The programming market is difficult to get into and my IT degree doesn't seem to
 
 ## Tutorials
 
-### Install
+### Linux Install
 
-Windows
-- Installer is included
+Run `./install.sh`
 
-Linux
-- To Install - unpack it then run `./install.sh`
-- To Uninstall - `sudo rm -r /opt/xl-converter`
-- To Update - first uninstall the previous version
-
-### How to Open Modern Formats
+### How to Open AVIF and JPEG XL
 
 - Windows - supported by [ImageGlass](https://imageglass.org/) / [XnViewMP](https://www.xnview.com/en/) / [PhotoQt](https://photoqt.org/) / [PicView](https://picview.org/) / [nomacs](https://nomacs.org/windows-10/) / [GIMP](https://www.gimp.org/)
 - Linux
@@ -72,7 +62,7 @@ XL Converter is an image-only tool. Animation support is limited, will not be ex
 
 ## Features
 ### General
-#### Downscaling
+#### Dynamic Downscaling
 
 Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you. It works regardless of format and is compatible with intelligent effort.
 
@@ -98,7 +88,7 @@ Every image is checked with each of the 3 formats (Optimized PNG, WEBP, and JPEG
 
 **Max Compression** option prolongs the conversion but grants encoders more time to shrink the images.
 
-You can also use it to **optimize your PNGs**, so they'd take up less space. To do this leave only the PNG checked.
+You can also use it to **optimize your PNGs**, so they'd take up less space. To do this leave only PNG checked.
 
 ### JPEG XL
 
