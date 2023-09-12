@@ -3,7 +3,7 @@
 </p>
 <h3 align="center">XL Converter</h3>
 
-Fast and simple image converter for the latest formats. It supports multi-threading, drag 'n drop and intelligent options.
+Fast and simple image converter for the latest formats. It supports multithreading, drag 'n drop, and intelligent options.
 
 Available for both Windows and Linux.
 
@@ -11,7 +11,7 @@ Available for both Windows and Linux.
 ![](screenshots/screenshot_1.png)
 ![](screenshots/screenshot_2.png)
 
-Focused on JPEG XL, AVIF, WEBP and "Smallest Lossless".
+Focused on JPEG XL, AVIF, WEBP, and "Smallest Lossless".
 
 ## Donations
 
@@ -78,7 +78,7 @@ Works best in AVIF. Other encoders don't seem to use extra threads much.
 ## Supported Formats
 ### Images
 
-Encoding is supported for all latest formats.
+Encoding is supported for all the latest formats.
 
 |Format|Encoding|Decoding |Downscaling|
 |-|:-:|:-:|:-:|
@@ -96,7 +96,7 @@ Encoding is supported for all latest formats.
 
 ### Animation
 
-XL Converter is an image-only tool. Animation support is limited, will not be expanded and may be removed in the future.
+XL Converter is an image-only tool. Animation support is limited, will not be expanded, and may be removed in the future.
 
 |Format|Encoding|Decoding|Encoding Input|Notes|
 |-|:-:|:-:|:-:|-|
