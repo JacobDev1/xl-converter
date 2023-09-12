@@ -20,6 +20,8 @@ ALLOWED_INPUT_OXIPNG = ["png"]
 ALLOWED_INPUT = []
 ALLOWED_RESAMPLING = ("Point", "Cubic", "Hermite", "Box", "Gaussian", "Catrom", "Triangle", "Quadratic", "Mitchell", "CubicSpline", "Lanczos", "Hamming", "Parzen", "Blackman", "Kaiser", "Welsh", "Hanning", "Bartlett", "Bohman")
 
+JPEG_ALIASES = ["jpg","jpeg","jfif", "jif"] # Used by CJXL, before adding more verify support
+
 if platform.system() == "Windows":
     CJXL_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/cjxl.exe"))
     DJXL_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/djxl.exe"))
