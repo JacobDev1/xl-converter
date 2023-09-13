@@ -9,9 +9,10 @@ from AboutTab import AboutTab
 from OutputTab import OutputTab
 # from SettingsTab import SettingsTab    # For future implementation
 from ModifyTab import ModifyTab
-from Worker import Worker, task_status
+from Worker import Worker
 from Data import Data
 from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool
+import TaskStatus
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -76,7 +77,6 @@ class MainWindow(QMainWindow):
         print(f"[Worker #{n}] Finished")
 
         if self.progress_dialog.wasCanceled():
-            task_status.cancel()
             if self.tab.isEnabled() == False:
                 self.setUIEnabled(True)
             return
@@ -113,9 +113,10 @@ class MainWindow(QMainWindow):
         self.progress_dialog.setWindowTitle("XL Converter")
         self.progress_dialog.setMinimumWidth(300)
         self.progress_dialog.show()
+        self.progress_dialog.canceled.connect(TaskStatus.cancel)
 
         # Start workers
-        task_status.reset()
+        TaskStatus.reset()
         self.setUIEnabled(False)
 
         for i in range(0,self.data.getItemCount()):

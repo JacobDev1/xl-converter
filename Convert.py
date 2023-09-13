@@ -1,6 +1,7 @@
 import os, random, subprocess, shutil
 from send2trash import send2trash
 from VARIABLES import DEBUG, IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH
+import TaskStatus
 
 # Methods for converting files
 
@@ -160,6 +161,9 @@ class Convert():
     
     def downscaleTemplate(self, src, dst, _args, resample="Default", n=None):
         """Template - only for use within this class."""
+        if TaskStatus.wasCanceled():
+            return
+
         args = []
         if resample != "Default" and resample in ALLOWED_RESAMPLING:
             args.append(f"-filter {resample}")  # Needs to come first
@@ -181,6 +185,8 @@ class Convert():
             
     def downscaleToMaxFileSize(self, params):
         """Downscale image to fit under a certain file size."""
+        if TaskStatus.wasCanceled():
+            return False
 
         # Prepare data
         amount = params["step"]
@@ -189,6 +195,11 @@ class Convert():
 
         # Downscale until it's small enough
         while True:
+            if TaskStatus.wasCanceled():
+                self.delete(proxy_src)
+                self.delete(params["dst"])
+                return False
+
             # Normal conversion
             self.convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
 
@@ -205,13 +216,21 @@ class Convert():
                     self.log("[Error] Cannot downscale to less than 1%", params["n"])
                     # return False
                 
+                if TaskStatus.wasCanceled():
+                    self.delete(proxy_src)
+                    self.delete(params["dst"])
+                    return False
+
                 self.downscaleByPercent(params["src"], proxy_src, amount, params["resample"], params["n"])
+
             else:
                 # JPEG XL - intelligent effort
                 if params["jxl_int_e"]: 
                     params["args"][1] = "-e 9"
                     e9_tmp = self.getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
+
                     self.convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
+
                     if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
                         self.delete(params["dst"])
                         os.rename(e9_tmp, params["dst"])
