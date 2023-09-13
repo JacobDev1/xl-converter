@@ -18,7 +18,7 @@ Supported formats:
 
 ## Donations
 
-I'm currently without a job, so I'd appreciate [your donation](https://liberapay.com/CodePoems).
+I'm currently without a job, so I'd appreciate [your donation](https://codepoems.eu/donate).
 
 The programming market is difficult to get into and my IT degree doesn't seem to be of any help. Donations will be used to pay for the hosting of my [website](https://codepoems.eu) where I post tutorials and software.
 
