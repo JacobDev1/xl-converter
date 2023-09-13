@@ -1,6 +1,8 @@
 from VARIABLES import CJXL_PATH, DJXL_PATH, IMAGE_MAGICK_PATH, AVIFENC_PATH, AVIFDEC_PATH, OXIPNG_PATH
 from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, PROGRAM_FOLDER, ALLOWED_INPUT_IMAGE_MAGICK, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_AVIFDEC, ALLOWED_INPUT, JPEG_ALIASES
 from Convert import Convert
+import TaskStatus
+
 
 import os, subprocess, shutil
 
@@ -10,21 +12,6 @@ from PySide6.QtCore import (
     Signal,
     Slot
 )
-
-class TaskStatus():
-    def __init__(self):
-        self.canceled = False
-
-    def isCanceled(self):
-        return self.canceled
-
-    def cancel(self):
-        self.canceled = True
-    
-    def reset(self):
-        self.canceled = False
-
-task_status = TaskStatus()
 
 class Signals(QObject):
     started = Signal(int)
@@ -58,7 +45,7 @@ class Worker(QRunnable):
     
     @Slot()
     def run(self):
-        if task_status.isCanceled():
+        if TaskStatus.wasCanceled():
             self.signals.canceled.emit(self.n)
             return
 
@@ -237,6 +224,12 @@ class Worker(QRunnable):
                 ]
                 args[1] = "-e 7"
                 self.convert.convert(CJXL_PATH, self.item_abs_path, path_pool[0], args, self.n)
+
+                if TaskStatus.wasCanceled():
+                    self.convert.delete(path_pool[0])
+                    self.signals.canceled.emit(self.n)
+                    return
+
                 args[1] = "-e 9"
                 self.convert.convert(CJXL_PATH, self.item_abs_path, path_pool[1], args, self.n)
 
@@ -403,6 +396,11 @@ class Worker(QRunnable):
 
         else:
             self.convert.log(f"Unknown Format ({self.params['format']})", self.n)
+
+        # Clean-up proxy
+        if need_proxy:
+            self.convert.delete(self.item_abs_path) # self.item_abs_path points at a proxy
+            self.item_abs_path = self.item[3]
         
         # Check for existing files
         if self.item_ext == "gif" and self.params["format"] == "PNG":
@@ -422,11 +420,6 @@ class Worker(QRunnable):
                             self.convert.delete(output)
                         else:
                             os.rename(output, final_output)
-
-        # Clean-up proxy
-        if need_proxy:
-            self.convert.delete(self.item_abs_path)
-            self.item_abs_path = self.item[3]
 
         if os.path.isfile(final_output):    # In case renaming failed
             # Apply attributes
