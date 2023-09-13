@@ -30,7 +30,7 @@ class AboutTab(QWidget):
 
         # Right Side
         about_tab_btn_lt = QHBoxLayout()
-        about_tab_btn_lt.addWidget(QPushButton("Donate", clicked=lambda: QDesktopServices.openUrl(QUrl("https://liberapay.com/CodePoems/donate"))))
+        about_tab_btn_lt.addWidget(QPushButton("Donate", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu/donate"))))
         about_tab_btn_lt.addWidget(QPushButton("My Website", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu"))))
 
         about_tab_lt.addLayout(about_tab_btn_lt,0,1)
