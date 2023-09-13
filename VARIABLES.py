@@ -23,12 +23,12 @@ ALLOWED_RESAMPLING = ("Point", "Cubic", "Hermite", "Box", "Gaussian", "Catrom", 
 JPEG_ALIASES = ["jpg","jpeg","jfif", "jif"] # Used by CJXL, before adding more verify support
 
 if platform.system() == "Windows":
-    CJXL_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/cjxl.exe"))
-    DJXL_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/djxl.exe"))
-    IMAGE_MAGICK_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/magick.exe"))
-    AVIFENC_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/avifenc.exe"))
-    AVIFDEC_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/avifdec.exe"))
-    OXIPNG_PATH = os.path.abspath(os.path.join(PROGRAM_FOLDER,"bin/win/oxipng.exe"))
+    CJXL_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/cjxl.exe")
+    DJXL_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/djxl.exe")
+    IMAGE_MAGICK_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/magick.exe")
+    AVIFENC_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/avifenc.exe")
+    AVIFDEC_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/avifdec.exe")
+    OXIPNG_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/oxipng.exe")
 elif platform.system() == "Linux":
     CJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/cjxl"
     DJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/djxl"
