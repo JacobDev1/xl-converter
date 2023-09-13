@@ -3,9 +3,9 @@
 echo "XL Converter v0.9 installer"
 echo "----------------------------"
 if [ -d "/opt/xl-converter" ]; then
-    echo "1. Replace older version (/opt/xl-converter)"
+    echo "1. Update (/opt/xl-converter)"
 else
-    echo "1. Install (/opt/xl-converter)"    
+    echo "1. Install (/opt/xl-converter)"
 fi
 
 echo "2. Exit"
@@ -24,4 +24,6 @@ if [ $choice == "1" ]; then
     # Install
     sudo cp -r xl-converter /opt/xl-converter
     sudo chmod -R +x /opt/xl-converter
+    
+    echo "Installation completed"
 fi
