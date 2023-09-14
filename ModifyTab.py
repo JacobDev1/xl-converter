@@ -9,10 +9,12 @@ from PySide6.QtWidgets import(
     QCheckBox,
     QLabel,
     QSpinBox,
-    QGroupBox
+    QGroupBox,
+    QSizePolicy,
 )
 
 from PySide6.QtCore import(
+    Qt,
     QObject,
     Signal
 )
@@ -159,6 +161,17 @@ class ModifyTab(QWidget):
 
         tab_lt.addWidget(default_btn,2,0)
         tab_lt.addWidget(convert_btn,2,1)
+
+        # Size Policy
+        tab_lt.setAlignment(Qt.AlignTop)
+
+        downscale_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        misc_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        misc_grp.setMaximumWidth(400)
+        downscale_grp.setMaximumWidth(400)
+        misc_grp.setMaximumHeight(232)
+        downscale_grp.setMaximumHeight(232)
 
         # Set Default
         self.resetToDefault()
