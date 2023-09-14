@@ -160,7 +160,7 @@ class Convert():
                     os.rename(paths[i], new_path)
     
     def downscaleTemplate(self, src, dst, _args, resample="Default", n=None):
-        """Template - only for use within this class."""
+        """Template - for use within this class only."""
         if TaskStatus.wasCanceled():
             return
 
