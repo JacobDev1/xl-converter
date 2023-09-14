@@ -14,7 +14,8 @@ from PySide6.QtWidgets import(
     QRadioButton,
     QPushButton,
     QFileDialog,
-    QSpinBox
+    QSpinBox,
+    QSizePolicy,
 )
 
 from PySide6.QtCore import(
@@ -187,7 +188,7 @@ class OutputTab(QWidget):
         self.setFormatPoolVisible(False)
         format_grp_layout.addLayout(format_sm_l_hb)
 
-        # Format
+        # Lossless
         format_grp_layout.addLayout(format_lossless_hbox)
 
         # Buttons
@@ -197,6 +198,19 @@ class OutputTab(QWidget):
         self.convert_btn_2.clicked.connect(lambda: self.signals.convert.emit())
         output_page_lt.addWidget(reset_to_default_btn,2,0)
         output_page_lt.addWidget(self.convert_btn_2,2,1)
+
+        # Size Policy
+        output_page_lt.setAlignment(Qt.AlignTop)
+
+        format_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)    # Minimum so it can spread vertically
+
+        output_grp.setMaximumWidth(400)
+        format_grp.setMaximumWidth(400)
+        conv_grp.setMaximumWidth(400)
+        after_conv_grp.setMaximumWidth(400)
 
         # Misc
         self.resetToDefault()
