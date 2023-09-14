@@ -9,13 +9,11 @@ Available for both Windows and Linux.
 
 ![](screenshots/screenshot_0.png)
 
-## Donations
+## Support This Project
 
-I'm currently without a job, so I'd appreciate [your donation](https://codepoems.eu/donate).
-
-The programming market is difficult to get into and my IT degree doesn't seem to be of any help. Donations will be used to pay for the hosting of my [website](https://codepoems.eu) where I post tutorials and software.
-
-![](screenshots/screenshot_3.png)
+- [Patreon](https://patreon.com/codepoems) - get latest builds
+- [Ko-Fi](https://ko-fi.com/codepoems) - one-time donation
+- [Libera](https://liberapay.com/CodePoems/donate)
 
 ## Tutorials
 
