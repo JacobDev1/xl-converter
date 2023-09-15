@@ -186,14 +186,15 @@ class ModifyTab(QWidget):
         self.mode_cmb.setEnabled(n)
         self.scl_fs_sb.setEnabled(n)
         self.scl_fs_s_sb.setEnabled(n)
-        self.scl_fs_s_l.setEnabled(n)
         self.scl_p_sb.setEnabled(n)
         self.scl_px_w_sb.setEnabled(n)
         self.scl_px_h_sb.setEnabled(n)
+        self.scl_shrtst_sb.setEnabled(n)
+        self.scl_lngst_sb.setEnabled(n)
         self.rs_cmb.setEnabled(n)
 
     def resetToDefault(self):
-        self.mode_cmb.setCurrentIndex(0)
+        self.rs_cmb.setCurrentIndex(0)
         self.scl_fs_sb.setValue(300)
         self.scl_fs_s_sb.setValue(10)
         self.scl_p_sb.setValue(80)
