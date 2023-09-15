@@ -57,4 +57,4 @@ if platform.system() == "Linux":
 with open("build/last_built_on","w") as last_built_on:
     last_built_on.write(f"{platform.system()}_{platform.architecture()}")
 
-print("[Building] Finished")
+print(f"[Building] Finished (built to {os.path.join(PROGRAM_FOLDER,'dist','xl-converter')})")

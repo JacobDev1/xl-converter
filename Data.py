@@ -19,7 +19,7 @@ class Data():
         for i in range(root.childCount()):
             item = root.child(i)
             file_data = stripPathToFilename(item.text(2))
-            if file_data[1] in allowed:
+            if file_data[1].lower() in allowed:
                 self.items.append(file_data)
             else:
                 print(f"[Data] File not allowed for current format ({file_data[3]})")
