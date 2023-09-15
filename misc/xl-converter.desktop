@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=XL Converter
-Comment=Fast and easy to use image converter for modern formats.
+Comment=Powerful image converter for the latest formats.
 Path=/opt/xl-converter
 Exec=/opt/xl-converter/xl-converter
 Icon=/opt/xl-converter/icons/logo.svg

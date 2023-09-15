@@ -14,7 +14,8 @@ from PySide6.QtWidgets import(
     QRadioButton,
     QPushButton,
     QFileDialog,
-    QSpinBox
+    QSpinBox,
+    QSizePolicy,
 )
 
 from PySide6.QtCore import(
@@ -53,7 +54,7 @@ class OutputTab(QWidget):
         self.conv_cores_sl.valueChanged.connect(lambda: self.onThreadCountChange())
 
         if_file_exists_hbox = QHBoxLayout()
-        if_file_exists_hbox.addWidget(QLabel("If File Already Exists"))
+        if_file_exists_hbox.addWidget(QLabel("Duplicates"))
         if_file_exists_hbox.addWidget(self.if_file_exists_cmb)
 
         self.conv_cores_l = QLabel("1")
@@ -90,7 +91,7 @@ class OutputTab(QWidget):
         output_page_lt.addWidget(after_conv_grp,1,1)
 
         # Output Group
-        output_grp = QGroupBox("Where to Save Files")
+        output_grp = QGroupBox("Save To")
         output_grp_layout = QVBoxLayout()
         output_grp.setLayout(output_grp_layout)
 
@@ -147,12 +148,12 @@ class OutputTab(QWidget):
         self.format_lossless_if_cb.toggled.connect(self.toggleLossless)
         self.format_lossless_cb = QCheckBox("Lossless")
         self.format_lossless_cb.toggled.connect(self.toggleLossless)
-        self.format_max_efc = QCheckBox("Max Efficiency")
-        self.format_max_efc.setVisible(False)
+        self.format_max_cmp = QCheckBox("Max Compression")
+        self.format_max_cmp.setVisible(False)
         format_lossless_hbox = QHBoxLayout()
         format_lossless_hbox.addWidget(self.format_lossless_cb)
         format_lossless_hbox.addWidget(self.format_lossless_if_cb)
-        format_lossless_hbox.addWidget(self.format_max_efc)
+        format_lossless_hbox.addWidget(self.format_max_cmp)
 
         format_cmb_hbox = QHBoxLayout()
         format_cmb_hbox.addWidget(QLabel("Format"))
@@ -187,7 +188,7 @@ class OutputTab(QWidget):
         self.setFormatPoolVisible(False)
         format_grp_layout.addLayout(format_sm_l_hb)
 
-        # Format
+        # Lossless
         format_grp_layout.addLayout(format_lossless_hbox)
 
         # Buttons
@@ -197,6 +198,19 @@ class OutputTab(QWidget):
         self.convert_btn_2.clicked.connect(lambda: self.signals.convert.emit())
         output_page_lt.addWidget(reset_to_default_btn,2,0)
         output_page_lt.addWidget(self.convert_btn_2,2,1)
+
+        # Size Policy
+        output_page_lt.setAlignment(Qt.AlignTop)
+
+        format_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)    # Minimum so it can spread vertically
+
+        output_grp.setMaximumWidth(400)
+        format_grp.setMaximumWidth(400)
+        conv_grp.setMaximumWidth(400)
+        after_conv_grp.setMaximumWidth(400)
 
         # Misc
         self.resetToDefault()
@@ -210,7 +224,7 @@ class OutputTab(QWidget):
             "quality": self.format_q_sb.value(),
             "lossless": self.format_lossless_cb.isChecked(),
             "lossless_if_smaller": self.format_lossless_if_cb.isChecked(),
-            "max_efficiency": self.format_max_efc.isChecked(),
+            "max_compression": self.format_max_cmp.isChecked(),
             "effort": self.format_e_sb.value(),
             "intelligent_effort": self.format_jxl_e_int_cb.isChecked(),
             "if_file_exists": self.if_file_exists_cmb.currentText(),
@@ -235,6 +249,7 @@ class OutputTab(QWidget):
     
     def chooseOutput(self):
         dlg = QFileDialog()
+        dlg.setWindowTitle("Choose Output Folder")
         dlg.setFileMode(QFileDialog.Directory)
 
         if dlg.exec():
@@ -308,10 +323,10 @@ class OutputTab(QWidget):
             self.setLosslessVisible(False)
             self.setEffortVisible(False)
             self.setFormatPoolVisible(True)
-            self.format_max_efc.setVisible(True)
+            self.format_max_cmp.setVisible(True)
         else:
             self.setFormatPoolVisible(False)
-            self.format_max_efc.setVisible(False)
+            self.format_max_cmp.setVisible(False)
             self.setLosslessVisible(True)
             self.setEffortVisible(True)
 
@@ -366,7 +381,7 @@ class OutputTab(QWidget):
         # Lossless
         self.format_lossless_cb.setChecked(False)
         self.format_lossless_if_cb.setChecked(False)
-        self.format_max_efc.setChecked(False)
+        self.format_max_cmp.setChecked(False)
 
         # Smallest Lossless
         self.format_sm_l_png_cb.setChecked(True)

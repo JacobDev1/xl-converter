@@ -8,10 +8,11 @@ from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
 # from SettingsTab import SettingsTab    # For future implementation
-# from ModifyTab import ModifyTab
-from Worker import Worker, task_status
+from ModifyTab import ModifyTab
+from Worker import Worker
 from Data import Data
 from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool
+import TaskStatus
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -54,8 +55,9 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.output_tab, "Output")
 
         # Modify Tab
-        # self.modify_tab = ModifyTab()
-        # self.tab.addTab(self.modify_tab, "Modify")
+        self.modify_tab = ModifyTab()
+        self.modify_tab.signals.convert.connect(self.convert)
+        self.tab.addTab(self.modify_tab, "Modify")
 
         # Settings Tab
         # self.settings_tab = SettingsTab()
@@ -75,7 +77,6 @@ class MainWindow(QMainWindow):
         print(f"[Worker #{n}] Finished")
 
         if self.progress_dialog.wasCanceled():
-            task_status.cancel()
             if self.tab.isEnabled() == False:
                 self.setUIEnabled(True)
             return
@@ -97,19 +98,25 @@ class MainWindow(QMainWindow):
         if self.input_tab.file_view.topLevelItemCount() == 0:
             return
         
+        # Fill in the parameters
         params = self.output_tab.getSettings()
+        params.update(self.modify_tab.getSettings())
 
+        # Parse data
         self.data.clear()
         self.data.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
         if self.data.getItemCount() == 0:
             return
         
+        # Set progress dialog
         self.progress_dialog = QProgressDialog("Converting Items...", "Cancel",0,self.data.getItemCount(), self)
         self.progress_dialog.setWindowTitle("XL Converter")
         self.progress_dialog.setMinimumWidth(300)
         self.progress_dialog.show()
+        self.progress_dialog.canceled.connect(TaskStatus.cancel)
 
-        task_status.reset()
+        # Start workers
+        TaskStatus.reset()
         self.setUIEnabled(False)
 
         for i in range(0,self.data.getItemCount()):
