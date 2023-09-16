@@ -1,7 +1,9 @@
 import os, platform
 
-PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
+VERSION = "0.9"
 DEBUG = False    # More verbose output
+
+PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
 
 CJXL_PATH = "cjxl"
 DJXL_PATH = "djxl"

@@ -1,6 +1,8 @@
 #!/usr/bin/bash
 
-echo "XL Converter v0.9 installer"
+VERSION="0.9"
+
+echo "XL Converter $VERSION installer"
 echo "----------------------------"
 if [ -d "/opt/xl-converter" ]; then
     echo "1. Update (/opt/xl-converter)"
