@@ -196,7 +196,7 @@ make setup
 Build
 
 ```bash
-make linux
+make build
 ```
 
 ## Running
