@@ -214,6 +214,7 @@ class OutputTab(QWidget):
 
         # Misc
         self.resetToDefault()
+        self.onFormatChange()
     
     def isClearAfterConvChecked(self):
         return self.clear_after_conv_cb.isChecked()
@@ -309,8 +310,12 @@ class OutputTab(QWidget):
             self.format_e_l.setText("Speed")
             self.format_jxl_e_int_cb.setText("Best Quality")
         else:
-            self.format_q_sl.setRange(1, 100)
-            self.format_q_sb.setRange(1, 100)
+            if cur_format == "JPEG XL":
+                self.format_q_sl.setRange(0, 99)
+                self.format_q_sb.setRange(0, 99)
+            else:
+                self.format_q_sl.setRange(1, 100)
+                self.format_q_sb.setRange(1, 100)
             self.format_e_sb.setRange(1, 9)
             self.format_e_sb.setValue(7)
             self.format_q_sl.setValue(80)
