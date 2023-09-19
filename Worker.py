@@ -100,7 +100,6 @@ class Worker(QRunnable):
 
         # Choose Output Dir           
         output_dir = ""
-        output = ""
         if self.params["custom_output_dir"]:
             output_dir = self.params["custom_output_dir_path"]
             if os.path.isdir(output_dir) == False:
