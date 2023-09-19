@@ -19,7 +19,8 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QGridLayout,
     QTabWidget,
-    QProgressDialog
+    QProgressDialog,
+    QMessageBox
 )
 from PySide6.QtCore import (
     QThreadPool,
@@ -101,6 +102,18 @@ class MainWindow(QMainWindow):
         # Fill in the parameters
         params = self.output_tab.getSettings()
         params.update(self.modify_tab.getSettings())
+
+        # Check Permissions
+        if params["custom_output_dir"]:
+            if os.path.isabs(params["custom_output_dir_path"]): # Relative paths are handled in the Worker
+                try:
+                    os.makedirs(params["custom_output_dir_path"], exist_ok=True)
+                except OSError as err:
+                    dlg = QMessageBox()
+                    dlg.setWindowTitle("Access Error")
+                    dlg.setText(f"{err}\nMake sure the path is accessible\nand that you have write permissions.")
+                    dlg.exec()
+                    return
 
         # Parse data
         self.data.clear()
