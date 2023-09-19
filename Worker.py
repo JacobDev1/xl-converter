@@ -102,8 +102,16 @@ class Worker(QRunnable):
         output_dir = ""
         if self.params["custom_output_dir"]:
             output_dir = self.params["custom_output_dir_path"]
-            if os.path.isdir(output_dir) == False:
+
+            if not os.path.isabs(output_dir):   # If path relative
+                output_dir = os.path.join(self.item_dir, output_dir)
+
+            try:
                 os.makedirs(output_dir, exist_ok=True)
+            except OSError as err:
+                self.convert.log(err, self.n)
+                self.signals.completed.emit(self.n)
+                return
         else:
             output_dir = self.item[2]
 
