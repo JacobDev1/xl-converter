@@ -206,8 +206,9 @@ Install dependencies from the [Building](#building) section and replace the last
 - Windows - `python main.py`
 - Linux - `make run`
 
-## Contributions
+## Branches
 
-Branches
 - `unstable` - all changes are committed here first
 - `stable` - current stable release
+
+Contributions are not accepted to avoid legal issues. Forward your code and feature suggestions to [my email](https://codepoems.eu/about/).
