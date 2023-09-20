@@ -1,5 +1,6 @@
 import os, re, platform
 from pathlib import Path
+import qdarktheme
 
 def stripPathToFilename(path):
     """Dissect path into its parts.
@@ -55,3 +56,10 @@ def burstThreadPool(workers_n, cores_a):
                 n += 1
 
             return thread_pool
+
+def setTheme(theme="dark"):
+    match theme:
+        case "dark":
+            qdarktheme.setup_theme(corner_shape="sharp", custom_colors={"primary":"#F18000"})
+        case "light":
+            qdarktheme.setup_theme("light", corner_shape="sharp", custom_colors={"primary":"#EF7202"})

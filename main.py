@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import sys, os
-import qdarktheme
 
 from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT
 from InputTab import InputTab
@@ -144,7 +143,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    qdarktheme.setup_theme(corner_shape="sharp", custom_colors={"primary":"#F18000"})
+    setTheme("dark")
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec())
