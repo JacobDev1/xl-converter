@@ -2,6 +2,7 @@ import os, platform
 
 VERSION = "0.9"
 DEBUG = False    # More verbose output
+CONFIG_LOCATION = ""    # Filled below
 
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
 
@@ -31,6 +32,8 @@ if platform.system() == "Windows":
     AVIFENC_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/avifenc.exe")
     AVIFDEC_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/avifdec.exe")
     OXIPNG_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/oxipng.exe")
+
+    CONFIG_LOCATION = os.path.normpath(os.path.expanduser("~/AppData/Local/xl-converter"))
 elif platform.system() == "Linux":
     CJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/cjxl"
     DJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/djxl"
@@ -38,6 +41,8 @@ elif platform.system() == "Linux":
     AVIFENC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifenc"
     AVIFDEC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifdec"
     OXIPNG_PATH = f"{PROGRAM_FOLDER}/bin/linux/oxipng"
+
+    CONFIG_LOCATION = os.path.expanduser('~/.config/xl-converter')
 
 tmp = ALLOWED_INPUT_DJXL + ALLOWED_INPUT_CJXL + ALLOWED_INPUT_IMAGE_MAGICK + ALLOWED_INPUT_AVIFENC + ALLOWED_INPUT_AVIFDEC + ALLOWED_INPUT_OXIPNG
 [ALLOWED_INPUT.append(n) for n in tmp if n not in ALLOWED_INPUT]    # Remove duplicates
