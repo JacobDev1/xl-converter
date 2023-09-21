@@ -3,14 +3,14 @@
 import sys, os
 
 from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT
+from SettingsTab import SettingsTab # Needs to be declared before other tabs
 from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
-# from SettingsTab import SettingsTab    # For future implementation
 from ModifyTab import ModifyTab
 from Worker import Worker
 from Data import Data
-from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool
+from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool, setTheme
 import TaskStatus
 
 from PySide6.QtWidgets import (
@@ -60,8 +60,8 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.modify_tab, "Modify")
 
         # Settings Tab
-        # self.settings_tab = SettingsTab()
-        # self.tab.addTab(self.settings_tab, "Settings")
+        self.settings_tab = SettingsTab()
+        self.tab.addTab(self.settings_tab, "Settings")
 
         # About Tab
         self.about_tab = AboutTab()
@@ -140,6 +140,9 @@ class MainWindow(QMainWindow):
 
     def setUIEnabled(self, n):
         self.tab.setEnabled(n)
+    
+    def closeEvent(self, e):
+        self.settings_tab.wm.saveState()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
