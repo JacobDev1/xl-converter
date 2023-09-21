@@ -44,30 +44,26 @@ class MainWindow(QMainWindow):
         self.data = Data()
         self.progress_dialog = None
 
-        # Input Tab
+        self.settings_tab = SettingsTab()   # Needs to be declared before other tabs
+
         self.input_tab = InputTab()
         self.input_tab.signals.convert.connect(self.convert)
-        self.tab.addTab(self.input_tab, "Input")
 
-        # Output Tab
         self.output_tab = OutputTab()
         self.output_tab.signals.convert.connect(self.convert)
-        self.tab.addTab(self.output_tab, "Output")
 
-        # Modify Tab
-        self.modify_tab = ModifyTab()
+        self.modify_tab = ModifyTab(self.settings_tab.getSettings())
         self.modify_tab.signals.convert.connect(self.convert)
-        self.tab.addTab(self.modify_tab, "Modify")
+        self.settings_tab.signals.all_resampling.connect(self.modify_tab.addResampling)
 
-        # Settings Tab
-        self.settings_tab = SettingsTab()
-        self.tab.addTab(self.settings_tab, "Settings")
-
-        # About Tab
         self.about_tab = AboutTab()
-        self.tab.addTab(self.about_tab, "About")
 
-        # Main
+        # Layout
+        self.tab.addTab(self.input_tab, "Input")
+        self.tab.addTab(self.output_tab, "Output")
+        self.tab.addTab(self.modify_tab, "Modify")
+        self.tab.addTab(self.settings_tab, "Settings")
+        self.tab.addTab(self.about_tab, "About")
         self.setCentralWidget(self.tab)
 
     def start(self, n):

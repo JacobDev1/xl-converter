@@ -1,3 +1,5 @@
+from VARIABLES import ALLOWED_RESAMPLING
+
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -26,7 +28,7 @@ class Signals(QObject):
     convert = Signal()
 
 class ModifyTab(QWidget):
-    def __init__(self):
+    def __init__(self, settings):
         super(ModifyTab, self).__init__()
         self.signals = Signals()
 
@@ -135,7 +137,8 @@ class ModifyTab(QWidget):
         rs_lt = QHBoxLayout()
         rs_lt.addWidget(QLabel("Resample"))
         self.rs_cmb = QComboBox()
-        self.rs_cmb.addItems(("Default", "Lanczos", "Point", "Box"))
+
+        self.addResampling(settings["settings"]["all_resampling"])
 
         rs_lt.addWidget(self.rs_cmb)
         self.downscaling_lt.addLayout(rs_lt)
@@ -268,3 +271,11 @@ class ModifyTab(QWidget):
             }
         }
         return params
+    
+    def addResampling(self, _all=False):
+        self.rs_cmb.clear()
+        if _all:
+            self.rs_cmb.addItem(("Default"))
+            self.rs_cmb.addItems(ALLOWED_RESAMPLING)
+        else:
+            self.rs_cmb.addItems(("Default", "Lanczos", "Point", "Box"))

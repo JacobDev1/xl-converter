@@ -21,7 +21,7 @@ ALLOWED_INPUT_AVIFENC = ["jpg","jpeg","jfif", "jif", "png"]
 ALLOWED_INPUT_AVIFDEC = ["avif"]
 ALLOWED_INPUT_OXIPNG = ["png"]
 ALLOWED_INPUT = []
-ALLOWED_RESAMPLING = ("Point", "Cubic", "Hermite", "Box", "Gaussian", "Catrom", "Triangle", "Quadratic", "Mitchell", "CubicSpline", "Lanczos", "Hamming", "Parzen", "Blackman", "Kaiser", "Welsh", "Hanning", "Bartlett", "Bohman")
+ALLOWED_RESAMPLING = ("Lanczos", "Point", "Box", "Cubic", "Hermite", "Gaussian", "Catrom", "Triangle", "Quadratic", "Mitchell", "CubicSpline", "Hamming", "Parzen", "Blackman", "Kaiser", "Welsh", "Hanning", "Bartlett", "Bohman")
 
 JPEG_ALIASES = ["jpg","jpeg","jfif", "jif"] # Used by CJXL, before adding more verify support
 

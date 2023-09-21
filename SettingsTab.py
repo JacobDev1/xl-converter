@@ -14,6 +14,14 @@ from PySide6.QtWidgets import(
     QLabel,
 )
 
+from PySide6.QtCore import(
+    Signal,
+    QObject,
+)
+
+class Signals(QObject):
+    all_resampling = Signal(bool)
+
 class SettingsTab(QWidget):
     def __init__(self):
         super(SettingsTab, self).__init__()
@@ -22,6 +30,7 @@ class SettingsTab(QWidget):
         self.setLayout(tab_lt)
 
         self.wm = WidgetManager("SettingsTab")
+        self.signals = Signals()
 
         # General group
         gen_grp = QGroupBox("General")
@@ -48,7 +57,8 @@ class SettingsTab(QWidget):
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
-        self.wm.addWidget("all_resampling_cb", QCheckBox("Downscaling - Extra Resampling Methods"))
+        self.wm.addWidget("all_resampling_cb", QCheckBox("Downscaling - More Resampling Methods"))
+        self.wm.getWidget("all_resampling_cb").toggled.connect(self.signals.all_resampling.emit)
         conv_grp_lt.addWidget(self.wm.getWidget("all_resampling_cb"))
 
         logs__hbox = QHBoxLayout()
