@@ -23,10 +23,13 @@ class Signals(QObject):
     convert = Signal()
 
 class InputTab(QWidget):
-    def __init__(self):
+    def __init__(self, settings):
         super(InputTab, self).__init__()
         self.signals = Signals()
         self.file_view = FileView(self)
+
+        # Apply Settings
+        self.disableSorting(settings["settings"]["sorting_disabled"])
 
         # Shortcuts
         self.select_all_sc = QShortcut(QKeySequence('Ctrl+A'), self)
@@ -99,3 +102,6 @@ class InputTab(QWidget):
 
     def clearInput(self):
         self.file_view.clear()
+    
+    def disableSorting(self, disabled):
+        self.file_view.disableSorting(disabled)

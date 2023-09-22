@@ -45,14 +45,16 @@ class MainWindow(QMainWindow):
         self.progress_dialog = None
 
         self.settings_tab = SettingsTab()   # Needs to be declared before other tabs
+        settings = self.settings_tab.getSettings()
 
-        self.input_tab = InputTab()
+        self.input_tab = InputTab(settings)
+        self.settings_tab.signals.disable_sorting.connect(self.input_tab.disableSorting)
         self.input_tab.signals.convert.connect(self.convert)
 
         self.output_tab = OutputTab()
         self.output_tab.signals.convert.connect(self.convert)
 
-        self.modify_tab = ModifyTab(self.settings_tab.getSettings())
+        self.modify_tab = ModifyTab(settings)
         self.modify_tab.signals.convert.connect(self.convert)
         self.settings_tab.signals.all_resampling.connect(self.modify_tab.addResampling)
 

@@ -21,6 +21,7 @@ from PySide6.QtCore import(
 
 class Signals(QObject):
     all_resampling = Signal(bool)
+    disable_sorting = Signal(bool)
 
 class SettingsTab(QWidget):
     def __init__(self):
@@ -50,6 +51,7 @@ class SettingsTab(QWidget):
         gen_grp_lt.addLayout(ui_lt_hbox)
 
         self.wm.addWidget("sorting_cb", QCheckBox("Input - Disable Sorting"))
+        self.wm.getWidget("sorting_cb").toggled.connect(self.signals.disable_sorting)
         gen_grp_lt.addWidget(self.wm.getWidget("sorting_cb"))
 
         # Conversion group
@@ -92,6 +94,7 @@ class SettingsTab(QWidget):
         return {
             "settings": {
                 "all_resampling": self.wm.getWidget("all_resampling_cb").isChecked(),
+                "sorting_disabled": self.wm.getWidget("sorting_cb").isChecked(),
             }
         }
     
