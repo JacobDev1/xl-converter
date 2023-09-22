@@ -29,6 +29,6 @@ if [ $choice == "1" ]; then
     sudo chmod -R +x /opt/xl-converter
     
     echo "Desktop shortcut added"
-    echo "Start menu shortcut added"
+    echo "Start menu entry added"
     echo "Installation completed"
 fi
