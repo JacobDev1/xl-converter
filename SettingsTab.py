@@ -12,11 +12,13 @@ from PySide6.QtWidgets import(
     QLineEdit,
     QComboBox,
     QLabel,
+    QSizePolicy,
 )
 
 from PySide6.QtCore import(
     Signal,
     QObject,
+    Qt,
 )
 
 class Signals(QObject):
@@ -64,9 +66,19 @@ class SettingsTab(QWidget):
         logs__hbox.addWidget(self.wm.getWidget("logs_wipe_btn"))
         gen_grp_lt.addLayout(logs__hbox)
 
+        # Bottom
         self.wm.addWidget("restore_defaults_btn", QPushButton("Reset to Default"))
         self.wm.getWidget("restore_defaults_btn").clicked.connect(self.resetToDefault)
-        gen_grp_lt.addWidget(self.wm.getWidget("restore_defaults_btn"))
+        tab_lt.addWidget(self.wm.getWidget("restore_defaults_btn"),1,0,1,0)
+
+        # Size Policy
+        tab_lt.setAlignment(Qt.AlignTop)
+
+        gen_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        gen_grp.setMaximumSize(400, 232)
+        conv_grp.setMaximumSize(400, 232)
 
         # Main Layout
         tab_lt.addWidget(gen_grp, 0, 0)
