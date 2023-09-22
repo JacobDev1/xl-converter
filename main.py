@@ -2,7 +2,7 @@
 
 import sys, os
 
-from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT
+from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, DEBUG
 from SettingsTab import SettingsTab # Needs to be declared before other tabs
 from InputTab import InputTab
 from AboutTab import AboutTab
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         self.settings_tab.signals.disable_sorting.connect(self.input_tab.disableSorting)
         self.input_tab.signals.convert.connect(self.convert)
 
-        self.output_tab = OutputTab()
+        self.output_tab = OutputTab(self.threadpool.maxThreadCount())
         self.output_tab.signals.convert.connect(self.convert)
 
         self.modify_tab = ModifyTab(settings)
@@ -82,6 +82,8 @@ class MainWindow(QMainWindow):
 
         self.data.appendCompletedItem(n)
         self.progress_dialog.setValue(self.data.getCompletedItemsCount())
+        if DEBUG:
+            print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
         if self.data.getCompletedItemsCount() == self.data.getItemCount():
             self.setUIEnabled(True)
@@ -126,12 +128,22 @@ class MainWindow(QMainWindow):
         self.progress_dialog.show()
         self.progress_dialog.canceled.connect(TaskStatus.cancel)
 
+        # Configure Multithreading
+        threads_per_worker = 1
+
+        match params["format"]:
+            case "AVIF":    # Use encoder-based multithreading 
+                threads_per_worker = self.output_tab.getUsedThreadCount()
+                self.threadpool.setMaxThreadCount(1)
+            case _:
+                self.threadpool.setMaxThreadCount(self.output_tab.getUsedThreadCount())
+
         # Start workers
         TaskStatus.reset()
         self.setUIEnabled(False)
 
         for i in range(0,self.data.getItemCount()):
-            worker = Worker(i, self.data.getItem(i), params, burstThreadPool(self.data.getItemCount(), self.output_tab.getUsedThreadCount()))
+            worker = Worker(i, self.data.getItem(i), params, threads_per_worker)
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)

@@ -19,7 +19,7 @@ class Signals(QObject):
     canceled = Signal(int)
 
 class Worker(QRunnable):
-    def __init__(self, n, item, params, burst_thread_pool = []):
+    def __init__(self, n, item, params, available_threads = 1):
         super().__init__()
         self.signals = Signals()
         self.convert = Convert()
@@ -27,7 +27,7 @@ class Worker(QRunnable):
 
         # Threading
         self.n = n  # Thread number
-        self.available_threads = 1
+        self.available_threads = available_threads
         
         # Original Item info
         self.item = item    # Original file
@@ -37,11 +37,6 @@ class Worker(QRunnable):
         self.item_ext = item[1].lower()     # lowercase, for original value use self.item[1]
         self.item_dir = item[2]
         self.item_abs_path = item[3]
-
-        # Burst mode (for small data sets)
-        if burst_thread_pool:
-            self.available_threads = burst_thread_pool[self.n]
-            self.convert.log(f"Burst mode active (threads: {self.available_threads})", self.n)
     
     @Slot()
     def run(self):
@@ -272,7 +267,7 @@ class Worker(QRunnable):
             multithreading = 1 if self.available_threads > 1 else 0
             args = [
                 f"-quality {self.params['quality']}",
-                f"-define webp:thread-level={multithreading}",
+                f"-define webp:thread-level={multithreading}",      # Currently unused. Does not seem to have any effect.
                 "-define webp:method=6"
                 ]
 

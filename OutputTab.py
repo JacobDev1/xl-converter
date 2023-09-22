@@ -29,13 +29,12 @@ class Signals(QObject):
     convert = Signal()
 
 class OutputTab(QWidget):
-    def __init__(self):
+    def __init__(self, max_threads):
         super(OutputTab, self).__init__()
 
         self.signals = Signals()
 
-        self.threadpool = QThreadPool.globalInstance()
-        self.MAX_THREAD_COUNT = self.threadpool.maxThreadCount()
+        self.MAX_THREAD_COUNT = max_threads
 
         output_page_lt = QGridLayout()
         self.setLayout(output_page_lt)
@@ -244,7 +243,6 @@ class OutputTab(QWidget):
     
     def onThreadCountChange(self):
         self.conv_cores_l.setText(str(self.conv_cores_sl.value()))
-        self.threadpool.setMaxThreadCount(self.conv_cores_sl.value())
     
     def getUsedThreadCount(self):
         return self.conv_cores_sl.value()
