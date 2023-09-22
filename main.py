@@ -39,6 +39,7 @@ class MainWindow(QMainWindow):
         self.resize(650,300)
 
         self.tab = QTabWidget(self)
+        self.setAcceptDrops(True)
 
         self.threadpool = QThreadPool.globalInstance()
         self.data = Data()
@@ -141,6 +142,16 @@ class MainWindow(QMainWindow):
     
     def closeEvent(self, e):
         self.settings_tab.wm.saveState()
+    
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls():
+            e.accept()
+        else:
+            e.ignore()
+    
+    def dropEvent(self, e):
+        self.tab.setCurrentIndex(0)
+        self.input_tab.file_view.dropEvent(e)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
