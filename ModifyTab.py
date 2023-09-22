@@ -171,10 +171,8 @@ class ModifyTab(QWidget):
         downscale_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         misc_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        misc_grp.setMaximumWidth(400)
-        downscale_grp.setMaximumWidth(400)
-        misc_grp.setMaximumHeight(232)
-        downscale_grp.setMaximumHeight(232)
+        misc_grp.setMaximumSize(400, 232)
+        downscale_grp.setMaximumSize(400, 232)
 
         # Set Default
         self.resetToDefault()
