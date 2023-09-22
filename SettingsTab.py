@@ -42,14 +42,6 @@ class SettingsTab(QWidget):
         self.wm.getWidget("dark_theme_cb").toggled.connect(self.toggleTheme)
         gen_grp_lt.addWidget(self.wm.getWidget("dark_theme_cb"))
 
-        ui_lt_hbox = QHBoxLayout()
-        self.wm.addWidget("ui_layout_l", QLabel("Layout"))
-        self.wm.addWidget("ui_layout_cmb", QComboBox())
-        self.wm.getWidget("ui_layout_cmb").addItems(("Horizontal", "Vertical"))
-        ui_lt_hbox.addWidget(self.wm.getWidget("ui_layout_l"))
-        ui_lt_hbox.addWidget(self.wm.getWidget("ui_layout_cmb"))
-        gen_grp_lt.addLayout(ui_lt_hbox)
-
         self.wm.addWidget("sorting_cb", QCheckBox("Input - Disable Sorting"))
         self.wm.getWidget("sorting_cb").toggled.connect(self.signals.disable_sorting)
         gen_grp_lt.addWidget(self.wm.getWidget("sorting_cb"))
@@ -99,7 +91,6 @@ class SettingsTab(QWidget):
         }
     
     def resetToDefault(self):
-        self.wm.getWidget("ui_layout_cmb").setCurrentIndex(0)
         self.wm.getWidget("dark_theme_cb").setChecked(True)
         self.wm.getWidget("logs_cb").setChecked(False)
         self.wm.getWidget("sorting_cb").setChecked(False)
