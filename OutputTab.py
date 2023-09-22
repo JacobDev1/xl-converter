@@ -65,7 +65,6 @@ class OutputTab(QWidget):
 
         conv_grp_layout.addLayout(if_file_exists_hbox)
         conv_grp_layout.addLayout(conv_cores_hbox)
-        output_page_lt.addWidget(conv_grp,1,0)
 
         # After Conversion Group
         after_conv_grp = QGroupBox("After Conversion")
@@ -88,7 +87,6 @@ class OutputTab(QWidget):
         delete_original_hbox.addWidget(self.delete_original_cb)
         delete_original_hbox.addWidget(self.delete_original_cmb)
         after_conv_grp_layout.addLayout(delete_original_hbox)
-        output_page_lt.addWidget(after_conv_grp,1,1)
 
         # Output Group
         output_grp = QGroupBox("Save To")
@@ -115,7 +113,6 @@ class OutputTab(QWidget):
         choose_output_ct_hbox.addWidget(self.choose_output_ct_le)
         choose_output_ct_hbox.addWidget(self.choose_output_ct_btn)
         output_grp_layout.addLayout(choose_output_ct_hbox)
-        output_page_lt.addWidget(output_grp, 0, 0)
 
         # Format Group
         format_grp = QGroupBox("Format")
@@ -172,8 +169,6 @@ class OutputTab(QWidget):
         format_jxl_q_hbox.addWidget(self.format_q_sb)
         format_grp_layout.addLayout(format_jxl_q_hbox)
         
-        output_page_lt.addWidget(format_grp,0,1)
-
         # Smallest Lossless - Format Pool
         format_sm_l_hb = QHBoxLayout()
         self.format_sm_l_l = QLabel("Format Pool")
@@ -198,6 +193,12 @@ class OutputTab(QWidget):
         self.convert_btn_2.clicked.connect(lambda: self.signals.convert.emit())
         output_page_lt.addWidget(reset_to_default_btn,2,0)
         output_page_lt.addWidget(self.convert_btn_2,2,1)
+
+        # Group Positions
+        output_page_lt.addWidget(format_grp,0,1)
+        output_page_lt.addWidget(output_grp, 0, 0)
+        output_page_lt.addWidget(conv_grp,1,0)
+        output_page_lt.addWidget(after_conv_grp,1,1)
 
         # Size Policy
         output_page_lt.setAlignment(Qt.AlignTop)
