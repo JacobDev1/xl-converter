@@ -28,4 +28,5 @@ if [ $choice == "1" ]; then
     sudo chmod -R +x /opt/xl-converter
     
     echo "Installation completed"
+    echo "Launch it from the shortcut on your desktop"
 fi
