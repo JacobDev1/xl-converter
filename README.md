@@ -28,41 +28,6 @@ Run `./install.sh`
     - JPEG XL - [tutorial](https://codepoems.eu/posts/how-to-open-jpeg-xl-images-on-linux/)
     - AVIF - [tutorial](https://codepoems.eu/posts/how-to-open-avif-images-on-linux/)
 
-## Intelligent Features
-
-### Lossless (If Smaller)
-
-Converts to both lossy and lossless, then picks the smallest file.
-
-### Smallest Lossless
-
-Every image is checked with each of the 3 formats (Optimized PNG, WEBP and JPEG XL) to deliver **the tiniest file size** without any loss of quality.
-
-**Max Compression** option prolongs the conversion, but grants encoders more time to shrink the images.
-
-### Intelligent Effort
-
-Gives you **smaller file sizes** and quite possibly **better quality**. The downside is **longer conversion time**. I wrote an [article](https://codepoems.eu/posts/jpeg-xl-effort-setting-explained) demystifying the effort argument.
-
-### Downscaling
-
-Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you. It works regardless of format and is compatible with intelligent effort.
-
-More downscaling methods are also available: to percent, max resolution, shortest and longest side.
-
-### Image Proxy
-
-Encoders are picky, but XL Converter isn't. Feed it any format it can decode and the conversion will still be finished despite the encoder not supporting it.
-
-For example: HEIF to JPEG XL
-
-### Burst Mode
-
-For small amounts of images, the extra threads will be spread out for maximum performance.
-
-Works best in AVIF. Other encoders don't seem to use extra threads much.
-
-
 ## Supported Formats
 ### Images
 
@@ -142,15 +107,9 @@ This makes encoding JPEG XL as many times faster as the amount of threads used.
 
 #### Image Proxy
 
-Encoders are picky, but XL Converter isn't. Feed it any format it can decode and the conversion will still be finished despite the encoder not supporting it.
+Encoders are picky, but XL Converter isn't. Feed it any image format it can decode and the conversion will still be finished despite the encoder not supporting it.
 
 For example: HEIF to JPEG XL
-
-#### Burst Mode
-
-For small amounts of images, the extra threads will be spread out for maximum performance.
-
-Works best in AVIF. Other encoders don't seem to use extra threads much.
 
 ## Building
 
