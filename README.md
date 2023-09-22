@@ -176,7 +176,7 @@ python build.py
 
 Install `Python3` and `pip`
 
-```
+```bash
 sudo apt update
 sudo apt install python3
 sudo apt install pip
@@ -186,6 +186,12 @@ Install Qt dev tools.
 
 ```bash
 sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+```
+
+Add permissions and enter the folder
+```bash
+chmod -R 755 xl-converter
+cd xl-converter
 ```
 
 Install dependencies
