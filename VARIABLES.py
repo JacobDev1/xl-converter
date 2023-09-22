@@ -1,6 +1,6 @@
 import os, platform
 
-VERSION = "0.9"
+VERSION = "0.9.1"
 DEBUG = False    # More verbose output
 CONFIG_LOCATION = ""    # Filled below
 
