@@ -1,4 +1,5 @@
 from VARIABLES import ALLOWED_RESAMPLING
+from WidgetManager import WidgetManager
 
 from PySide6.QtWidgets import(
     QWidget,
@@ -31,6 +32,7 @@ class ModifyTab(QWidget):
     def __init__(self, settings):
         super(ModifyTab, self).__init__()
         self.signals = Signals()
+        self.wm = WidgetManager("ModifyTab")
 
         # Set Main Layout
         tab_lt = QGridLayout()
@@ -41,107 +43,115 @@ class ModifyTab(QWidget):
         downscale_grp.setLayout(self.downscaling_lt)
 
         # Enable Downscaling
-        self.downscale_cb = QCheckBox("Downscale")
-        self.downscaling_lt.addWidget(self.downscale_cb)
-        self.downscale_cb.stateChanged.connect(self.toggleDownscaleUI)
+        self.wm.addWidget("downscale_cb", QCheckBox("Downscale"))
+        self.wm.getWidget("downscale_cb").stateChanged.connect(self.toggleDownscaleUI)
+
+        self.downscaling_lt.addWidget(self.wm.getWidget("downscale_cb"))
 
         # Scale by
-        self.mode_lt = QHBoxLayout()
-        self.mode_lt.addWidget(QLabel("Scale to"))
-        self.downscaling_lt.addLayout(self.mode_lt)
+        self.mode_hb = QHBoxLayout()
 
-        self.mode_cmb = QComboBox()
-        self.mode_cmb.addItems(("Max File Size", "Percent", "Max Resolution", "Shortest Side", "Longest Side"))
-        self.mode_cmb.currentIndexChanged.connect(self.onModeChanged)
-        self.mode_lt.addWidget(self.mode_cmb)
+        self.wm.addWidget("mode_cmb", QComboBox())
+        self.wm.getWidget("mode_cmb").addItems(("Max File Size", "Percent", "Max Resolution", "Shortest Side", "Longest Side"))
+        self.wm.getWidget("mode_cmb").currentIndexChanged.connect(self.onModeChanged)
+
+        self.mode_hb.addWidget(QLabel("Scale to"))
+        self.mode_hb.addWidget(self.wm.getWidget("mode_cmb"))
+        self.downscaling_lt.addLayout(self.mode_hb)
 
         # Percent
-        scl_p_lt = QHBoxLayout()
-        self.scl_p_l = QLabel("Percent")
-        self.scl_p_sb = QSpinBox()
-        self.scl_p_sb.setRange(1, 99)
+        percent_hb = QHBoxLayout()
+        self.wm.addWidget("percent_l", QLabel("Percent"))
+        self.wm.addWidget("percent_sb", QSpinBox())
         
-        self.scl_p_sb.setSuffix(" %")
+        self.wm.getWidget("percent_sb").setRange(1, 99)
+        self.wm.getWidget("percent_sb").setSuffix(" %")
         
-        scl_p_lt.addWidget(self.scl_p_l)
-        scl_p_lt.addWidget(self.scl_p_sb)
-        self.downscaling_lt.addLayout(scl_p_lt)
+        percent_hb.addWidget(self.wm.getWidget("percent_l"))
+        percent_hb.addWidget(self.wm.getWidget("percent_sb"))
+        self.downscaling_lt.addLayout(percent_hb)
 
         # Max Resolution - Width
-        scl_px_w_lt = QHBoxLayout()
-        self.scl_px_w_l = QLabel("Max Width")
-        self.scl_px_w_sb = QSpinBox()
-        self.scl_px_w_sb.setRange(1, MAX_RES_PX)
-        self.scl_px_w_sb.setSuffix(" px")
+        pixel_w_hb = QHBoxLayout()
+        self.wm.addWidget("pixel_w_l", QLabel("Max Width"))
+        self.wm.addWidget("pixel_w_sb", QSpinBox())
+
+        self.wm.getWidget("pixel_w_sb").setRange(1, MAX_RES_PX)
+        self.wm.getWidget("pixel_w_sb").setSuffix(" px")
         
-        scl_px_w_lt.addWidget(self.scl_px_w_l)
-        scl_px_w_lt.addWidget(self.scl_px_w_sb)
-        self.downscaling_lt.addLayout(scl_px_w_lt)
+        pixel_w_hb.addWidget(self.wm.getWidget("pixel_w_l"))
+        pixel_w_hb.addWidget(self.wm.getWidget("pixel_w_sb"))
+        self.downscaling_lt.addLayout(pixel_w_hb)
         
         # Max Resolution - Height
-        scl_px_h_lt = QHBoxLayout()
-        self.scl_px_h_l = QLabel("Max Height")
-        self.scl_px_h_sb = QSpinBox()
-        self.scl_px_h_sb.setRange(1, MAX_RES_PX)
-        self.scl_px_h_sb.setSuffix(" px")
+        pixel_h_hb = QHBoxLayout()
+        self.wm.addWidget("pixel_h_l", QLabel("Max Height"))
+        self.wm.addWidget("pixel_h_sb", QSpinBox())
+
+        self.wm.getWidget("pixel_h_sb").setRange(1, MAX_RES_PX)
+        self.wm.getWidget("pixel_h_sb").setSuffix(" px")
         
-        scl_px_h_lt.addWidget(self.scl_px_h_l)
-        scl_px_h_lt.addWidget(self.scl_px_h_sb)
-        self.downscaling_lt.addLayout(scl_px_h_lt)
+        pixel_h_hb.addWidget(self.wm.getWidget("pixel_h_l"))
+        pixel_h_hb.addWidget(self.wm.getWidget("pixel_h_sb"))
+        self.downscaling_lt.addLayout(pixel_h_hb)
 
         # File Size
-        scl_fs_lt = QHBoxLayout()
-        self.scl_fs_l = QLabel("Max File Size")
-        self.scl_fs_sb = QSpinBox()
-        self.scl_fs_sb.setRange(1, MAX_FILE_SIZE)
-        self.scl_fs_sb.setSuffix(" KiB")
+        file_size_hb = QHBoxLayout()
+        self.wm.addWidget("file_size_l", QLabel("Max File Size"))
+        self.wm.addWidget("file_size_sb", QSpinBox())
+
+        self.wm.getWidget("file_size_sb").setRange(1, MAX_FILE_SIZE)
+        self.wm.getWidget("file_size_sb").setSuffix(" KiB")
         
-        scl_fs_lt.addWidget(self.scl_fs_l)
-        scl_fs_lt.addWidget(self.scl_fs_sb)
-        self.downscaling_lt.addLayout(scl_fs_lt)
+        file_size_hb.addWidget(self.wm.getWidget("file_size_l"))
+        file_size_hb.addWidget(self.wm.getWidget("file_size_sb"))
+        self.downscaling_lt.addLayout(file_size_hb)
 
         # File Size - Step
-        scl_fs_s_lt = QHBoxLayout()
-        self.scl_fs_s_l = QLabel("Step")
-        self.scl_fs_s_sb = QSpinBox()
-        self.scl_fs_s_sb.setRange(1, 99)
-        self.scl_fs_s_sb.setSuffix(" %")
+        file_size_hb = QHBoxLayout()
+        self.wm.addWidget("file_size_step_l", QLabel("Step"))
+        self.wm.addWidget("file_size_step_sb", QSpinBox())
+
+        self.wm.getWidget("file_size_step_sb").setRange(1, 99)
+        self.wm.getWidget("file_size_step_sb").setSuffix(" %")
         
-        scl_fs_s_lt.addWidget(self.scl_fs_s_l)
-        scl_fs_s_lt.addWidget(self.scl_fs_s_sb)
-        self.downscaling_lt.addLayout(scl_fs_s_lt)
+        file_size_hb.addWidget(self.wm.getWidget("file_size_step_l"))
+        file_size_hb.addWidget(self.wm.getWidget("file_size_step_sb"))
+        self.downscaling_lt.addLayout(file_size_hb)
 
         # Longest Side
-        scl_lngst_lt = QHBoxLayout()
-        self.scl_lngst_l = QLabel("Max Size")
-        self.scl_lngst_sb = QSpinBox()
-        self.scl_lngst_sb.setRange(1, MAX_RES_PX)
-        self.scl_lngst_sb.setSuffix(" px")
+        longest_hb = QHBoxLayout()
+        self.wm.addWidget("longest_l", QLabel("Max Size"))
+        self.wm.addWidget("longest_sb", QSpinBox())
+       
+        self.wm.getWidget("longest_sb").setRange(1, MAX_RES_PX)
+        self.wm.getWidget("longest_sb").setSuffix(" px")
         
-        scl_lngst_lt.addWidget(self.scl_lngst_l)
-        scl_lngst_lt.addWidget(self.scl_lngst_sb)
-        self.downscaling_lt.addLayout(scl_lngst_lt)
+        longest_hb.addWidget(self.wm.getWidget("longest_l"))
+        longest_hb.addWidget(self.wm.getWidget("longest_sb"))
+        self.downscaling_lt.addLayout(longest_hb)
 
         # Shortest Side
-        scl_shrtst_lt = QHBoxLayout()
-        self.scl_shrtst_l = QLabel("Max Size")
-        self.scl_shrtst_sb = QSpinBox()
-        self.scl_shrtst_sb.setRange(1, MAX_RES_PX)
-        self.scl_shrtst_sb.setSuffix(" px")
+        shortest_hb = QHBoxLayout()
+        self.wm.addWidget("shortest_l", QLabel("Max Size"))
+        self.wm.addWidget("shortest_sb", QSpinBox())
+
+        self.wm.getWidget("shortest_sb").setRange(1, MAX_RES_PX)
+        self.wm.getWidget("shortest_sb").setSuffix(" px")
         
-        scl_shrtst_lt.addWidget(self.scl_shrtst_l)
-        scl_shrtst_lt.addWidget(self.scl_shrtst_sb)
-        self.downscaling_lt.addLayout(scl_shrtst_lt)
+        shortest_hb.addWidget(self.wm.getWidget("shortest_l"))
+        shortest_hb.addWidget(self.wm.getWidget("shortest_sb"))
+        self.downscaling_lt.addLayout(shortest_hb)
 
         # Resample
-        rs_lt = QHBoxLayout()
-        rs_lt.addWidget(QLabel("Resample"))
-        self.rs_cmb = QComboBox()
+        resample_hb = QHBoxLayout()
+        resample_hb.addWidget(QLabel("Resample"))
+        self.wm.addWidget("resample_cmb", QComboBox())
 
         self.addResampling(settings["settings"]["all_resampling"])
 
-        rs_lt.addWidget(self.rs_cmb)
-        self.downscaling_lt.addLayout(rs_lt)
+        resample_hb.addWidget(self.wm.getWidget("resample_cmb"))
+        self.downscaling_lt.addLayout(resample_hb)
 
         # Misc
         misc_grp = QGroupBox("Misc.")
@@ -153,14 +163,18 @@ class ModifyTab(QWidget):
         # misc_grp_lt.addWidget(self.metadata_cb)
 
         # Date / Time
-        self.date_time_cb = QCheckBox("Preserve Date && Time")
-        misc_grp_lt.addWidget(self.date_time_cb)
+        self.wm.addWidget("date_time_cb", QCheckBox("Preserve Date && Time"))
+        misc_grp_lt.addWidget(self.wm.getWidget("date_time_cb"))
+
+        # WidgetManager Tags
+        # self.wm.addTags()
+        # self.wm.setEnabledByTag("downscaling_ui")
 
         # Bottom
         default_btn = QPushButton("Reset to Default")
         default_btn.clicked.connect(self.resetToDefault)
         convert_btn = QPushButton("Convert")
-        convert_btn.clicked.connect(lambda: self.signals.convert.emit())
+        convert_btn.clicked.connect(self.signals.convert.emit)
 
         tab_lt.addWidget(default_btn,2,0)
         tab_lt.addWidget(convert_btn,2,1)
@@ -177,6 +191,7 @@ class ModifyTab(QWidget):
         # Set Default
         self.resetToDefault()
         self.toggleDownscaleUI(False)
+        self.wm.loadState()
         self.onModeChanged()
 
         # Add to main layout
@@ -184,96 +199,97 @@ class ModifyTab(QWidget):
         tab_lt.addWidget(misc_grp,0,1)
     
     def toggleDownscaleUI(self, n):
-        self.mode_cmb.setEnabled(n)
-        self.scl_fs_sb.setEnabled(n)
-        self.scl_fs_s_sb.setEnabled(n)
-        self.scl_p_sb.setEnabled(n)
-        self.scl_px_w_sb.setEnabled(n)
-        self.scl_px_h_sb.setEnabled(n)
-        self.scl_shrtst_sb.setEnabled(n)
-        self.scl_lngst_sb.setEnabled(n)
-        self.rs_cmb.setEnabled(n)
+        self.wm.getWidget("mode_cmb").setEnabled(n)
+        self.wm.getWidget("file_size_sb").setEnabled(n)
+        self.wm.getWidget("file_size_step_sb").setEnabled(n)
+        self.wm.getWidget("percent_sb").setEnabled(n)
+        self.wm.getWidget("pixel_w_sb").setEnabled(n)
+        self.wm.getWidget("pixel_h_sb").setEnabled(n)
+        self.wm.getWidget("shortest_sb").setEnabled(n)
+        self.wm.getWidget("longest_sb").setEnabled(n)
+        self.wm.getWidget("resample_cmb").setEnabled(n)
 
     def resetToDefault(self):
-        self.rs_cmb.setCurrentIndex(0)
-        self.scl_fs_sb.setValue(300)
-        self.scl_fs_s_sb.setValue(10)
-        self.scl_p_sb.setValue(80)
-        self.scl_px_w_sb.setValue(2000)
-        self.scl_px_h_sb.setValue(2000)
-        self.scl_shrtst_sb.setValue(1080)
-        self.scl_lngst_sb.setValue(1920)
+        self.wm.getWidget("resample_cmb").setCurrentIndex(0)
+        self.wm.getWidget("file_size_sb").setValue(300)
+        self.wm.getWidget("file_size_step_sb").setValue(10)
+        self.wm.getWidget("percent_sb").setValue(80)
+        self.wm.getWidget("pixel_w_sb").setValue(2000)
+        self.wm.getWidget("pixel_h_sb").setValue(2000)
+        self.wm.getWidget("shortest_sb").setValue(1080)
+        self.wm.getWidget("longest_sb").setValue(1920)
     
     def onModeChanged(self):
-        index = self.mode_cmb.currentText()
+        index = self.wm.getWidget("mode_cmb").currentText()
         if index == "Percent":
-            self.scl_p_l.setVisible(True)
-            self.scl_p_sb.setVisible(True)
+            self.wm.getWidget("percent_l").setVisible(True)
+            self.wm.getWidget("percent_sb").setVisible(True)
         else:
-            self.scl_p_l.setVisible(False)
-            self.scl_p_sb.setVisible(False)
+            self.wm.getWidget("percent_l").setVisible(False)
+            self.wm.getWidget("percent_sb").setVisible(False)
 
         if index == "Max Resolution":
-            self.scl_px_h_l.setVisible(True)
-            self.scl_px_h_sb.setVisible(True)
-            self.scl_px_w_l.setVisible(True)
-            self.scl_px_w_sb.setVisible(True)
+            self.wm.getWidget("pixel_h_l").setVisible(True)
+            self.wm.getWidget("pixel_h_sb").setVisible(True)
+            self.wm.getWidget("pixel_w_l").setVisible(True)
+            self.wm.getWidget("pixel_w_sb").setVisible(True)
         else:
-            self.scl_px_h_l.setVisible(False)
-            self.scl_px_h_sb.setVisible(False)
-            self.scl_px_w_l.setVisible(False)
-            self.scl_px_w_sb.setVisible(False)
+            self.wm.getWidget("pixel_h_l").setVisible(False)
+            self.wm.getWidget("pixel_h_sb").setVisible(False)
+            self.wm.getWidget("pixel_w_l").setVisible(False)
+            self.wm.getWidget("pixel_w_sb").setVisible(False)
         
         if index == "Max File Size":
-            self.scl_fs_l.setVisible(True)
-            self.scl_fs_sb.setVisible(True)
-            self.scl_fs_s_sb.setVisible(True)
-            self.scl_fs_s_l.setVisible(True)
+            self.wm.getWidget("file_size_l").setVisible(True)
+            self.wm.getWidget("file_size_sb").setVisible(True)
+            self.wm.getWidget("file_size_step_sb").setVisible(True)
+            self.wm.getWidget("file_size_step_l").setVisible(True)
         else:
-            self.scl_fs_l.setVisible(False)
-            self.scl_fs_sb.setVisible(False)
-            self.scl_fs_s_sb.setVisible(False)
-            self.scl_fs_s_l.setVisible(False)
+            self.wm.getWidget("file_size_l").setVisible(False)
+            self.wm.getWidget("file_size_sb").setVisible(False)
+            self.wm.getWidget("file_size_step_sb").setVisible(False)
+            self.wm.getWidget("file_size_step_l").setVisible(False)
         
         if index == "Shortest Side":
-            self.scl_shrtst_l.setVisible(True)
-            self.scl_shrtst_sb.setVisible(True)
+            self.wm.getWidget("shortest_l").setVisible(True)
+            self.wm.getWidget("shortest_sb").setVisible(True)
         else:
-            self.scl_shrtst_l.setVisible(False)
-            self.scl_shrtst_sb.setVisible(False)
+            self.wm.getWidget("shortest_l").setVisible(False)
+            self.wm.getWidget("shortest_sb").setVisible(False)
 
         if index == "Longest Side":
-            self.scl_lngst_l.setVisible(True)
-            self.scl_lngst_sb.setVisible(True)
+            self.wm.getWidget("longest_l").setVisible(True)
+            self.wm.getWidget("longest_sb").setVisible(True)
         else:
-            self.scl_lngst_l.setVisible(False)
-            self.scl_lngst_sb.setVisible(False)
+            self.wm.getWidget("longest_l").setVisible(False)
+            self.wm.getWidget("longest_sb").setVisible(False)
     
     def getSettings(self):
         params = {
             "downscaling": {
-                "enabled": self.downscale_cb.isChecked(),
-                "mode": self.mode_cmb.currentText(),
-                "percent": self.scl_p_sb.value(),
-                "file_size_step": self.scl_fs_s_sb.value(),
-                "width": self.scl_px_w_sb.value(),
-                "height": self.scl_px_w_sb.value(),
-                "file_size": self.scl_fs_sb.value(),
-                "shortest_side": self.scl_shrtst_sb.value(),
-                "longest_side": self.scl_lngst_sb.value(),
-                "resample": self.rs_cmb.currentText(),
+                "enabled": self.wm.getWidget("downscale_cb").isChecked(),
+                "mode": self.wm.getWidget("mode_cmb").currentText(),
+                "percent": self.wm.getWidget("percent_sb").value(),
+                "file_size_step": self.wm.getWidget("file_size_step_sb").value(),
+                "width": self.wm.getWidget("pixel_w_sb").value(),
+                "height": self.wm.getWidget("pixel_w_sb").value(),
+                "file_size": self.wm.getWidget("file_size_sb").value(),
+                "shortest_side": self.wm.getWidget("shortest_sb").value(),
+                "longest_side": self.wm.getWidget("longest_sb").value(),
+                "resample": self.wm.getWidget("resample_cmb").currentText(),
             },
             "misc": {
                 # "metadata": self.metadata_cb.isChecked(),
-                "attributes": self.date_time_cb.isChecked(),
+                "attributes": self.wm.getWidget("date_time_cb").isChecked(),
             }
         }
+        print(params)
         return params
     
     def addResampling(self, _all=False):
-        self.rs_cmb.clear()
+        self.wm.getWidget("resample_cmb").clear()
         if _all:
-            self.rs_cmb.addItem(("Default"))
-            self.rs_cmb.addItems(ALLOWED_RESAMPLING)
+            self.wm.getWidget("resample_cmb").addItem(("Default"))
+            self.wm.getWidget("resample_cmb").addItems(ALLOWED_RESAMPLING)
         else:
-            self.rs_cmb.addItems(("Default", "Lanczos", "Point", "Box"))
+            self.wm.getWidget("resample_cmb").addItems(("Default", "Lanczos", "Point", "Box"))

@@ -155,6 +155,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, e):
         self.settings_tab.wm.saveState()
         self.output_tab.saveState()
+        self.modify_tab.wm.saveState()
     
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls():
