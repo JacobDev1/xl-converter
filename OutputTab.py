@@ -202,7 +202,7 @@ class OutputTab(QWidget):
 
         # Misc
         self.resetToDefault()
-        self.loadState()
+        self.wm.loadState()
         self.onFormatChange()
         self.onDeleteOriginalChanged()
         self.onOutputToggled()
@@ -443,6 +443,3 @@ class OutputTab(QWidget):
 
         self.saveFormatState()
         self.wm.saveState()
-
-    def loadState(self):
-        self.wm.loadState()
