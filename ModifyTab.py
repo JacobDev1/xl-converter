@@ -166,10 +166,6 @@ class ModifyTab(QWidget):
         self.wm.addWidget("date_time_cb", QCheckBox("Preserve Date && Time"))
         misc_grp_lt.addWidget(self.wm.getWidget("date_time_cb"))
 
-        # WidgetManager Tags
-        # self.wm.addTags()
-        # self.wm.setEnabledByTag("downscaling_ui")
-
         # Bottom
         default_btn = QPushButton("Reset to Default")
         default_btn.clicked.connect(self.resetToDefault)
@@ -188,6 +184,29 @@ class ModifyTab(QWidget):
         misc_grp.setMaximumSize(400, 232)
         downscale_grp.setMaximumSize(400, 232)
 
+        # WidgetManager Tags
+        self.wm.addTags("mode_cmb", "downscale_ui")
+        self.wm.addTags("resample_cmb", "downscale_ui")
+
+        self.wm.addTags("percent_l", "percent")
+        self.wm.addTags("percent_sb", "downscale_ui", "percent")
+        
+        self.wm.addTags("pixel_h_l", "pixel")
+        self.wm.addTags("pixel_h_sb", "downscale_ui", "pixel")
+        self.wm.addTags("pixel_w_l", "pixel")
+        self.wm.addTags("pixel_w_sb", "downscale_ui", "pixel")
+
+        self.wm.addTags("file_size_l", "file_size")
+        self.wm.addTags("file_size_sb", "downscale_ui", "file_size")
+        self.wm.addTags("file_size_step_l", "file_size")
+        self.wm.addTags("file_size_step_sb", "downscale_ui", "file_size")
+        
+        self.wm.addTags("shortest_l", "shortest")
+        self.wm.addTags("shortest_sb", "downscale_ui", "shortest")
+
+        self.wm.addTags("longest_l", "longest")
+        self.wm.addTags("longest_sb", "downscale_ui", "longest")
+
         # Set Default
         self.resetToDefault()
         self.toggleDownscaleUI(False)
@@ -199,15 +218,7 @@ class ModifyTab(QWidget):
         tab_lt.addWidget(misc_grp,0,1)
     
     def toggleDownscaleUI(self, n):
-        self.wm.getWidget("mode_cmb").setEnabled(n)
-        self.wm.getWidget("file_size_sb").setEnabled(n)
-        self.wm.getWidget("file_size_step_sb").setEnabled(n)
-        self.wm.getWidget("percent_sb").setEnabled(n)
-        self.wm.getWidget("pixel_w_sb").setEnabled(n)
-        self.wm.getWidget("pixel_h_sb").setEnabled(n)
-        self.wm.getWidget("shortest_sb").setEnabled(n)
-        self.wm.getWidget("longest_sb").setEnabled(n)
-        self.wm.getWidget("resample_cmb").setEnabled(n)
+        self.wm.setEnabledByTag("downscale_ui", n)
 
     def resetToDefault(self):
         self.wm.getWidget("resample_cmb").setCurrentIndex(0)
@@ -221,51 +232,14 @@ class ModifyTab(QWidget):
     
     def onModeChanged(self):
         index = self.wm.getWidget("mode_cmb").currentText()
-        if index == "Percent":
-            self.wm.getWidget("percent_l").setVisible(True)
-            self.wm.getWidget("percent_sb").setVisible(True)
-        else:
-            self.wm.getWidget("percent_l").setVisible(False)
-            self.wm.getWidget("percent_sb").setVisible(False)
-
-        if index == "Max Resolution":
-            self.wm.getWidget("pixel_h_l").setVisible(True)
-            self.wm.getWidget("pixel_h_sb").setVisible(True)
-            self.wm.getWidget("pixel_w_l").setVisible(True)
-            self.wm.getWidget("pixel_w_sb").setVisible(True)
-        else:
-            self.wm.getWidget("pixel_h_l").setVisible(False)
-            self.wm.getWidget("pixel_h_sb").setVisible(False)
-            self.wm.getWidget("pixel_w_l").setVisible(False)
-            self.wm.getWidget("pixel_w_sb").setVisible(False)
-        
-        if index == "Max File Size":
-            self.wm.getWidget("file_size_l").setVisible(True)
-            self.wm.getWidget("file_size_sb").setVisible(True)
-            self.wm.getWidget("file_size_step_sb").setVisible(True)
-            self.wm.getWidget("file_size_step_l").setVisible(True)
-        else:
-            self.wm.getWidget("file_size_l").setVisible(False)
-            self.wm.getWidget("file_size_sb").setVisible(False)
-            self.wm.getWidget("file_size_step_sb").setVisible(False)
-            self.wm.getWidget("file_size_step_l").setVisible(False)
-        
-        if index == "Shortest Side":
-            self.wm.getWidget("shortest_l").setVisible(True)
-            self.wm.getWidget("shortest_sb").setVisible(True)
-        else:
-            self.wm.getWidget("shortest_l").setVisible(False)
-            self.wm.getWidget("shortest_sb").setVisible(False)
-
-        if index == "Longest Side":
-            self.wm.getWidget("longest_l").setVisible(True)
-            self.wm.getWidget("longest_sb").setVisible(True)
-        else:
-            self.wm.getWidget("longest_l").setVisible(False)
-            self.wm.getWidget("longest_sb").setVisible(False)
+        self.wm.setVisibleByTag("percent", index == "Percent")
+        self.wm.setVisibleByTag("pixel", index == "Max Resolution")
+        self.wm.setVisibleByTag("file_size", index == "Max File Size")
+        self.wm.setVisibleByTag("shortest", index == "Shortest Side")
+        self.wm.setVisibleByTag("longest", index == "Longest Side")
     
     def getSettings(self):
-        params = {
+        return {
             "downscaling": {
                 "enabled": self.wm.getWidget("downscale_cb").isChecked(),
                 "mode": self.wm.getWidget("mode_cmb").currentText(),
@@ -283,8 +257,6 @@ class ModifyTab(QWidget):
                 "attributes": self.wm.getWidget("date_time_cb").isChecked(),
             }
         }
-        print(params)
-        return params
     
     def addResampling(self, _all=False):
         self.wm.getWidget("resample_cmb").clear()
