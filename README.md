@@ -177,3 +177,10 @@ Install dependencies from the [Building](#building) section and replace the last
 - `stable` - current stable release
 
 Contributions are not accepted to avoid legal issues. Forward your code and feature suggestions to [my email](https://codepoems.eu/about/).
+
+## Troubleshooting
+
+If the program won't launch, delete the following folder.
+
+- Windows - `%localappdata%/xl-converter`
+- Linux - `~/.config/xl-converter`
