@@ -1,12 +1,20 @@
-from VARIABLES import CONFIG_LOCATION
+from VARIABLES import CONFIG_LOCATION, VERSION
 import os, json
 
 class WidgetManager():
-    """Widget manager. Supports tags and saving states to file."""
+    """A powerful widget manager.
+    
+    Features:
+        saving & loading with minimal effort.
+        tags - iterate easily through groups of widgets.
+        variables - for saving multi-purpose widgets.
+    """
     def __init__(self, name):
-        self.name = name    # Unique indentifier for saving and loading states
-        self.widgets = {}   # id: widget
-        self.tags = {}      # tag: [id]
+        self.name = name         # Unique indentifier for saving and loading states
+        self.widgets = {}        # id: widget
+        self.tags = {}           # tag: [id]
+        self.variables = {}      # var: value
+        self.exceptions = []     # [id, id]... for manually saving 
 
         self.save_lock_path = os.path.join(CONFIG_LOCATION, "saving_disabled")
         self.save_state_path = os.path.join(CONFIG_LOCATION, f"{name}.json")
@@ -17,20 +25,54 @@ class WidgetManager():
         except OSError as err:
             self.log(f"{err}\nCannot create a config folder.")
     
-    def addWidget(self, id: str, widget):
+    def addWidget(self, id: str, widget, tag = None):
         self.widgets[id] = widget
+        if tag != None:
+            self.addTag(tag, id)
     
     def getWidget(self, id: str):
         return self.widgets[id]
     
     def addTag(self, tag: str, id: str):
         if tag in self.tags:
-            self.tags[tag].extend(id)
+            self.tags[tag].extend([id])
         else:
             self.tags[tag] = [id]
     
     def getWidgetsByTag(self, tag: str):
-        return self.tags[tag]
+        widgets = []
+        for i in self.tags[tag]:
+            widgets.append(self.getWidget(i))
+        return widgets
+
+    def setVar(self, var: str, value):
+        self.variables[var] = value
+
+    def getVar(self, var):
+        if var in self.variables:
+            return self.variables[var]
+        else:
+            return None
+    
+    def applyVar(self, var_name, id, alt_value):
+        """Apply a (variable) onto an (item) with an (alternative) value if the variable doesn't exist.
+        
+        Arguments:
+            var_name - variable name
+            id - id of an item the var will be applied onto
+            alt_value - alternative value If variable does not exist
+        """
+        new = self.getVar(var_name)
+        if new == None:
+            new = alt_value
+        
+        self._applyValue(id, new)
+
+    def removeAllVars(self):
+        self.variables = {}
+
+    def disableAutoSaving(self, ids: []):
+        self.exceptions.extend(ids)
 
     def saveState(self):
         if not os.path.isdir(CONFIG_LOCATION):
@@ -38,6 +80,9 @@ class WidgetManager():
         
         widget_states = {}
         for key in self.widgets:
+            if key in self.exceptions:
+                continue
+
             match self.widgets[key].__class__.__name__:
                 case "QCheckBox":
                     widget_states[key] = self.widgets[key].isChecked()
@@ -54,82 +99,102 @@ class WidgetManager():
 
         if not widget_states:   # If empty
             return
+        
+        output = {
+            "version": VERSION,
+            "widgets": widget_states,
+            "variables": self.variables
+        }
 
         try:
             with open(self.save_state_path, "w") as file:
-                file.writelines(json.dumps(widget_states, indent=4))
+                file.writelines(json.dumps(output, indent=4))
         except OSError as err:
             self.log(err)
 
     def loadState(self):
-        if self.isSavingDisabled() or not os.path.isfile(self.save_state_path):
+        if not os.path.isfile(self.save_state_path):
             return
 
         # Load JSON        
         loaded = ""
         try:
             with open(self.save_state_path, "r") as file:
-                loaded = json.load(file)
+                try:
+                    loaded = json.load(file)
+                except:
+                    self.log("Parsing JSON failed. Cannot load saved state.")
+                    return
         except OSError as err:
             self.log(err)
+
+        if "variables" in loaded:
+            if not isinstance(loaded["variables"], dict):
+                self.log(f"Type mismatch. Expected dictionary, got {type(loaded['variables'])}")
+                return
+            self.variables = loaded["variables"]
 
         # Set values
-        for key in loaded:
-            if key not in self.widgets:
-                self.log(f"Unrecognized widget id ({key})")
-                continue
-                        
-            match self.widgets[key].__class__.__name__:
-                case "QCheckBox":
-                    self.getWidget(key).setChecked(loaded[key])
-                case "QSlider":
-                    self.widgets[key].setValue(loaded[key])
-                case "QSpinBox":
-                    self.widgets[key].setValue(loaded[key])
-                case "QComboBox":
-                    index = self.widgets[key].findText(loaded[key])
-                    if index == -1: # If not found
-                        index = 0
-                    self.widgets[key].setCurrentIndex(index)
-                case "QRadioButton":
-                    self.widgets[key].setChecked(loaded[key])
-                case "QLineEdit":
-                    self.widgets[key].setText(loaded[key])
-                case _:
-                    self.log(f"Unrecognized widget type ({key}: {loaded[key]})")
-        
-    def deleteState(self):
-        try:
-            os.remove(self.save_state_path)
-        except OSError as err:
-            self.log(err)
+        if "widgets" in loaded:
+            if not isinstance(loaded["widgets"], dict):
+                self.log(f"Type mismatch. Expected dictionary, got {type(loaded['widgets'])}")
+                return
 
-    def enableSaving(self):
-        try:
-            os.remove(self.save_lock_path)
-        except OSError as err:
-            self.log(err)
-
-    def disableSaving(self):
-        if isSavingDisabled():
-            return
-
-        try:
-            open(self.save_lock_path, "a").close()
-        except OSError as err:
-            self.log(err)
-
-    def isSavingDisabled(self):
-        return os.path.isfile(self.save_lock_path)
+            widgets = loaded["widgets"]
+            for key in widgets:
+                if key not in self.widgets:
+                    self.log(f"Unrecognized widget id ({key})")
+                    continue
+                
+                self._applyValue(key, widgets[key])
     
     def wipeSettings(self):
         try:
-            if self.isSavingDisabled():
-                os.remove(self.save_lock_path)
             if os.path.isfile(self.save_state_path):
                 os.remove(self.save_state_path)
         except OSError as err:
             self.log(err)
     
     def log(self, msg):
-        print(f"[WidgetManager] [{self.name}] {msg}")
+        print(f"[WidgetManager - {self.name}] {msg}")
+    
+    def _applyValue(self, id, val):
+        """For internal use only. Applies value based on a class name."""
+        widget = self.getWidget(id)     # Pointer
+        widget_class = widget.__class__.__name__
+
+        # Verify value type
+        val_mismatch = False
+        if widget_class in ("QLineEdit", "QComboBox"):
+            if not isinstance(val, str):
+                val_mismatch = True
+        elif widget_class in ("QCheckBox", "QRadioButton"):
+            if not isinstance(val, bool):
+                val_mismatch = True
+        elif widget_class in ("QSlider", "QSpinBox"):
+            if not isinstance(val, int):
+                val_mismatch = True
+
+        if val_mismatch:
+            self.log(f"Type mismatch (Tried applying {type(val)} onto [{id}: {widget_class}])")
+            return
+
+        # Apply
+        match widget_class:
+            case "QCheckBox":
+                widget.setChecked(val)
+            case "QSlider":
+                widget.setValue(val)
+            case "QSpinBox":
+                widget.setValue(val)
+            case "QComboBox":
+                index = widget.findText(val)
+                if index == -1: # If not found
+                    index = 0
+                widget.setCurrentIndex(index)
+            case "QRadioButton":
+                widget.setChecked(val)
+            case "QLineEdit":
+                widget.setText(val)
+            case _:
+                self.log(f"Unrecognized widget type ({widget})")
