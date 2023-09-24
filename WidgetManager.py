@@ -25,9 +25,10 @@ class WidgetManager():
         except OSError as err:
             self.log(f"{err}\nCannot create a config folder.")
     
-    def addWidget(self, id: str, widget, tag = None):
+    def addWidget(self, id: str, widget, *tags):
         self.widgets[id] = widget
-        if tag != None:
+
+        for tag in tags:
             self.addTag(tag, id)
     
     def getWidget(self, id: str):
@@ -39,6 +40,14 @@ class WidgetManager():
         else:
             self.tags[tag] = [id]
     
+    def addTags(self, id: str, *tags):
+        for tag in tags:
+            self.addTag(tag, id)
+
+    # def addIdsToTag(self, tag: str, *ids):
+    #     for _id in ids:
+    #         self.addTag(tag, _ids)
+
     def getWidgetsByTag(self, tag: str):
         widgets = []
         for i in self.tags[tag]:
@@ -67,6 +76,14 @@ class WidgetManager():
             new = alt_value
         
         self._applyValue(id, new)
+
+    def setEnabledByTag(self, tag, enabled):
+        for widget in self.getWidgetsByTag(tag):
+            widget.setEnabled(enabled)
+
+    def setVisibleByTag(self, tag, enabled):
+        for widget in self.getWidgetsByTag(tag):
+            widget.setVisible(enabled)
 
     def removeAllVars(self):
         self.variables = {}
