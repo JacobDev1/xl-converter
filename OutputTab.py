@@ -249,8 +249,7 @@ class OutputTab(QWidget):
 
     def onOutputToggled(self):
         src_checked = self.wm.getWidget("choose_output_src_rb").isChecked()
-        for i in self.wm.getWidgetsByTag("output_ct"):
-            i.setEnabled(not src_checked)
+        self.wm.setEnabledByTag("output_ct", not src_checked)
         
     def onFormatChange(self):
         self.saveFormatState()
@@ -258,10 +257,10 @@ class OutputTab(QWidget):
         cur_format = self.wm.getWidget("format_cmb").currentText()
         self.prev_format = cur_format
         
-        self.setLosslessChecked(False)  # Widgets reenable themselves when you use setChecked() on a disabled widget, so this needs to stay in the beginning
+        self.wm.setCheckedByTag("lossless", False)  # Widgets reenable themselves when you use setChecked() on a disabled widget, so this needs to stay in the beginning
 
         # Enable Lossless Mode
-        self.setLosslessEnabled(cur_format in ("JPEG XL", "WEBP"))
+        self.wm.setEnabledByTag("lossless", cur_format in ("JPEG XL", "WEBP"))
 
         # Effort
         if cur_format in ("JPEG XL", "AVIF"):
@@ -273,8 +272,8 @@ class OutputTab(QWidget):
             self.wm.getWidget("effort_sb").setEnabled(False)
 
         # Disable Quality Slider
-        self.setQualityEnabled(not cur_format in ("PNG", "Smallest Lossless"))
-        
+        self.wm.setEnabledByTag("quality", not cur_format in ("PNG", "Smallest Lossless"))
+
         # Quality Slider Range and label
         if cur_format == "AVIF":
             self.wm.getWidget("quality_sl").setRange(-63, 0)
@@ -295,15 +294,15 @@ class OutputTab(QWidget):
         
         # Smallest Lossless mode
         if cur_format == "Smallest Lossless":
-            self.setLosslessVisible(False)
-            self.setEffortVisible(False)
-            self.setFormatPoolVisible(True)
+            self.wm.setVisibleByTag("lossless", False)
+            self.wm.setVisibleByTag("effort", False)
+            self.wm.setVisibleByTag("format_pool", True)
             self.wm.getWidget("max_compression_cb").setVisible(True)
         else:
-            self.setFormatPoolVisible(False)
+            self.wm.setVisibleByTag("lossless", True)
+            self.wm.setVisibleByTag("effort", True)
+            self.wm.setVisibleByTag("format_pool", False)
             self.wm.getWidget("max_compression_cb").setVisible(False)
-            self.setLosslessVisible(True)
-            self.setEffortVisible(True)
         
         self.loadFormatState()
         
@@ -325,13 +324,13 @@ class OutputTab(QWidget):
 
     def onLosslessToggled(self):
         if self.wm.getWidget("lossless_cb").isChecked():
-            self.setQualityEnabled(False)
+            self.wm.setEnabledByTag("quality", False)
             self.wm.getWidget("lossless_if_cb").setEnabled(False)
         elif self.wm.getWidget("lossless_if_cb").isChecked():
             self.wm.getWidget("lossless_cb").setEnabled(False)
         else:
-            self.setQualityEnabled(True)
-            self.setLosslessEnabled(True)
+            self.wm.setEnabledByTag("quality", True)
+            self.wm.setEnabledByTag("lossless", True)
 
     def resetToDefault(self):
         self.wm.removeAllVars()
@@ -355,36 +354,12 @@ class OutputTab(QWidget):
         self.wm.getWidget("duplicates_cmb").setCurrentIndex(1)
 
         # Lossless
-        self.setLosslessChecked(False)
+        self.wm.setCheckedByTag("lossless", False)
         self.wm.getWidget("max_compression_cb").setChecked(False)
 
         # Smallest Lossless
         for i in self.wm.getWidgetsByTag("format_pool"):
             i.setChecked(True)
-    
-    def setFormatPoolVisible(self, visible):
-        for i in self.wm.getWidgetsByTag("format_pool"):
-            i.setVisible(visible)
-    
-    def setEffortVisible(self, visible):
-        for i in self.wm.getWidgetsByTag("effort"):
-            i.setVisible(visible)
-    
-    def setLosslessVisible(self, visible):
-        for i in self.wm.getWidgetsByTag("lossless"):
-            i.setVisible(visible)
-    
-    def setLosslessEnabled(self, n):
-        for i in self.wm.getWidgetsByTag("lossless"):
-            i.setEnabled(n)
-
-    def setLosslessChecked(self, n):
-        for i in self.wm.getWidgetsByTag("lossless"):
-            i.setChecked(n)
-    
-    def setQualityEnabled(self, n):
-        for i in self.wm.getWidgetsByTag("quality"):
-            i.setEnabled(n)
     
     def setQualityRange(self, _min, _max):
         for i in self.wm.getWidgetsByTag("quality"):
