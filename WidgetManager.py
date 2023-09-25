@@ -6,7 +6,7 @@ class WidgetManager():
     
     Features:
         saving & loading with minimal effort.
-        tags - iterate easily through groups of widgets.
+        tags - iterate easily through groups of widgets or set states.
         variables - for saving multi-purpose widgets.
     """
     def __init__(self, name):
@@ -54,6 +54,19 @@ class WidgetManager():
             widgets.append(self.getWidget(i))
         return widgets
 
+    def setEnabledByTag(self, tag, enabled):
+        for widget in self.getWidgetsByTag(tag):
+            widget.setEnabled(enabled)
+
+    def setVisibleByTag(self, tag, enabled):
+        for widget in self.getWidgetsByTag(tag):
+            widget.setVisible(enabled)
+
+    def setCheckedByTag(self, tag, checked):
+        for widget in self.getWidgetsByTag(tag):
+            if widget.__class__.__name__ in ("QCheckBox", "QRadioBox"):
+                widget.setChecked(checked)
+
     def setVar(self, var: str, value):
         self.variables[var] = value
 
@@ -62,7 +75,7 @@ class WidgetManager():
             return self.variables[var]
         else:
             return None
-    
+
     def applyVar(self, var_name, id, alt_value):
         """Apply a (variable) onto an (item) with an (alternative) value if the variable doesn't exist.
         
@@ -76,14 +89,6 @@ class WidgetManager():
             new = alt_value
         
         self._applyValue(id, new)
-
-    def setEnabledByTag(self, tag, enabled):
-        for widget in self.getWidgetsByTag(tag):
-            widget.setEnabled(enabled)
-
-    def setVisibleByTag(self, tag, enabled):
-        for widget in self.getWidgetsByTag(tag):
-            widget.setVisible(enabled)
 
     def removeAllVars(self):
         self.variables = {}
