@@ -221,6 +221,7 @@ class ModifyTab(QWidget):
         self.wm.setEnabledByTag("downscale_ui", n)
 
     def resetToDefault(self):
+        self.wm.getWidget("mode_cmb").setCurrentIndex(0)
         self.wm.getWidget("resample_cmb").setCurrentIndex(0)
         self.wm.getWidget("file_size_sb").setValue(300)
         self.wm.getWidget("file_size_step_sb").setValue(10)
