@@ -1,6 +1,7 @@
 import os, platform
 
 VERSION = "0.9.1"
+VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
 DEBUG = False    # More verbose output
 CONFIG_LOCATION = ""    # Filled below
 
