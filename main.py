@@ -82,6 +82,7 @@ class MainWindow(QMainWindow):
 
         self.data.appendCompletedItem(n)
         self.progress_dialog.setValue(self.data.getCompletedItemsCount())
+        self.progress_dialog.setLabelText(f"Converted {self.data.getCompletedItemsCount()} out of {self.data.getItemCount()} images.")
         if DEBUG:
             print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
@@ -122,7 +123,7 @@ class MainWindow(QMainWindow):
             return
         
         # Set progress dialog
-        self.progress_dialog = QProgressDialog("Converting Items...", "Cancel",0,self.data.getItemCount(), self)
+        self.progress_dialog = QProgressDialog("Converting Images...", "Cancel",0,self.data.getItemCount(), self)
         self.progress_dialog.setWindowTitle("XL Converter")
         self.progress_dialog.setMinimumWidth(300)
         self.progress_dialog.show()
