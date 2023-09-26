@@ -35,7 +35,7 @@ class AboutTab(QWidget):
         # Buttons
         donate_btn = QPushButton("Donate", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu/donate")))
         website_btn = QPushButton("Website", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu")))
-        self.update_btn = QPushButton("Check for Update", clicked=self.checkForUpdate)
+        self.update_btn = QPushButton("Check for an Update", clicked=self.checkForUpdate)
         self.update_checker.finished.connect(lambda: self.update_btn.setEnabled(True))
 
         # Positions

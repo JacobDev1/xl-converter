@@ -11,7 +11,7 @@ Available for both Windows and Linux.
 
 ## Support This Project
 
-- [Patreon](https://patreon.com/codepoems) - get latest builds
+- [Patreon](https://patreon.com/codepoems) - get rewards
 - [Ko-Fi](https://ko-fi.com/codepoems) - one-time donation
 - [Libera](https://liberapay.com/CodePoems/donate)
 
