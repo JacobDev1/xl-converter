@@ -118,7 +118,7 @@ class OutputTab(QWidget):
         self.wm.addWidget("effort_l", QLabel("Effort"), "effort")
         self.wm.addWidget("int_effort_cb", QCheckBox("Intelligent"), "effort")
         self.wm.addWidget("effort_sb", QSpinBox(), "effort")
-        self.wm.getWidget("int_effort_cb").toggled.connect(self.toggleEffort)
+        self.wm.getWidget("int_effort_cb").toggled.connect(self.onEffortToggled)
 
         self.wm.addWidget("quality_sb", QSpinBox(), "quality")
         self.wm.addWidget("quality_sl", QSlider(Qt.Horizontal), "quality")
@@ -264,9 +264,8 @@ class OutputTab(QWidget):
 
         # Effort
         if cur_format in ("JPEG XL", "AVIF"):
-            if not self.wm.getWidget("int_effort_cb").isEnabled():  # Preserve between switches
-                self.wm.getWidget("effort_sb").setEnabled(True)
-            self.wm.getWidget("int_effort_cb").setEnabled(True)     # This needs to be below "effort_sb"
+            self.wm.getWidget("int_effort_cb").setEnabled(True)
+            self.onEffortToggled()  # This is important to avoid issues with the effort_sb enabled state
         else:
             self.wm.getWidget("int_effort_cb").setEnabled(False)
             self.wm.getWidget("effort_sb").setEnabled(False)
@@ -319,8 +318,8 @@ class OutputTab(QWidget):
     def onDeleteOriginalChanged(self):
         self.wm.getWidget("delete_original_cmb").setEnabled(self.wm.getWidget("delete_original_cb").isChecked())
 
-    def toggleEffort(self, n):
-        self.wm.getWidget("effort_sb").setEnabled(not n)
+    def onEffortToggled(self):
+        self.wm.getWidget("effort_sb").setEnabled(not self.wm.getWidget("int_effort_cb").isChecked())
 
     def onLosslessToggled(self):
         if self.wm.getWidget("lossless_cb").isChecked():
