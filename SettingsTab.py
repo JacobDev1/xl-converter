@@ -49,22 +49,22 @@ class SettingsTab(QWidget):
         gen_grp_lt.addWidget(self.wm.getWidget("sorting_cb"))
 
         # Conversion group
-        conv_grp = QGroupBox("Conversion")
+        conv_grp = QGroupBox("Downscaling")
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
-        self.wm.addWidget("all_resampling_cb", QCheckBox("Downscaling - More Resampling Methods"))
+        self.wm.addWidget("all_resampling_cb", QCheckBox("All Resampling Methods"))
         self.wm.getWidget("all_resampling_cb").toggled.connect(self.signals.all_resampling.emit)
         conv_grp_lt.addWidget(self.wm.getWidget("all_resampling_cb"))
 
-        logs__hbox = QHBoxLayout()
-        self.wm.addWidget("logs_cb", QCheckBox("Enable Logs"))
-        self.wm.addWidget("logs_open_btn", QPushButton("Open"))
-        self.wm.addWidget("logs_wipe_btn", QPushButton("Wipe"))
-        logs__hbox.addWidget(self.wm.getWidget("logs_cb"))
-        logs__hbox.addWidget(self.wm.getWidget("logs_open_btn"))
-        logs__hbox.addWidget(self.wm.getWidget("logs_wipe_btn"))
-        gen_grp_lt.addLayout(logs__hbox)
+        # logs_hbox = QHBoxLayout()
+        # self.wm.addWidget("logs_cb", QCheckBox("Enable Logs"))
+        # self.wm.addWidget("logs_open_btn", QPushButton("Open"))
+        # self.wm.addWidget("logs_wipe_btn", QPushButton("Wipe"))
+        # logs_hbox.addWidget(self.wm.getWidget("logs_cb"))
+        # logs_hbox.addWidget(self.wm.getWidget("logs_open_btn"))
+        # logs_hbox.addWidget(self.wm.getWidget("logs_wipe_btn"))
+        # gen_grp_lt.addLayout(logs_hbox)
 
         # Bottom
         self.wm.addWidget("restore_defaults_btn", QPushButton("Reset to Default"))
@@ -104,6 +104,6 @@ class SettingsTab(QWidget):
     
     def resetToDefault(self):
         self.wm.getWidget("dark_theme_cb").setChecked(True)
-        self.wm.getWidget("logs_cb").setChecked(False)
+        # self.wm.getWidget("logs_cb").setChecked(False)
         self.wm.getWidget("sorting_cb").setChecked(False)
         self.wm.getWidget("all_resampling_cb").setChecked(False)
