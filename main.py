@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import sys, os
+import sys, os, time
 
 from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, DEBUG
 from SettingsTab import SettingsTab # Needs to be declared before other tabs
@@ -81,8 +81,14 @@ class MainWindow(QMainWindow):
             return
 
         self.data.appendCompletedItem(n)
+        self.data.appendCompletionTime(time.time())
+
+        time_left = self.data.getTimeRemaining()
+        progress_l = f"Converted {self.data.getCompletedItemsCount()} out of {self.data.getItemCount()} images"
+        progress_l += f"\n{time_left} left" if time_left != "" else ""
+        self.progress_dialog.setLabelText(progress_l)
         self.progress_dialog.setValue(self.data.getCompletedItemsCount())
-        self.progress_dialog.setLabelText(f"Converted {self.data.getCompletedItemsCount()} out of {self.data.getItemCount()} images.")
+
         if DEBUG:
             print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
@@ -125,7 +131,7 @@ class MainWindow(QMainWindow):
         # Set progress dialog
         self.progress_dialog = QProgressDialog("Converting Images...", "Cancel",0,self.data.getItemCount(), self)
         self.progress_dialog.setWindowTitle("XL Converter")
-        self.progress_dialog.setMinimumWidth(300)
+        self.progress_dialog.setMinimumWidth(350)
         self.progress_dialog.show()
         self.progress_dialog.canceled.connect(TaskStatus.cancel)
 
