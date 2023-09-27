@@ -49,13 +49,17 @@ class OutputTab(QWidget):
 
         threads_hb = QHBoxLayout()
         self.wm.addWidget("threads_sl", QSlider(Qt.Horizontal))
+        self.wm.addWidget("threads_sb", QSpinBox())
+
         self.wm.getWidget("threads_sl").setRange(1, self.MAX_THREAD_COUNT)
+        self.wm.getWidget("threads_sb").setRange(1, self.MAX_THREAD_COUNT)
         self.wm.getWidget("threads_sl").setTickInterval(1)
-        self.wm.getWidget("threads_sl").valueChanged.connect(self.onThreadCountChange)
-        self.wm.addWidget("threads_l", QLabel("1"))
-        threads_hb.addWidget(QLabel("Threads Used"))
+        self.wm.getWidget("threads_sl").valueChanged.connect(self.onThreadSlChange)
+        self.wm.getWidget("threads_sb").valueChanged.connect(self.onThreadSbChange)
+        
+        threads_hb.addWidget(QLabel("Threads"))
         threads_hb.addWidget(self.wm.getWidget("threads_sl"))
-        threads_hb.addWidget(self.wm.getWidget("threads_l"))
+        threads_hb.addWidget(self.wm.getWidget("threads_sb"))
 
         duplicates_hb = QHBoxLayout()
         self.wm.addWidget("duplicates_cmb", QComboBox())
@@ -233,8 +237,11 @@ class OutputTab(QWidget):
                 },
         }
     
-    def onThreadCountChange(self):
-        self.wm.getWidget("threads_l").setText(str(self.wm.getWidget("threads_sl").value()))
+    def onThreadSlChange(self):
+        self.wm.getWidget("threads_sb").setValue(self.wm.getWidget("threads_sl").value())
+
+    def onThreadSbChange(self):
+        self.wm.getWidget("threads_sl").setValue(self.wm.getWidget("threads_sb").value())
 
     def getUsedThreadCount(self):
         return self.wm.getWidget("threads_sl").value()
