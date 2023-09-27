@@ -207,11 +207,11 @@ class OutputTab(QWidget):
         # Misc
         self.resetToDefault()
         self.wm.loadState()
+
+        # Setup widgets' states
         self.onFormatChange()
         self.onDeleteOriginalChanged()
         self.onOutputToggled()
-        self.onQualitySbChanged()
-        self.onQualitySlChanged()
     
     def isClearAfterConvChecked(self):
         return self.wm.getWidget("clear_after_conv_cb").isChecked()
@@ -312,7 +312,6 @@ class OutputTab(QWidget):
         
         self.loadFormatState()
         
-
     def onQualitySlChanged(self):
         self.wm.getWidget("quality_sb").setValue(abs(self.wm.getWidget("quality_sl").value()))
 
