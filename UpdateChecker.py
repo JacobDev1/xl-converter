@@ -6,10 +6,14 @@ from PySide6.QtWidgets import(
     QPushButton,
     QVBoxLayout,
     QHBoxLayout,
-    QLabel
+    QLabel,
+    QSizePolicy,
 )
 
+from PySide6 import QtWidgets
+
 from PySide6.QtCore import(
+    Qt,
     QUrl,
     QObject,
     Signal,
@@ -18,7 +22,8 @@ from PySide6.QtCore import(
 )
 
 from PySide6.QtGui import(
-    QDesktopServices
+    QDesktopServices,
+    QGuiApplication,
 )
 
 class Worker(QObject):
@@ -67,9 +72,9 @@ class UpdateChecker(QDialog):
 
         # Layout
         self.setWindowTitle("Update Checker")
-        self.setMinimumSize(250, 100)
-        main_lt = QVBoxLayout()
-        self.setLayout(main_lt)
+        self.setMinimumSize(280, 100)
+        self.main_lt = QVBoxLayout()
+        self.setLayout(self.main_lt)
     
         # Buttons
         buttons_hb = QHBoxLayout()
@@ -87,11 +92,20 @@ class UpdateChecker(QDialog):
 
         # Text
         self.text_l = QLabel("Sample message...")
+        self.text_l.setAlignment(Qt.AlignCenter)
         self.text_l.setWordWrap(True)
 
+        # Size Policy
+        buttons_hb.setAlignment(Qt.AlignRight)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.ok_btn.setMinimumWidth(100)
+        self.download_btn.setMinimumWidth(100)
+        self.read_more_btn.setMinimumWidth(100)
+
         # Init
-        main_lt.addWidget(self.text_l)
-        main_lt.addLayout(buttons_hb)
+        self.main_lt.addWidget(self.text_l)
+        self.main_lt.addLayout(buttons_hb)
 
     def setBtnVisible(self, button_id, visible):
         match button_id:
@@ -104,6 +118,14 @@ class UpdateChecker(QDialog):
 
     def setText(self, text):
         self.text_l.setText(text)
+    
+    def resizeToContent(self):
+        """Resize to content and center."""
+        self.setMinimumSize(self.main_lt.sizeHint())
+        qr = self.frameGeometry()           
+        cp = QGuiApplication.primaryScreen().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def openURL(self, url):
         QDesktopServices.openUrl(QUrl(url))
@@ -171,6 +193,7 @@ class UpdateChecker(QDialog):
                     self.setBtnVisible("read_more", True)
 
                 self.message_read = True
+                self.resizeToContent()  # Make sure the message is not clipped
                 return
 
         self.close()
