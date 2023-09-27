@@ -333,7 +333,7 @@ class OutputTab(QWidget):
             self.wm.setEnabledByTag("lossless", True)
 
     def resetToDefault(self):
-        self.wm.removeAllVars()
+        self.wm.cleanVars()
 
         if self.wm.getWidget("format_cmb").currentText() == "AVIF":
             self.wm.getWidget("quality_sl").setValue(-20)

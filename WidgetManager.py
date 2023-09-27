@@ -16,7 +16,6 @@ class WidgetManager():
         self.variables = {}      # var: value
         self.exceptions = []     # [id, id]... for manually saving 
 
-        self.save_lock_path = os.path.join(CONFIG_LOCATION, "saving_disabled")
         self.save_state_path = os.path.join(CONFIG_LOCATION, f"{name}.json")
 
         # Create Config Folder
@@ -25,28 +24,24 @@ class WidgetManager():
         except OSError as err:
             self.log(f"{err}\nCannot create a config folder.")
     
-    def addWidget(self, id: str, widget, *tags):
-        self.widgets[id] = widget
+    def addWidget(self, _id: str, widget, *tags):
+        self.widgets[_id] = widget
 
         for tag in tags:
-            self.addTag(tag, id)
+            self.addTag(tag, _id)
     
-    def getWidget(self, id: str):
-        return self.widgets[id]
+    def getWidget(self, _id: str):
+        return self.widgets[_id]
     
-    def addTag(self, tag: str, id: str):
+    def addTag(self, tag: str, _id: str):
         if tag in self.tags:
-            self.tags[tag].extend([id])
+            self.tags[tag].extend([_id])
         else:
-            self.tags[tag] = [id]
+            self.tags[tag] = [_id]
     
-    def addTags(self, id: str, *tags):
+    def addTags(self, _id: str, *tags):
         for tag in tags:
-            self.addTag(tag, id)
-
-    # def addIdsToTag(self, tag: str, *ids):
-    #     for _id in ids:
-    #         self.addTag(tag, _ids)
+            self.addTag(tag, _id)
 
     def getWidgetsByTag(self, tag: str):
         widgets = []
@@ -76,21 +71,21 @@ class WidgetManager():
         else:
             return None
 
-    def applyVar(self, var_name, id, alt_value):
-        """Apply a (variable) onto an (item) with an (alternative) value if the variable doesn't exist.
+    def applyVar(self, var_name, _id, fallback):
+        """Apply a (variable) onto an (item) with a (fallback) value if the variable doesn't exist.
         
         Arguments:
             var_name - variable name
             id - id of an item the var will be applied onto
-            alt_value - alternative value If variable does not exist
+            fallback - alternative value If variable does not exist
         """
         new = self.getVar(var_name)
         if new == None:
-            new = alt_value
+            new = fallback
         
-        self._applyValue(id, new)
+        self._applyValue(_id, new)
 
-    def removeAllVars(self):
+    def cleanVars(self):
         self.variables = {}
 
     def disableAutoSaving(self, ids: []):
@@ -180,9 +175,9 @@ class WidgetManager():
     def log(self, msg):
         print(f"[WidgetManager - {self.name}] {msg}")
     
-    def _applyValue(self, id, val):
+    def _applyValue(self, _id, val):
         """For internal use only. Applies value based on a class name."""
-        widget = self.getWidget(id)     # Pointer
+        widget = self.getWidget(_id)     # Pointer
         widget_class = widget.__class__.__name__
 
         # Verify value type
@@ -198,7 +193,7 @@ class WidgetManager():
                 val_mismatch = True
 
         if val_mismatch:
-            self.log(f"Type mismatch (Tried applying {type(val)} onto [{id}: {widget_class}])")
+            self.log(f"Type mismatch (Tried applying {type(val)} onto [{_id}: {widget_class}])")
             return
 
         # Apply
@@ -220,3 +215,12 @@ class WidgetManager():
                 widget.setText(val)
             case _:
                 self.log(f"Unrecognized widget type ({widget})")
+    
+    def exit(self):
+        """Purges all widgets and other elements from memory."""
+        for key in self.widgets:
+            self.widgets[key].deleteLater()
+        self.widgets = {}
+        self.cleanVars()
+        self.exceptions = {}
+        self.tags = {}
