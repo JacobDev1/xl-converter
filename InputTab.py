@@ -10,7 +10,6 @@ from PySide6.QtWidgets import(
 )
 
 from PySide6.QtCore import(
-    QObject,
     Signal
 )
 
@@ -19,13 +18,11 @@ from PySide6.QtGui import(
     QKeySequence
 )
 
-class Signals(QObject):
+class InputTab(QWidget):
     convert = Signal()
 
-class InputTab(QWidget):
     def __init__(self, settings):
         super(InputTab, self).__init__()
-        self.signals = Signals()
         self.file_view = FileView(self)
 
         # Apply Settings
@@ -55,7 +52,7 @@ class InputTab(QWidget):
 
         self.convert_btn = QPushButton(self)
         self.convert_btn.setText("Convert")
-        self.convert_btn.clicked.connect(lambda: self.signals.convert.emit())
+        self.convert_btn.clicked.connect(self.convert.emit)
 
         input_l.addWidget(add_files_btn,1,0)
         input_l.addWidget(add_folder_btn,1,1)

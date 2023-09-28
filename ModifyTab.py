@@ -18,20 +18,17 @@ from PySide6.QtWidgets import(
 
 from PySide6.QtCore import(
     Qt,
-    QObject,
     Signal
 )
 
 MAX_RES_PX = 999999999
 MAX_FILE_SIZE = 1024**2   # KiB
 
-class Signals(QObject):
+class ModifyTab(QWidget):
     convert = Signal()
 
-class ModifyTab(QWidget):
     def __init__(self, settings):
         super(ModifyTab, self).__init__()
-        self.signals = Signals()
         self.wm = WidgetManager("ModifyTab")
 
         # Set Main Layout
@@ -170,7 +167,7 @@ class ModifyTab(QWidget):
         default_btn = QPushButton("Reset to Default")
         default_btn.clicked.connect(self.resetToDefault)
         convert_btn = QPushButton("Convert")
-        convert_btn.clicked.connect(self.signals.convert.emit)
+        convert_btn.clicked.connect(self.convert.emit)
 
         tab_lt.addWidget(default_btn,2,0)
         tab_lt.addWidget(convert_btn,2,1)

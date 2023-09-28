@@ -50,13 +50,13 @@ class MainWindow(QMainWindow):
 
         self.input_tab = InputTab(settings)
         self.settings_tab.signals.disable_sorting.connect(self.input_tab.disableSorting)
-        self.input_tab.signals.convert.connect(self.convert)
+        self.input_tab.convert.connect(self.convert)
 
         self.output_tab = OutputTab(self.threadpool.maxThreadCount())
-        self.output_tab.signals.convert.connect(self.convert)
+        self.output_tab.convert.connect(self.convert)
 
         self.modify_tab = ModifyTab(settings)
-        self.modify_tab.signals.convert.connect(self.convert)
+        self.modify_tab.convert.connect(self.convert)
         self.settings_tab.signals.all_resampling.connect(self.modify_tab.addResampling)
 
         self.about_tab = AboutTab()

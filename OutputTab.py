@@ -22,18 +22,15 @@ from PySide6.QtWidgets import(
 from PySide6.QtCore import(
     Qt,
     QThreadPool,
-    QObject,
     Signal
 )
 
-class Signals(QObject):
-    convert = Signal()
-
 class OutputTab(QWidget):
+    convert = Signal()
+    
     def __init__(self, max_threads):
         super(OutputTab, self).__init__()
 
-        self.signals = Signals()
         self.wm = WidgetManager("OutputTab")
         self.prev_format = None
 
@@ -180,7 +177,7 @@ class OutputTab(QWidget):
         self.convert_btn_2 = QPushButton("Convert")
         
         reset_to_default_btn.clicked.connect(self.resetToDefault)
-        self.convert_btn_2.clicked.connect(self.signals.convert.emit)
+        self.convert_btn_2.clicked.connect(self.convert.emit)
 
         output_page_lt.addWidget(reset_to_default_btn,2,0)
         output_page_lt.addWidget(self.convert_btn_2,2,1)
