@@ -42,7 +42,7 @@ class Data():
         if completed_items_len <= 2:
             return ""
 
-        trailing_item_count = 15
+        trailing_item_count = 30
         trailing_times = []
 
         if completed_items_len > trailing_item_count:
@@ -51,7 +51,7 @@ class Data():
         else:
             for i in range(1, completed_items_len):
                 trailing_times.append(self.completion_times[i] - self.completion_times[i - 1])
-            
+        
         # Extrapolate
         time_remaining = round((self.getItemCount() - self.getCompletedItemsCount()) * mean(trailing_times))   # round to filter out noise
         h = int(time_remaining / 3600)
