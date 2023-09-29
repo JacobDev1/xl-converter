@@ -63,3 +63,8 @@ def setTheme(theme="dark"):
             qdarktheme.setup_theme(corner_shape="sharp", custom_colors={"primary":"#F18000"})
         case "light":
             qdarktheme.setup_theme("light", corner_shape="sharp", custom_colors={"primary":"#EF7202"})
+
+def removeDuplicates(data: []):
+    new_data = []
+    [new_data.append(n) for n in data if n not in new_data]
+    return new_data

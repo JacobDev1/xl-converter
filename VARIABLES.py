@@ -1,3 +1,4 @@
+from HelperFunctions import removeDuplicates
 import os, platform
 
 VERSION = "0.9.1"
@@ -45,5 +46,4 @@ elif platform.system() == "Linux":
 
     CONFIG_LOCATION = os.path.expanduser('~/.config/xl-converter')
 
-tmp = ALLOWED_INPUT_DJXL + ALLOWED_INPUT_CJXL + ALLOWED_INPUT_IMAGE_MAGICK + ALLOWED_INPUT_AVIFENC + ALLOWED_INPUT_AVIFDEC + ALLOWED_INPUT_OXIPNG
-[ALLOWED_INPUT.append(n) for n in tmp if n not in ALLOWED_INPUT]    # Remove duplicates
+ALLOWED_INPUT = removeDuplicates(ALLOWED_INPUT_DJXL + ALLOWED_INPUT_CJXL + ALLOWED_INPUT_IMAGE_MAGICK + ALLOWED_INPUT_AVIFENC + ALLOWED_INPUT_AVIFDEC + ALLOWED_INPUT_OXIPNG)
