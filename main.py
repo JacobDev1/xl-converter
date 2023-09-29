@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         self.threadpool = QThreadPool.globalInstance()
         self.data = Data()
         self.progress_dialog = None
+        self.notify_dlg = QMessageBox()
 
         self.settings_tab = SettingsTab()   # Needs to be declared before other tabs
         settings = self.settings_tab.getSettings()
@@ -116,11 +117,14 @@ class MainWindow(QMainWindow):
                 try:
                     os.makedirs(params["custom_output_dir_path"], exist_ok=True)
                 except OSError as err:
-                    dlg = QMessageBox()
-                    dlg.setWindowTitle("Access Error")
-                    dlg.setText(f"{err}\nMake sure the path is accessible\nand that you have write permissions.")
-                    dlg.exec()
+                    self.notifyUser("Access Error", f"Make sure the path is accessible\nand that you have write permissions.{err}\n")
                     return
+
+        # Check If Downscaling Allowed
+        if params["downscaling"]["enabled"] and params["format"] == "Smallest Lossless":
+            self.notifyUser("Downscaling Disabled", "Downscaling was set to disabled,\nbecause it's not available for Smallest Lossless")
+            params["downscaling"]["enabled"] = False
+            self.modify_tab.disableDownscaling()
 
         # Parse data
         self.data.clear()
@@ -158,6 +162,11 @@ class MainWindow(QMainWindow):
 
     def setUIEnabled(self, n):
         self.tab.setEnabled(n)
+    
+    def notifyUser(self, title, msg):
+        self.notify_dlg.setWindowTitle(title)
+        self.notify_dlg.setText(msg)
+        return self.notify_dlg.exec()
     
     def closeEvent(self, e):
         self.settings_tab.wm.saveState()

@@ -216,6 +216,9 @@ class ModifyTab(QWidget):
     
     def toggleDownscaleUI(self, n):
         self.wm.setEnabledByTag("downscale_ui", n)
+    
+    def disableDownscaling(self):
+        self.wm.getWidget("downscale_cb").setChecked(False)
 
     def resetToDefault(self):
         self.wm.getWidget("mode_cmb").setCurrentIndex(0)
