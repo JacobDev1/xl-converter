@@ -24,9 +24,6 @@ from PySide6.QtCore import(
 MAX_RES_PX = 999999999
 MAX_FILE_SIZE = 1024**2   # KiB
 
-class Signals(QObject):
-    convert = Signal()
-
 class ModifyTab(QWidget):
     convert = Signal()
 
