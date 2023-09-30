@@ -1,6 +1,6 @@
 from FileView import *
 from VARIABLES import ALLOWED_INPUT
-from HelperFunctions import stripPathToFilename, scanDir
+from HelperFunctions import stripPathToFilename, scanDir, listToFilter
 
 from PySide6.QtWidgets import(
     QWidget,
@@ -64,13 +64,7 @@ class InputTab(QWidget):
         dlg = QFileDialog()
         dlg.setWindowTitle("Add Images")
         dlg.setFileMode(QFileDialog.ExistingFiles)
-        name_filter = "Images ("
-        for i in ALLOWED_INPUT:
-            name_filter += f"*.{i}"
-            if i != ALLOWED_INPUT[len(ALLOWED_INPUT)-1]:
-                name_filter += " "
-        name_filter += ")"
-        dlg.setNameFilter(name_filter)
+        dlg.setNameFilter(listToFilter("Images", ALLOWED_INPUT))
 
         self.file_view.beforeAddingItems()
         filepaths = ""
