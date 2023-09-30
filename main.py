@@ -12,6 +12,7 @@ from Worker import Worker
 from Data import Data
 from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool, setTheme
 import TaskStatus
+from Notifications import Notifications
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -44,7 +45,7 @@ class MainWindow(QMainWindow):
         self.threadpool = QThreadPool.globalInstance()
         self.data = Data()
         self.progress_dialog = None
-        self.notify_dlg = QMessageBox()
+        self.n = Notifications()
 
         self.settings_tab = SettingsTab()   # Needs to be declared before other tabs
         settings = self.settings_tab.getSettings()
@@ -105,6 +106,7 @@ class MainWindow(QMainWindow):
 
     def convert(self):
         if self.input_tab.file_view.topLevelItemCount() == 0:
+            self.n.notify("Empty List", "You haven't added any files.\nDrag and drop images (or folders) onto the program to add them.")
             return
         
         # Fill in the parameters
@@ -117,12 +119,12 @@ class MainWindow(QMainWindow):
                 try:
                     os.makedirs(params["custom_output_dir_path"], exist_ok=True)
                 except OSError as err:
-                    self.notifyUser("Access Error", f"Make sure the path is accessible\nand that you have write permissions.{err}\n")
+                    self.n.notify("Access Error", f"Make sure the path is accessible\nand that you have write permissions.\n{err}")
                     return
 
         # Check If Downscaling Allowed
         if params["downscaling"]["enabled"] and params["format"] == "Smallest Lossless":
-            self.notifyUser("Downscaling Disabled", "Downscaling was set to disabled,\nbecause it's not available for Smallest Lossless")
+            self.n.notify("Downscaling Disabled", "Downscaling was set to disabled,\nbecause it's not available for Smallest Lossless")
             params["downscaling"]["enabled"] = False
             self.modify_tab.disableDownscaling()
 
@@ -162,11 +164,6 @@ class MainWindow(QMainWindow):
 
     def setUIEnabled(self, n):
         self.tab.setEnabled(n)
-    
-    def notifyUser(self, title, msg):
-        self.notify_dlg.setWindowTitle(title)
-        self.notify_dlg.setText(msg)
-        return self.notify_dlg.exec()
     
     def closeEvent(self, e):
         self.settings_tab.wm.saveState()
