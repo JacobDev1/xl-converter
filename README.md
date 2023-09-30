@@ -131,6 +131,18 @@ Build
 python build.py
 ```
 
+#### Troubleshooting
+
+Your executable may return `No module named 'requests'`
+
+To solve this, update `requests`.
+
+`pip install requests --upgrade`
+
+Delete the `build` folder.
+
+Try building again.
+
 ### Linux
 
 Install `Python3` and `pip`
