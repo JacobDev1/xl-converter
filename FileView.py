@@ -14,11 +14,11 @@ from PySide6.QtCore import(
 from HelperFunctions import stripPathToFilename, scanDir
 from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL
 
-# Before adding files disable sorting
-
 class FileView(QTreeWidget):
     def __init__(self, parent):
         super(FileView, self).__init__(parent)
+
+        self.setting_sorting_disabled = False
 
         self.setColumnCount(3)
         self.setHeaderLabels(("File Name", "Ext.", "Location"))
@@ -40,7 +40,8 @@ class FileView(QTreeWidget):
         self.resizeToContent()
         self.removeDuplicates()
         self.scrollToLastItem()
-        self.setSortingEnabled(True)
+        if not self.setting_sorting_disabled:
+            self.setSortingEnabled(True)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -130,3 +131,7 @@ class FileView(QTreeWidget):
                 print(f"[FileView] Duplicate found: {item.text(2)}")
                 self.takeTopLevelItem(n)
                 item_count -= 1
+    
+    def disableSorting(self, disabled):
+        self.setting_sorting_disabled = disabled
+        self.setSortingEnabled(not disabled)

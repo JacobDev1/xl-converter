@@ -1,4 +1,4 @@
-import os, random, subprocess, shutil
+import os, random, subprocess, shutil, re
 from send2trash import send2trash
 from VARIABLES import DEBUG, IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH
 import TaskStatus
@@ -25,11 +25,20 @@ class Convert():
 
         # Check for uniqueness
         n = 1
+        
+        prev = re.search(r"\([0-9]{1,}\)$", file_name)
+        if prev != None:   # Detect a previously renamed file
+            n = int(prev.group(0)[1:-1])
+
         while os.path.isfile(path):
             if add_rnd:
                 path = os.path.join(dir,f"{file_name}_{rnd}.{ext}")
             else:
-                path = os.path.join(dir,f"{file_name} ({n}).{ext}")
+                if prev != None and len(file_name) > len(prev.group(0)):
+                    spacing = "" if file_name[len(file_name) - len(prev.group(0)) - 1] != " " else ""  # Add spacing to "file(1)", not "file (1)"
+                    path = os.path.join(dir,f"{file_name[:-len(prev.group(0))]}{spacing}({n}).{ext}")
+                else:
+                    path = os.path.join(dir,f"{file_name} ({n}).{ext}")
             n += 1
         return path
     

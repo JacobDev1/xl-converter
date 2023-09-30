@@ -1,5 +1,6 @@
 import os, re, platform
 from pathlib import Path
+import qdarktheme
 
 def stripPathToFilename(path):
     """Dissect path into its parts.
@@ -55,3 +56,26 @@ def burstThreadPool(workers_n, cores_a):
                 n += 1
 
             return thread_pool
+
+def setTheme(theme="dark"):
+    match theme:
+        case "dark":
+            qdarktheme.setup_theme(corner_shape="sharp", custom_colors={"primary":"#F18000"})
+        case "light":
+            qdarktheme.setup_theme("light", corner_shape="sharp", custom_colors={"primary":"#EF7202"})
+
+def removeDuplicates(data: []):
+    new_data = []
+    [new_data.append(n) for n in data if n not in new_data]
+    return new_data
+
+def listToFilter(title: str, ext: []):
+    """Convert a list of extensions into a name filter for file dialogs."""
+    last_idx = len(ext) - 1
+
+    output = f"{title} ("
+    for i in range(last_idx):
+        output += f"*.{ext[i]} "
+
+    output += f"*.{ext[last_idx]})" # Last one (no space at the end)
+    return output
