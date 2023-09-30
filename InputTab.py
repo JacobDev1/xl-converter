@@ -1,6 +1,6 @@
 from FileView import *
 from VARIABLES import ALLOWED_INPUT
-from HelperFunctions import stripPathToFilename, scanDir
+from HelperFunctions import stripPathToFilename, scanDir, listToFilter
 
 from PySide6.QtWidgets import(
     QWidget,
@@ -10,7 +10,6 @@ from PySide6.QtWidgets import(
 )
 
 from PySide6.QtCore import(
-    QObject,
     Signal
 )
 
@@ -19,14 +18,15 @@ from PySide6.QtGui import(
     QKeySequence
 )
 
-class Signals(QObject):
+class InputTab(QWidget):
     convert = Signal()
 
-class InputTab(QWidget):
-    def __init__(self):
+    def __init__(self, settings):
         super(InputTab, self).__init__()
-        self.signals = Signals()
         self.file_view = FileView(self)
+
+        # Apply Settings
+        self.disableSorting(settings["settings"]["sorting_disabled"])
 
         # Shortcuts
         self.select_all_sc = QShortcut(QKeySequence('Ctrl+A'), self)
@@ -52,7 +52,7 @@ class InputTab(QWidget):
 
         self.convert_btn = QPushButton(self)
         self.convert_btn.setText("Convert")
-        self.convert_btn.clicked.connect(lambda: self.signals.convert.emit())
+        self.convert_btn.clicked.connect(self.convert.emit)
 
         input_l.addWidget(add_files_btn,1,0)
         input_l.addWidget(add_folder_btn,1,1)
@@ -64,13 +64,7 @@ class InputTab(QWidget):
         dlg = QFileDialog()
         dlg.setWindowTitle("Add Images")
         dlg.setFileMode(QFileDialog.ExistingFiles)
-        name_filter = "Images ("
-        for i in ALLOWED_INPUT:
-            name_filter += f"*.{i}"
-            if i != ALLOWED_INPUT[len(ALLOWED_INPUT)-1]:
-                name_filter += " "
-        name_filter += ")"
-        dlg.setNameFilter(name_filter)
+        dlg.setNameFilter(listToFilter("Images", ALLOWED_INPUT))
 
         self.file_view.beforeAddingItems()
         filepaths = ""
@@ -99,3 +93,6 @@ class InputTab(QWidget):
 
     def clearInput(self):
         self.file_view.clear()
+    
+    def disableSorting(self, disabled):
+        self.file_view.disableSorting(disabled)

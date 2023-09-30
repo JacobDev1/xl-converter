@@ -11,7 +11,7 @@ Available for both Windows and Linux.
 
 ## Support This Project
 
-- [Patreon](https://patreon.com/codepoems) - get latest builds
+- [Patreon](https://patreon.com/codepoems) - get rewards
 - [Ko-Fi](https://ko-fi.com/codepoems) - one-time donation
 - [Libera](https://liberapay.com/CodePoems/donate)
 
@@ -107,13 +107,9 @@ This makes encoding JPEG XL as many times faster as the amount of threads used.
 
 #### Image Proxy
 
-Encoders are picky, but XL Converter isn't. Feed it any format it can decode and the conversion will still be finished despite the encoder not supporting it.
+Encoders are picky, but XL Converter isn't. Feed it any image format it can decode and the conversion will still be finished despite the encoder not supporting it.
 
 For example: HEIF to JPEG XL
-
-#### Burst Mode
-
-For small amounts of images, the extra threads will be spread out for maximum performance.
 
 ## Building
 
@@ -135,11 +131,23 @@ Build
 python build.py
 ```
 
+#### Troubleshooting
+
+Your executable may return `No module named 'requests'`
+
+To solve this, update `requests`.
+
+`pip install requests --upgrade`
+
+Delete the `build` folder.
+
+Try building again.
+
 ### Linux
 
 Install `Python3` and `pip`
 
-```
+```bash
 sudo apt update
 sudo apt install python3
 sudo apt install pip
@@ -151,6 +159,12 @@ Install Qt dev tools.
 sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 ```
 
+Add permissions and enter the folder
+```bash
+chmod -R 755 xl-converter
+cd xl-converter
+```
+
 Install dependencies
 ```bash
 make setup
@@ -159,7 +173,7 @@ make setup
 Build
 
 ```bash
-make linux
+make build
 ```
 
 ## Running
@@ -169,8 +183,16 @@ Install dependencies from the [Building](#building) section and replace the last
 - Windows - `python main.py`
 - Linux - `make run`
 
-## Contributions
+## Branches
 
-Branches
 - `unstable` - all changes are committed here first
 - `stable` - current stable release
+
+Contributions are not accepted to avoid legal issues. Forward your code and feature suggestions to [my email](https://codepoems.eu/about/).
+
+## Troubleshooting
+
+If the program won't launch, delete the following folder.
+
+- Windows - `%localappdata%/xl-converter`
+- Linux - `~/.config/xl-converter`

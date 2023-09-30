@@ -1,4 +1,4 @@
-.PHONY: run clean setup linux
+.PHONY: run clean setup build
 
 clean:
 	rm -rf __pycache__ dist
@@ -9,5 +9,5 @@ run:
 setup:
 	pip3 install -r requirements.txt
 
-linux:
+build:
 	python3 build.py
