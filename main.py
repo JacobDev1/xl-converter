@@ -173,6 +173,9 @@ class MainWindow(QMainWindow):
         self.output_tab.saveState()
         self.modify_tab.wm.saveState()
         self.about_tab.beforeExit()
+
+        if self.threadpool.activeThreadCount() > 0:
+            return -1
     
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls():
