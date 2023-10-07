@@ -202,6 +202,10 @@ class Convert():
         proxy_src = self.getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
         shutil.copy(params["src"], proxy_src)
 
+        # Int. Effort
+        if params["format"] == "JPEG XL" and params["jxl_int_e"]:
+            params["args"][1] = "-e 7"
+
         # Downscale until it's small enough
         while True:
             if TaskStatus.wasCanceled():
@@ -234,7 +238,7 @@ class Convert():
 
             else:
                 # JPEG XL - intelligent effort
-                if params["jxl_int_e"]: 
+                if params["format"] == "JPEG XL" and params["jxl_int_e"]: 
                     params["args"][1] = "-e 9"
                     e9_tmp = self.getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
 

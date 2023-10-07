@@ -176,6 +176,7 @@ class Worker(QRunnable):
             scl_params = {    # "None" values are assigned later on
                 "mode": self.params["downscaling"]["mode"],
                 "enc": None,
+                "format": self.params["format"],    # To recognize intelligent effort
                 "jxl_int_e": None,   # An exception to handle intelligent effort
                 "src": self.item_abs_path,
                 "dst": output,
