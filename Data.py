@@ -38,30 +38,32 @@ class Data():
         return len(self.completed_items)
     
     def getTimeRemaining(self):
-        completed_items_len = len(self.completed_items)
-        if completed_items_len <= 2:
-            return ""
+        completed_len = self.getCompletedItemsCount()
+        if completed_len <= 5:
+            return "Time left: <calculating>"
 
-        trailing_item_count = 30
-        trailing_times = []
+        trail_range = 30
+        conv_dur = []   # (float) (seconds) Durations of the last <trail_range> conversions
 
-        if completed_items_len > trailing_item_count:
-            for i in range(completed_items_len - trailing_item_count, completed_items_len):
-                trailing_times.append(self.completion_times[i] - self.completion_times[i - 1])
+        if completed_len > trail_range:
+            for i in range(completed_len - trail_range, completed_len):
+                conv_dur.append(self.completion_times[i] - self.completion_times[i - 1])
         else:
-            for i in range(1, completed_items_len):
-                trailing_times.append(self.completion_times[i] - self.completion_times[i - 1])
+            for i in range(1, completed_len):
+                conv_dur.append(self.completion_times[i] - self.completion_times[i - 1])
         
         # Extrapolate
-        time_remaining = round((self.getItemCount() - self.getCompletedItemsCount()) * mean(trailing_times))   # round to filter out noise
-        h = int(time_remaining / 3600)
-        m = int((time_remaining  / 60) % 60)
-        s = int(time_remaining % 60)
+        remaining = (self.getItemCount() - self.getCompletedItemsCount()) * mean(conv_dur)
+        h = int(remaining / 3600)
+        m = int((remaining  / 60) % 60)
+        s = int(remaining % 60)
 
         output = ""
         if h:   output += f"{h} h "
         if m:   output += f"{m} m "
         if s:   output += f"{s} s"
+        if output == "": output += "0 s"
+        output += " left"
 
         return output
         
