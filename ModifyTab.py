@@ -210,6 +210,10 @@ class ModifyTab(QWidget):
         self.wm.loadState()
         self.onModeChanged()
 
+        # Force Settings
+        if settings["settings"]["disable_downscaling_startup"]:
+            self.disableDownscaling()
+
         # Add to main layout
         tab_lt.addWidget(downscale_grp,0,0)
         tab_lt.addWidget(misc_grp,0,1)

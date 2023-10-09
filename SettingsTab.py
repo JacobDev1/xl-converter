@@ -44,6 +44,9 @@ class SettingsTab(QWidget):
         self.wm.getWidget("dark_theme_cb").toggled.connect(self.toggleTheme)
         gen_grp_lt.addWidget(self.wm.getWidget("dark_theme_cb"))
 
+        self.wm.addWidget("disable_downscaling_startup_cb", QCheckBox("Disable Downscaling on Startup"))
+        gen_grp_lt.addWidget(self.wm.getWidget("disable_downscaling_startup_cb"))
+
         self.wm.addWidget("sorting_cb", QCheckBox("Input - Disable Sorting"))
         self.wm.getWidget("sorting_cb").toggled.connect(self.signals.disable_sorting)
         gen_grp_lt.addWidget(self.wm.getWidget("sorting_cb"))
@@ -99,6 +102,7 @@ class SettingsTab(QWidget):
             "settings": {
                 "all_resampling": self.wm.getWidget("all_resampling_cb").isChecked(),
                 "sorting_disabled": self.wm.getWidget("sorting_cb").isChecked(),
+                "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked()
             }
         }
     
@@ -107,3 +111,4 @@ class SettingsTab(QWidget):
         # self.wm.getWidget("logs_cb").setChecked(False)
         self.wm.getWidget("sorting_cb").setChecked(False)
         self.wm.getWidget("all_resampling_cb").setChecked(False)
+        self.wm.getWidget("disable_downscaling_startup_cb").setChecked(True)
