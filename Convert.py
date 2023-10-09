@@ -1,6 +1,6 @@
 import os, random, subprocess, shutil, re, psutil
 from send2trash import send2trash
-from VARIABLES import DEBUG, IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH
+from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH
 import TaskStatus
 
 # Methods for converting files

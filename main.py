@@ -2,7 +2,7 @@
 
 import sys, os, time
 
-from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, DEBUG
+from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT
 from SettingsTab import SettingsTab
 from InputTab import InputTab
 from AboutTab import AboutTab
@@ -91,8 +91,7 @@ class MainWindow(QMainWindow):
         self.progress_dialog.setLabelText(progress_l)
         self.progress_dialog.setValue(self.data.getCompletedItemsCount())
 
-        if DEBUG:
-            print(f"Active Threads: {self.threadpool.activeThreadCount()}")
+        # print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
         if self.data.getCompletedItemsCount() == self.data.getItemCount():
             self.setUIEnabled(True)
