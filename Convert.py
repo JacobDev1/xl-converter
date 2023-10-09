@@ -1,4 +1,4 @@
-import os, random, subprocess, shutil, re
+import os, random, subprocess, shutil, re, psutil
 from send2trash import send2trash
 from VARIABLES import DEBUG, IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH
 import TaskStatus
@@ -61,13 +61,26 @@ class Convert():
             case "Skip":
                 return "Skip"
 
+    def killProcess(self, pid):
+        process = psutil.Process(pid)
+        for proc in process.children(recursive=True):
+            proc.kill()
+        process.kill()
+
+    def runProcess(self, cmd):
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        # proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
+        # try:
+        #     proc.wait(timeout=PROCESS_TIMEOUT)
+        # except:
+        #     self.killProcess(proc.pid)
+        #     self.log(f"Process timed out ({command})", n)
+
     def convert(self, encoder_path, src, dst, args = [], n = None):
         """Universal method for all encoders."""
         command = f'\"{encoder_path}\" \"{src}\" {" ".join(args) + " " if args else ""}\"{dst}\"'
-        
-        if DEBUG:   subprocess.run(command, shell=True)
-        else:       subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-
+        self.runProcess(command)
         if n != None:   self.log(command, n)
 
     def getDecoder(self, ext):
@@ -120,10 +133,7 @@ class Convert():
 
     def optimize(self, bin_path, src, args = [], n = None):
         command = f'\"{bin_path}\" {" ".join(args) + " " if args else ""}\"{src}\"'
-
-        if DEBUG:   subprocess.run(command, shell=True)
-        else:       subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-
+        self.runProcess(command)
         if n != None:   self.log(command, n)
 
     def delete(self, path, trash = False):
