@@ -3,7 +3,7 @@
 import sys, os, time
 
 from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, DEBUG
-from SettingsTab import SettingsTab # Needs to be declared before other tabs
+from SettingsTab import SettingsTab
 from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
