@@ -46,6 +46,7 @@ class MainWindow(QMainWindow):
         self.data = Data()
         self.progress_dialog = None
         self.n = Notifications()
+        self.exceptions = []
 
         self.settings_tab = SettingsTab()   # Needs to be declared before other tabs
         settings = self.settings_tab.getSettings()
@@ -95,6 +96,13 @@ class MainWindow(QMainWindow):
 
         if self.data.getCompletedItemsCount() == self.data.getItemCount():
             self.setUIEnabled(True)
+
+            # Exceptions
+            if self.exceptions and not self.settings_tab.getSettings()["settings"]["no_exceptions"]:
+                self.n.notifyDetailed("Exceptions Occured", "Exceptions occured during conversion.", '\n'.join(self.exceptions))
+                if self.progress_dialog != None:
+                    self.progress_dialog.close()
+            
             if self.output_tab.isClearAfterConvChecked():
                 self.input_tab.clearInput()
 
@@ -121,13 +129,19 @@ class MainWindow(QMainWindow):
                     self.n.notify("Access Error", f"Make sure the path is accessible\nand that you have write permissions.\n{err}")
                     return
 
+        # Check If Format Pool Empty
+        if params["format"] == "Smallest Lossless" and self.output_tab.smIsFormatPoolEmpty():
+            self.n.notify("Format Error", "Select at least one format.")
+            return
+
         # Check If Downscaling Allowed
         if params["downscaling"]["enabled"] and params["format"] == "Smallest Lossless":
             self.n.notify("Downscaling Disabled", "Downscaling was set to disabled,\nbecause it's not available for Smallest Lossless")
             params["downscaling"]["enabled"] = False
             self.modify_tab.disableDownscaling()
 
-        # Parse data
+        # Reset and Parse data
+        self.exceptions = []
         self.data.clear()
         self.data.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
         if self.data.getItemCount() == 0:
@@ -159,7 +173,11 @@ class MainWindow(QMainWindow):
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
+            worker.signals.exception.connect(self.exception)
             self.threadpool.start(worker)
+
+    def exception(self, msg):
+        self.exceptions.append(msg)
 
     def setUIEnabled(self, n):
         self.tab.setEnabled(n)

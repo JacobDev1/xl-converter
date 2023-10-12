@@ -47,6 +47,9 @@ class SettingsTab(QWidget):
         self.wm.addWidget("disable_downscaling_startup_cb", QCheckBox("Disable Downscaling on Startup"))
         gen_grp_lt.addWidget(self.wm.getWidget("disable_downscaling_startup_cb"))
 
+        self.wm.addWidget("no_exceptions_cb", QCheckBox("Disable Exception Popups"))
+        gen_grp_lt.addWidget(self.wm.getWidget("no_exceptions_cb"))
+
         self.wm.addWidget("sorting_cb", QCheckBox("Input - Disable Sorting"))
         self.wm.getWidget("sorting_cb").toggled.connect(self.signals.disable_sorting)
         gen_grp_lt.addWidget(self.wm.getWidget("sorting_cb"))
@@ -102,7 +105,8 @@ class SettingsTab(QWidget):
             "settings": {
                 "all_resampling": self.wm.getWidget("all_resampling_cb").isChecked(),
                 "sorting_disabled": self.wm.getWidget("sorting_cb").isChecked(),
-                "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked()
+                "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked(),
+                "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked()
             }
         }
     

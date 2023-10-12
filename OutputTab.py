@@ -242,7 +242,14 @@ class OutputTab(QWidget):
 
     def getUsedThreadCount(self):
         return self.wm.getWidget("threads_sl").value()
-    
+
+    def smIsFormatPoolEmpty(self):
+        empty = True
+        for w in self.wm.getWidgetsByTag("format_pool"):
+            if w.isChecked():
+                empty = False
+        return empty
+        
     def chooseOutput(self):
         dlg = QFileDialog()
         dlg.setWindowTitle("Choose Output Folder")

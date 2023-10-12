@@ -16,6 +16,7 @@ class Signals(QObject):
     started = Signal(int)
     completed = Signal(int)
     canceled = Signal(int)
+    exception = Signal(str)
 
 class Worker(QRunnable):
     def __init__(self, n, item, params, available_threads = 1):
@@ -37,6 +38,9 @@ class Worker(QRunnable):
         self.item_dir = item[2]
         self.item_abs_path = item[3]
     
+    def exception(self, msg):
+        self.signals.exception.emit(f"{msg} ({self.item_name}.{self.item_ext})")
+
     @Slot()
     def run(self):
         if TaskStatus.wasCanceled():
@@ -47,7 +51,7 @@ class Worker(QRunnable):
 
         # Check If input file is still in the list, but was physically removed
         if os.path.isfile(self.item[3]) == False:   
-            print(f"[Worker #{self.n}] File not found ({self.item[3]})")
+            self.exception(f"File not found")
             self.signals.completed.emit(self.n)
             return
 
@@ -65,32 +69,24 @@ class Worker(QRunnable):
                         conflict = False
 
             if conflict:
-                self.convert.log(f"Animation not supported for {self.params['format']}", self.n)
+                self.exception(f"Animation is not supported for {self.params['format']} - stopped the process")
 
             if self.params["format"] == "JPEG XL":
-                if self.params["effort"] > 7:   # Efforts bigger than 7 cause the encoder to crash when processing APNGs
+                if self.params["intelligent_effort"]:
+                    self.params["intelligent_effort"] = False
                     self.params["effort"] = 7
-                self.params["intelligent_effort"] = False
+                    self.exception(f"Intelligent effort is not available for {self.params['format']} - defaulted to 7")
+                elif self.params["effort"] > 7:   # Efforts bigger than 7 cause the encoder to crash when processing APNGs
+                    self.params["effort"] = 7
+                    self.exception(f"Effort bigger than 7 is not available for {self.params['format']} - defaulted to 7")
 
             if self.params["downscaling"]["enabled"]:
                 conflict = True
-                self.convert.log(f"Downscaling not supported for animated media", self.n)
+                self.exception(f"Downscaling is not supported for {self.params['format']} - stopped the process")
 
         if conflict:
             self.signals.completed.emit(self.n)
             return
-
-        # Check If "Smallest Lossless" has any formats enabled
-        if self.params["format"] == "Smallest Lossless":
-            is_empty = True
-            for key, value in self.params["smallest_format_pool"].items():
-                if value:
-                    is_empty = False
-            
-            if is_empty:
-                self.convert.log("Smallest Lossless needs at least one format enabled", self.n)
-                self.signals.completed.emit(self.n)
-                return
 
         # Choose Output Dir           
         output_dir = ""
@@ -103,7 +99,7 @@ class Worker(QRunnable):
             try:
                 os.makedirs(output_dir, exist_ok=True)
             except OSError as err:
-                self.convert.log(err, self.n)
+                self.exception(err)
                 self.signals.completed.emit(self.n)
                 return
         else:
@@ -165,7 +161,7 @@ class Worker(QRunnable):
             if os.path.isfile(proxy_path):
                 self.item_abs_path = proxy_path
             else:
-                self.convert.log(f"Proxy cannot be found ({self.item_name}.{self.item_ext})", self.n)
+                self.exception("Proxy cannot be found")
                 self.signals.completed.emit(self.n)
                 return
 
@@ -332,7 +328,7 @@ class Worker(QRunnable):
 
             # Check if no formats selected
             if len(path_pool) == 0:
-                self.convert.log("No formats selected for Smallest Lossless", self.n)
+                self.exception("No formats selected for Smallest Lossless")
                 self.signals.completed.emit(self.n)
                 return
 
@@ -397,7 +393,7 @@ class Worker(QRunnable):
             self.convert.log(f"Smallest Format: {sm_f_key}", self.n)
 
         else:
-            self.convert.log(f"Unknown Format ({self.params['format']})", self.n)
+            self.exception(f"Unknown Format ({self.params['format']})")
 
         # Clean-up proxy
         if need_proxy:
