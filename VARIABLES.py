@@ -7,6 +7,7 @@ VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   
 # Filled below
 CONFIG_LOCATION = ""
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
+ICON_SVG = os.path.join(PROGRAM_FOLDER, "icons/logo.svg")
 
 CJXL_PATH = "cjxl"
 DJXL_PATH = "djxl"

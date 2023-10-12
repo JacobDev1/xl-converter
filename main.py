@@ -2,7 +2,7 @@
 
 import sys, os, time
 
-from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT
+from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, ICON_SVG
 from SettingsTab import SettingsTab
 from InputTab import InputTab
 from AboutTab import AboutTab
@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowTitle("XL Converter")
-        self.setWindowIcon(QIcon(os.path.join(PROGRAM_FOLDER,"icons/logo.svg")))
+        self.setWindowIcon(QIcon(ICON_SVG))
         self.resize(650,300)
 
         self.tab = QTabWidget(self)
