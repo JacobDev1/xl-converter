@@ -24,12 +24,14 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     QThreadPool,
-    Signal
+    Signal,
 )
 
 from PySide6.QtGui import (
     QDesktopServices,
-    QIcon
+    QIcon,
+    QShortcut,
+    QKeySequence
 )
 
 class MainWindow(QMainWindow):
@@ -70,6 +72,13 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.modify_tab, "Modify")
         self.tab.addTab(self.settings_tab, "Settings")
         self.tab.addTab(self.about_tab, "About")
+
+        # Shortcuts
+        select_tab_sc = []
+        for i in range(self.tab.count()):
+            select_tab_sc.append(QShortcut(QKeySequence(f"Alt+{i+1}"), self))
+            select_tab_sc[i].activated.connect(lambda i=i: self.tab.setCurrentIndex(i))   # Notice the `i=i`
+
         self.setCentralWidget(self.tab)
 
     def start(self, n):
