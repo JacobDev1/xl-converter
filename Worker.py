@@ -3,8 +3,7 @@ from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, PROGRAM_FOLDER, AL
 from Convert import Convert
 import TaskStatus
 
-
-import os, subprocess, shutil
+import os, subprocess, shutil, copy
 
 from PySide6.QtCore import (
     QRunnable,
@@ -23,7 +22,7 @@ class Worker(QRunnable):
         super().__init__()
         self.signals = Signals()
         self.convert = Convert()
-        self.params = params
+        self.params = copy.deepcopy(params)
 
         # Threading
         self.n = n  # Thread number
