@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys, os, time
+from numpy import clip
 
 from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, ICON_SVG
 from SettingsTab import SettingsTab
@@ -75,7 +76,7 @@ class MainWindow(QMainWindow):
 
         # Shortcuts
         select_tab_sc = []
-        for i in range(self.tab.count()):
+        for i in range(clip(self.tab.count(), 0, 9)):
             select_tab_sc.append(QShortcut(QKeySequence(f"Alt+{i+1}"), self))
             select_tab_sc[i].activated.connect(lambda i=i: self.tab.setCurrentIndex(i))   # Notice the `i=i`
 
