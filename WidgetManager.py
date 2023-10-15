@@ -31,8 +31,13 @@ class WidgetManager():
             self.addTag(tag, _id)
     
     def getWidget(self, _id: str):
-        return self.widgets[_id]
+        if _id in self.widgets:
+            return self.widgets[_id]
+        else:
+            return None
     
+    # TAGS
+
     def addTag(self, tag: str, _id: str):
         if tag in self.tags:
             self.tags[tag].extend([_id])
@@ -62,6 +67,8 @@ class WidgetManager():
             if widget.__class__.__name__ in ("QCheckBox", "QRadioBox"):
                 widget.setChecked(checked)
 
+    # VARIABLES
+
     def setVar(self, var: str, value):
         self.variables[var] = value
 
@@ -87,6 +94,8 @@ class WidgetManager():
 
     def cleanVars(self):
         self.variables = {}
+
+    # SAVING
 
     def disableAutoSaving(self, ids: []):
         self.exceptions.extend(ids)
@@ -165,6 +174,8 @@ class WidgetManager():
                 
                 self._applyValue(key, widgets[key])
     
+    # MISC.
+
     def wipeSettings(self):
         try:
             if os.path.isfile(self.save_state_path):
