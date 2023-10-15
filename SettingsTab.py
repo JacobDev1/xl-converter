@@ -22,7 +22,7 @@ from PySide6.QtCore import(
 )
 
 class Signals(QObject):
-    all_resampling = Signal(bool)
+    custom_resampling = Signal(bool)
     disable_sorting = Signal(bool)
 
 class SettingsTab(QWidget):
@@ -59,9 +59,9 @@ class SettingsTab(QWidget):
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
-        self.wm.addWidget("all_resampling_cb", QCheckBox("All Resampling Methods"))
-        self.wm.getWidget("all_resampling_cb").toggled.connect(self.signals.all_resampling.emit)
-        conv_grp_lt.addWidget(self.wm.getWidget("all_resampling_cb"))
+        self.wm.addWidget("custom_resampling_cb", QCheckBox("Custom Resampling"))
+        self.wm.getWidget("custom_resampling_cb").toggled.connect(self.signals.custom_resampling.emit)
+        conv_grp_lt.addWidget(self.wm.getWidget("custom_resampling_cb"))
 
         # logs_hbox = QHBoxLayout()
         # self.wm.addWidget("logs_cb", QCheckBox("Enable Logs"))
@@ -103,7 +103,7 @@ class SettingsTab(QWidget):
     def getSettings(self):
         return {
             "settings": {
-                "all_resampling": self.wm.getWidget("all_resampling_cb").isChecked(),
+                "custom_resampling": self.wm.getWidget("custom_resampling_cb").isChecked(),
                 "sorting_disabled": self.wm.getWidget("sorting_cb").isChecked(),
                 "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked(),
                 "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked()
@@ -114,5 +114,5 @@ class SettingsTab(QWidget):
         self.wm.getWidget("dark_theme_cb").setChecked(True)
         # self.wm.getWidget("logs_cb").setChecked(False)
         self.wm.getWidget("sorting_cb").setChecked(False)
-        self.wm.getWidget("all_resampling_cb").setChecked(False)
+        self.wm.getWidget("custom_resampling_cb").setChecked(False)
         self.wm.getWidget("disable_downscaling_startup_cb").setChecked(True)

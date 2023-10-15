@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
 
         self.modify_tab = ModifyTab(settings)
         self.modify_tab.convert.connect(self.convert)
-        self.settings_tab.signals.all_resampling.connect(self.modify_tab.addResampling)
+        self.settings_tab.signals.custom_resampling.connect(self.modify_tab.toggleCustomResampling)
 
         self.about_tab = AboutTab()
 
