@@ -206,6 +206,13 @@ class Worker(QRunnable):
             if self.params["intelligent_effort"] and (self.params["quality"] == 100 or self.params["lossless"]):
                 self.params["intelligent_effort"] = False
                 args[1] = "-e 9"
+            
+            # Strip metadata
+            # Encoder does not seem to respect these args in any way
+            # if not self.params["misc"]["keep_metadata"]:
+            #     args["jxl"].append("-x strip=exif")
+            #     args["jxl"].append("-x strip=xmp")
+            #     args["jxl"].append("-x strip=jumbf")
 
             # Set downscaling params
             if self.params["downscaling"]["enabled"]:
@@ -370,6 +377,9 @@ class Worker(QRunnable):
             if not self.params["misc"]["keep_metadata"]:
                 args["png"].append("--strip all")
                 args["webp"].append("-strip")
+                # args["jxl"].append("-x strip=exif")   # Encoder does not respect those
+                # args["jxl"].append("-x strip=xmp")
+                # args["jxl"].append("-x strip=jumbf")
 
             # Generate files
             for key in path_pool:
