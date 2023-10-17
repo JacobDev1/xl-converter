@@ -3,8 +3,9 @@ from send2trash import send2trash
 from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH
 import TaskStatus
 
-# Methods for converting files
+VERBOSE = False
 
+# Methods for converting files
 class Convert():
     def __init__(self):
         pass
@@ -68,7 +69,12 @@ class Convert():
         process.kill()
 
     def runProcess(self, cmd):
-        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        if VERBOSE:
+            print(f"Running command: {cmd}")
+            subprocess.run(cmd, shell=True)
+        else:
+            subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        
         # proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
         # try:
