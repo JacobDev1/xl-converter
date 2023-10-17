@@ -2,5 +2,4 @@ send2trash
 pyside6
 pyinstaller
 pyqtdarktheme
-numpy
 psutil

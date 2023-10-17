@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import sys, os, time
-from numpy import clip
 
 from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, ICON_SVG
 from SettingsTab import SettingsTab
@@ -11,7 +10,7 @@ from OutputTab import OutputTab
 from ModifyTab import ModifyTab
 from Worker import Worker
 from Data import Data
-from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool, setTheme
+from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool, setTheme, clip
 import TaskStatus
 from Notifications import Notifications
 
