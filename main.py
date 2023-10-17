@@ -106,11 +106,11 @@ class MainWindow(QMainWindow):
 
         if self.data.getCompletedItemsCount() == self.data.getItemCount():
             self.setUIEnabled(True)
+            if self.progress_dialog != None:
+                self.progress_dialog.close()
 
             # Exceptions
             if self.exceptions and not self.settings_tab.getSettings()["settings"]["no_exceptions"]:
-                if self.progress_dialog != None:
-                    self.progress_dialog.close()
                 self.n.notifyDetailed("Exceptions Occured", "Exceptions occured during conversion.", '\n'.join(self.exceptions))
             
             if self.output_tab.isClearAfterConvChecked():
