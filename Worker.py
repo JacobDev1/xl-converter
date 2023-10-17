@@ -271,6 +271,10 @@ class Worker(QRunnable):
                 args.pop(0) # Remove quality
                 args.append("-define webp:lossless=true")
 
+            # Strip Metadata
+            if not self.params["misc"]["keep_metadata"]:
+                args.append("-strip")
+
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
                 scl_params["args"] = args
@@ -302,6 +306,13 @@ class Worker(QRunnable):
                 f"-j {self.available_threads}"
             ]
 
+            # Strip metadata
+            if not self.params["misc"]["keep_metadata"]:
+                args.extend([
+                    "--ignore-exif",
+                    "--ignore-xmp",
+                ])
+
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = AVIFENC_PATH
                 scl_params["args"] = args
@@ -311,6 +322,10 @@ class Worker(QRunnable):
                     
         elif self.params["format"] == "JPG":
             args = [f"-quality {self.params['quality']}"]
+
+            # Strip Metadata
+            if not self.params["misc"]["keep_metadata"]:
+                args.append("-strip")
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
@@ -350,6 +365,11 @@ class Worker(QRunnable):
                     f"--num_threads={self.available_threads}"
                 ]
             }
+
+            # Strip metadata
+            if not self.params["misc"]["keep_metadata"]:
+                args["png"].append("--strip all")
+                args["webp"].append("-strip")
 
             # Generate files
             for key in path_pool:

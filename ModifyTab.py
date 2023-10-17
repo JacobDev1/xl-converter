@@ -159,13 +159,13 @@ class ModifyTab(QWidget):
         misc_grp_lt = QVBoxLayout()
         misc_grp.setLayout(misc_grp_lt)
 
-        # Metadata
-        # self.metadata_cb = QCheckBox("Preserve Metadata")
-        # misc_grp_lt.addWidget(self.metadata_cb)
-
         # Date / Time
         self.wm.addWidget("date_time_cb", QCheckBox("Preserve Date && Time"))
         misc_grp_lt.addWidget(self.wm.getWidget("date_time_cb"))
+
+        # Metadata
+        self.wm.addWidget("metadata_cb", QCheckBox("Preserve Metadata"))
+        misc_grp_lt.addWidget(self.wm.getWidget("metadata_cb"))
 
         # Bottom
         default_btn = QPushButton("Reset to Default")
@@ -233,6 +233,7 @@ class ModifyTab(QWidget):
 
     def resetToDefault(self):
         self.disableDownscaling()
+        self.wm.getWidget("metadata_cb").setChecked(False)
         self.wm.getWidget("mode_cmb").setCurrentIndex(0)
         self.wm.getWidget("resample_cmb").setCurrentIndex(0)
         self.wm.getWidget("file_size_sb").setValue(300)
@@ -266,7 +267,7 @@ class ModifyTab(QWidget):
                 "resample": self.getResampling(),
             },
             "misc": {
-                # "metadata": self.metadata_cb.isChecked(),
+                "keep_metadata": self.wm.getWidget("metadata_cb").isChecked(),
                 "attributes": self.wm.getWidget("date_time_cb").isChecked(),
             }
         }
