@@ -454,6 +454,17 @@ class Worker(QRunnable):
             if self.params["misc"]["attributes"]:
                 self.convert.copyAttributes(self.item[3], final_output)
 
+            # Apply metadata
+            exiftool_enabled = not self.params["settings"]["no_exiftool"]
+            if self.params["format"] == "JPEG XL":
+                exiftool_enabled = self.params["settings"]["exiftool_jxl"]
+
+            if exiftool_enabled:
+                if self.params["misc"]["keep_metadata"]:
+                    self.convert.copyMetadata(self.item[3], final_output)
+                else:
+                    self.convert.deleteMetadata(final_output)
+
             # After Conversion
             if self.params["delete_original"]:
                 if self.params["delete_original_mode"] == "To Trash":

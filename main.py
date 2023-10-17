@@ -129,6 +129,7 @@ class MainWindow(QMainWindow):
         # Fill in the parameters
         params = self.output_tab.getSettings()
         params.update(self.modify_tab.getSettings())
+        params.update(self.settings_tab.getSettings())
 
         # Check Permissions
         if params["custom_output_dir"]:

@@ -55,11 +55,18 @@ class SettingsTab(QWidget):
         gen_grp_lt.addWidget(self.wm.getWidget("sorting_cb"))
 
         # Conversion group
-        conv_grp = QGroupBox("Downscaling")
+        conv_grp = QGroupBox("Conversion")
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
-        self.wm.addWidget("custom_resampling_cb", QCheckBox("Custom Resampling"))
+        self.wm.addWidget("no_exiftool_cb", QCheckBox("Disable ExifTool"))
+        self.wm.getWidget("no_exiftool_cb").toggled.connect(self.toggleExifTool)
+        conv_grp_lt.addWidget(self.wm.getWidget("no_exiftool_cb"))
+
+        self.wm.addWidget("exiftool_jxl_cb", QCheckBox("Enable ExifTool for JPEG XL (Experimental)"))
+        conv_grp_lt.addWidget(self.wm.getWidget("exiftool_jxl_cb"))
+
+        self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
         self.wm.getWidget("custom_resampling_cb").toggled.connect(self.signals.custom_resampling.emit)
         conv_grp_lt.addWidget(self.wm.getWidget("custom_resampling_cb"))
 
@@ -100,13 +107,21 @@ class SettingsTab(QWidget):
         else:
             setTheme("light")        
 
+    def toggleExifTool(self):
+        if self.wm.getWidget("no_exiftool_cb").isChecked():
+            self.wm.getWidget("exiftool_jxl_cb").setEnabled(False)
+        else:
+            self.wm.getWidget("exiftool_jxl_cb").setEnabled(True)
+
     def getSettings(self):
         return {
             "settings": {
                 "custom_resampling": self.wm.getWidget("custom_resampling_cb").isChecked(),
                 "sorting_disabled": self.wm.getWidget("sorting_cb").isChecked(),
                 "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked(),
-                "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked()
+                "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked(),
+                "no_exiftool": self.wm.getWidget("no_exiftool_cb").isChecked(),
+                "exiftool_jxl": self.wm.getWidget("exiftool_jxl_cb").isChecked(),
             }
         }
     
@@ -114,5 +129,8 @@ class SettingsTab(QWidget):
         self.wm.getWidget("dark_theme_cb").setChecked(True)
         # self.wm.getWidget("logs_cb").setChecked(False)
         self.wm.getWidget("sorting_cb").setChecked(False)
+        
         self.wm.getWidget("custom_resampling_cb").setChecked(False)
         self.wm.getWidget("disable_downscaling_startup_cb").setChecked(True)
+        self.wm.getWidget("no_exiftool_cb").setChecked(False)
+        self.wm.getWidget("exiftool_jxl_cb").setChecked(False)

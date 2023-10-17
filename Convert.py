@@ -1,6 +1,6 @@
 import os, random, subprocess, shutil, re, psutil
 from send2trash import send2trash
-from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH
+from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH, EXIFTOOL_PATH
 import TaskStatus
 
 VERBOSE = False
@@ -317,3 +317,11 @@ class Convert():
             shutil.copystat(src, dst)
         except OSError as e:
             self.log(f"[Error] copystat failed ({e})")
+    
+    def copyMetadata(self, src, dst):
+        """Copy all metadata from one file onto another."""
+        self.runProcess(f'\"{EXIFTOOL_PATH}\" -tagsfromfile \"{src}\" -overwrite_original \"{dst}\"')
+    
+    def deleteMetadata(self, dst):
+        """Delete all metadata except color profile from a file."""
+        self.runProcess(f'\"{EXIFTOOL_PATH}\" -all= -tagsfromfile @ -colorspacetags -overwrite_original \"{dst}\"')

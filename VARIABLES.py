@@ -15,6 +15,7 @@ IMAGE_MAGICK_PATH = "magick"
 AVIFENC_PATH = "avifenc"
 AVIFDEC_PATH = "avifdec"
 OXIPNG_PATH = "oxipng"
+EXIFTOOL_PATH = "exiftool"
 
 # Proper usage is "if 'extension'.lower() in ALLOWED_INPUT:"
 JPEG_ALIASES = ["jpg", "jpeg", "jfif", "jif", "jpe"] # Used by CJXL for JPEG reconstruction, before adding more verify support
@@ -35,6 +36,7 @@ if platform.system() == "Windows":
     AVIFENC_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/avifenc.exe")
     AVIFDEC_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/avifdec.exe")
     OXIPNG_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/oxipng.exe")
+    EXIFTOOL_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/exiftool.exe")
 
     CONFIG_LOCATION = os.path.normpath(os.path.expanduser("~/AppData/Local/xl-converter"))
 elif platform.system() == "Linux":
@@ -44,6 +46,7 @@ elif platform.system() == "Linux":
     AVIFENC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifenc"
     AVIFDEC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifdec"
     OXIPNG_PATH = f"{PROGRAM_FOLDER}/bin/linux/oxipng"
+    EXIFTOOL_PATH = f"{PROGRAM_FOLDER}/bin/linux/exiftool/exiftool"
 
     CONFIG_LOCATION = os.path.expanduser('~/.config/xl-converter')
 
