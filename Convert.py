@@ -1,6 +1,6 @@
 import os, random, subprocess, shutil, re, psutil
 from send2trash import send2trash
-from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH, EXIFTOOL_PATH
+from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH, EXIFTOOL_REL_PATH, EXIFTOOL_FOLDER_PATH
 import TaskStatus
 
 VERBOSE = False
@@ -318,10 +318,18 @@ class Convert():
         except OSError as e:
             self.log(f"[Error] copystat failed ({e})")
     
+    def runProcessFromPath(self, cmd, path):
+        """Run process from a specific directory."""
+        if VERBOSE:
+            print(f"Running command from \"{path}\": {cmd}")
+            subprocess.run(cmd, shell=True, cwd=path)
+        else:
+            subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=path)
+
     def copyMetadata(self, src, dst):
         """Copy all metadata from one file onto another."""
-        self.runProcess(f'\"{EXIFTOOL_PATH}\" -tagsfromfile \"{src}\" -overwrite_original \"{dst}\"')
+        self.runProcessFromPath(f'{EXIFTOOL_REL_PATH} -tagsfromfile \"{src}\" -overwrite_original \"{dst}\"', EXIFTOOL_FOLDER_PATH)
     
     def deleteMetadata(self, dst):
         """Delete all metadata except color profile from a file."""
-        self.runProcess(f'\"{EXIFTOOL_PATH}\" -all= -tagsfromfile @ -colorspacetags -overwrite_original \"{dst}\"')
+        self.runProcessFromPath(f'{EXIFTOOL_REL_PATH} -all= -tagsfromfile @ -colorspacetags -overwrite_original \"{dst}\"', EXIFTOOL_FOLDER_PATH)
