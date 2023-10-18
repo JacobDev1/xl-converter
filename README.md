@@ -122,7 +122,7 @@ Install [Python3](https://www.python.org/downloads/).
 Install dependencies
 
 ```
-python install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 Build
