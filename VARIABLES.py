@@ -15,7 +15,7 @@ IMAGE_MAGICK_PATH = "magick"
 AVIFENC_PATH = "avifenc"
 AVIFDEC_PATH = "avifdec"
 OXIPNG_PATH = "oxipng"
-EXIFTOOL_REL_PATH = "exiftool"
+EXIFTOOL_REL_PATH = "exiftool"  # Relative path needed for Brotli dependency to work on Linux
 EXIFTOOL_FOLDER_PATH = ""
 
 # Proper usage is "if 'extension'.lower() in ALLOWED_INPUT:"
