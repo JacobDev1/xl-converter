@@ -375,7 +375,7 @@ class Worker(QRunnable):
 
             # Strip metadata
             if not self.params["misc"]["keep_metadata"]:
-                args["png"].append("--strip all")
+                args["png"].append("--strip safe")
                 args["webp"].append("-strip")
                 # args["jxl"].append("-x strip=exif")   # Encoder does not respect those
                 # args["jxl"].append("-x strip=xmp")
