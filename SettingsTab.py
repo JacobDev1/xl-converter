@@ -50,9 +50,9 @@ class SettingsTab(QWidget):
         self.wm.addWidget("no_exceptions_cb", QCheckBox("Disable Exception Popups"))
         gen_grp_lt.addWidget(self.wm.getWidget("no_exceptions_cb"))
 
-        self.wm.addWidget("sorting_cb", QCheckBox("Input - Disable Sorting"))
-        self.wm.getWidget("sorting_cb").toggled.connect(self.signals.disable_sorting)
-        gen_grp_lt.addWidget(self.wm.getWidget("sorting_cb"))
+        self.wm.addWidget("no_sorting_cb", QCheckBox("Input - Disable Sorting"))
+        self.wm.getWidget("no_sorting_cb").toggled.connect(self.signals.disable_sorting)
+        gen_grp_lt.addWidget(self.wm.getWidget("no_sorting_cb"))
 
         # Conversion group
         conv_grp = QGroupBox("Conversion")
@@ -117,7 +117,7 @@ class SettingsTab(QWidget):
         return {
             "settings": {
                 "custom_resampling": self.wm.getWidget("custom_resampling_cb").isChecked(),
-                "sorting_disabled": self.wm.getWidget("sorting_cb").isChecked(),
+                "sorting_disabled": self.wm.getWidget("no_sorting_cb").isChecked(),
                 "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked(),
                 "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked(),
                 "no_exiftool": self.wm.getWidget("no_exiftool_cb").isChecked(),
@@ -128,7 +128,7 @@ class SettingsTab(QWidget):
     def resetToDefault(self):
         self.wm.getWidget("dark_theme_cb").setChecked(True)
         # self.wm.getWidget("logs_cb").setChecked(False)
-        self.wm.getWidget("sorting_cb").setChecked(False)
+        self.wm.getWidget("no_sorting_cb").setChecked(False)
         
         self.wm.getWidget("custom_resampling_cb").setChecked(False)
         self.wm.getWidget("disable_downscaling_startup_cb").setChecked(True)
