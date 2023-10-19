@@ -1,6 +1,6 @@
 from FileView import *
 from VARIABLES import ALLOWED_INPUT
-from HelperFunctions import stripPathToFilename, scanDir, listToFilter
+from utils import stripPathToFilename, scanDir, listToFilter
 
 from PySide6.QtWidgets import(
     QWidget,

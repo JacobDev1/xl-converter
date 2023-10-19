@@ -1,4 +1,4 @@
-from HelperFunctions import removeDuplicates
+from utils import removeDuplicates
 import os, platform
 
 VERSION = "0.9.2"

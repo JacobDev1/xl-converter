@@ -1,4 +1,4 @@
-from HelperFunctions import stripPathToFilename
+from utils import stripPathToFilename
 from statistics import mean
 
 class Data():

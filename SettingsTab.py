@@ -1,4 +1,4 @@
-from HelperFunctions import setTheme
+from utils import setTheme
 from WidgetManager import WidgetManager
 
 from PySide6.QtWidgets import(
