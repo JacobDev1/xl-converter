@@ -149,7 +149,7 @@ class WidgetManager():
                 try:
                     loaded = json.load(file)
                 except:
-                    self.log("Parsing JSON failed. Cannot load saved state.")
+                    self.log("Parsing JSON failed. Cannot load saved states.")
                     return
         except OSError as err:
             self.log(err)

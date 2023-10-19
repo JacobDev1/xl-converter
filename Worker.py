@@ -433,7 +433,7 @@ class Worker(QRunnable):
         # Check for existing files
         if self.item_ext == "gif" and self.params["format"] == "PNG":
             pass    # Already handled
-        elif os.path.isfile(output):    # In case conversion failed
+        elif os.path.isfile(output):    # Checking if conversion was successful
             match self.params["if_file_exists"]:
                 case "Replace":
                     if os.path.isfile(final_output):
@@ -449,7 +449,7 @@ class Worker(QRunnable):
                         else:
                             os.rename(output, final_output)
 
-        if os.path.isfile(final_output):    # In case renaming failed
+        if os.path.isfile(final_output):    # Checking if renaming was successful
             # Apply attributes
             if self.params["misc"]["attributes"]:
                 self.convert.copyAttributes(self.item[3], final_output)
