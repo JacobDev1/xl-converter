@@ -1,6 +1,12 @@
-import os, random, subprocess, shutil, re, psutil
+import os, random, subprocess, shutil, re, psutil, platform
 from send2trash import send2trash
-from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, AVIFDEC_PATH, DJXL_PATH, EXIFTOOL_REL_PATH, EXIFTOOL_FOLDER_PATH
+from VARIABLES import (
+    ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK,
+    IMAGE_MAGICK_PATH,
+    AVIFDEC_PATH,
+    DJXL_PATH,
+    EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME
+)
 import TaskStatus
 
 VERBOSE = False
@@ -62,26 +68,38 @@ class Convert():
             case "Skip":
                 return "Skip"
 
-    def killProcess(self, pid):
-        process = psutil.Process(pid)
-        for proc in process.children(recursive=True):
-            proc.kill()
-        process.kill()
-
     def runProcess(self, cmd):
         if VERBOSE:
             print(f"Running command: {cmd}")
             subprocess.run(cmd, shell=True)
         else:
             subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        
-        # proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-        # try:
-        #     proc.wait(timeout=PROCESS_TIMEOUT)
-        # except:
-        #     self.killProcess(proc.pid)
-        #     self.log(f"Process timed out ({command})", n)
+    def killProcess(self, pid):
+        process = psutil.Process(pid)
+        for proc in process.children(recursive=True):
+            proc.kill()
+        process.kill()
+
+    def runProcessTimeout(self, cmd, timeout):
+        """Run process, but kill it If it runs for too long.
+        
+        Args:
+            - cmd - command
+            - timeout - in seconds
+        """
+        proc = None
+        if VERBOSE:
+            print(f"Running command: {cmd}")
+            proc = subprocess.Popen(cmd, shell=True)
+        else:
+            proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        
+        try:
+            proc.wait(timeout=timeout)
+        except:
+            self.killProcess(proc.pid)
+            self.log(f"Process timed out ({command})", n)
 
     def convert(self, encoder_path, src, dst, args = [], n = None):
         """Universal method for all encoders."""
@@ -326,10 +344,17 @@ class Convert():
         else:
             subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=path)
 
+    def _runExifTool(self, args):
+        """For internal use only."""
+        if platform.system() == "Windows":
+            self.runProcess(f'\"{EXIFTOOL_PATH}\" {args}')
+        elif platform.system() == "Linux":  # Relative path needed for Brotli dependency to work on Linux
+            self.runProcessFromPath(f'./{EXIFTOOL_BIN_NAME} {args}', EXIFTOOL_FOLDER_PATH)
+
     def copyMetadata(self, src, dst):
         """Copy all metadata from one file onto another."""
-        self.runProcessFromPath(f'{EXIFTOOL_REL_PATH} -tagsfromfile \"{src}\" -overwrite_original \"{dst}\"', EXIFTOOL_FOLDER_PATH)
-    
+        self._runExifTool(f'-tagsfromfile \"{src}\" -overwrite_original \"{dst}\"')
+
     def deleteMetadata(self, dst):
         """Delete all metadata except color profile from a file."""
-        self.runProcessFromPath(f'{EXIFTOOL_REL_PATH} -all= -tagsfromfile @ -colorspacetags -overwrite_original \"{dst}\"', EXIFTOOL_FOLDER_PATH)
+        self._runExifTool(f'-all= -tagsfromfile @ -colorspacetags -overwrite_original \"{dst}\"')
