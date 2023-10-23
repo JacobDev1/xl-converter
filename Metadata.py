@@ -32,14 +32,20 @@ class Metadata():
 
     def deleteMetadata(self, dst):
         """Delete all metadata except color profile from a file."""
-        self._runExifTool(f'-all= -tagsfromfile @ -colorspacetags -overwrite_original \"{dst}\"')
+        self._runExifTool(f'-all= --icc_profile:all -tagsFromFile @ -ColorSpace -overwrite_original \"{dst}\"')
     
+    def deleteMetadataUnsafe(self, dst):
+        """Deletes every last bit of metadata, even color profile. May mess up an image. Potentially desctructive."""
+        self._runExifTool(f'-all= -overwrite_original \"{dst}\"')
+
     def runExifTool(self, src, dst, mode):
         match mode:
-            case "ExifTool - Wipe":
+            case "ExifTool - Safe Wipe":
                 self.deleteMetadata(dst)
             case "ExifTool - Preserve":
                 self.copyMetadata(src, dst)
+            case "ExifTool - Unsafe Wipe":
+                self.deleteMetadataUnsafe(dst)
     
     def getArgs(self, encoder, mode):
         """Get metadata specific arguments for chosen encoder.

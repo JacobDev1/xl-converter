@@ -167,7 +167,7 @@ class ModifyTab(QWidget):
         metadata_hb = QHBoxLayout()
         self.wm.addWidget("metadata_l", QLabel("Metadata"))
         self.wm.addWidget("metadata_cmb", QComboBox())
-        self.wm.getWidget("metadata_cmb").addItems(("Up to Encoder - Wipe", "Up to Encoder - Preserve", "ExifTool - Wipe", "ExifTool - Preserve"))
+        self.wm.getWidget("metadata_cmb").addItems(("Up to Encoder - Wipe", "Up to Encoder - Preserve", "ExifTool - Safe Wipe", "ExifTool - Preserve", "ExifTool - Unsafe Wipe"))
 
         metadata_hb.addWidget(self.wm.getWidget("metadata_l"))
         metadata_hb.addWidget(self.wm.getWidget("metadata_cmb"))
