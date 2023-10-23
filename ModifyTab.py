@@ -164,8 +164,14 @@ class ModifyTab(QWidget):
         misc_grp_lt.addWidget(self.wm.getWidget("date_time_cb"))
 
         # Metadata
-        self.wm.addWidget("metadata_cb", QCheckBox("Preserve Metadata"))
-        misc_grp_lt.addWidget(self.wm.getWidget("metadata_cb"))
+        metadata_hb = QHBoxLayout()
+        self.wm.addWidget("metadata_l", QLabel("Metadata"))
+        self.wm.addWidget("metadata_cmb", QComboBox())
+        self.wm.getWidget("metadata_cmb").addItems(("Up to Encoder - Wipe", "Up to Encoder - Preserve", "ExifTool - Wipe", "ExifTool - Preserve"))
+
+        metadata_hb.addWidget(self.wm.getWidget("metadata_l"))
+        metadata_hb.addWidget(self.wm.getWidget("metadata_cmb"))
+        misc_grp_lt.addLayout(metadata_hb)
 
         # Bottom
         default_btn = QPushButton("Reset to Default")
@@ -184,6 +190,9 @@ class ModifyTab(QWidget):
 
         misc_grp.setMaximumSize(400, 232)
         downscale_grp.setMaximumSize(400, 232)
+
+        # Alignment
+        metadata_hb.setAlignment(Qt.AlignLeft)
 
         # WidgetManager Tags
         self.wm.addTags("mode_cmb", "downscale_ui")
@@ -233,7 +242,7 @@ class ModifyTab(QWidget):
 
     def resetToDefault(self):
         self.disableDownscaling()
-        self.wm.getWidget("metadata_cb").setChecked(False)
+        self.wm.getWidget("metadata_cmb").setCurrentIndex(0)
         self.wm.getWidget("mode_cmb").setCurrentIndex(0)
         self.wm.getWidget("resample_cmb").setCurrentIndex(0)
         self.wm.getWidget("file_size_sb").setValue(300)
@@ -267,7 +276,7 @@ class ModifyTab(QWidget):
                 "resample": self.getResampling(),
             },
             "misc": {
-                "keep_metadata": self.wm.getWidget("metadata_cb").isChecked(),
+                "keep_metadata": self.wm.getWidget("metadata_cmb").currentText(),
                 "attributes": self.wm.getWidget("date_time_cb").isChecked(),
             }
         }

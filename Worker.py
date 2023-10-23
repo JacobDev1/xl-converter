@@ -245,7 +245,7 @@ class Worker(QRunnable):
                 args.append("-define webp:lossless=true")
 
             # Strip Metadata
-            if not self.params["misc"]["keep_metadata"]:
+            if self.params["misc"]["keep_metadata"] == "Up to Encoder - Wipe":
                 args.append("-strip")
 
             if self.params["downscaling"]["enabled"]:
@@ -280,7 +280,7 @@ class Worker(QRunnable):
             ]
 
             # Strip metadata
-            if not self.params["misc"]["keep_metadata"]:
+            if self.params["misc"]["keep_metadata"] == "Up to Encoder - Wipe":
                 args.extend([
                     "--ignore-exif",
                     "--ignore-xmp",
@@ -297,7 +297,7 @@ class Worker(QRunnable):
             args = [f"-quality {self.params['quality']}"]
 
             # Strip Metadata
-            if not self.params["misc"]["keep_metadata"]:
+            if self.params["misc"]["keep_metadata"] == "Up to Encoder - Wipe":
                 args.append("-strip")
 
             if self.params["downscaling"]["enabled"]:
@@ -340,7 +340,7 @@ class Worker(QRunnable):
             }
 
             # Strip metadata
-            if not self.params["misc"]["keep_metadata"]:
+            if self.params["misc"]["keep_metadata"] == "Up to Encoder - Wipe":
                 args["png"].append("--strip safe")
                 args["webp"].append("-strip")
                 # args["jxl"].append("-x strip=exif")   # Encoder does not respect those
@@ -421,16 +421,11 @@ class Worker(QRunnable):
             if self.params["misc"]["attributes"]:
                 self.m.copyAttributes(self.item[3], final_output)
 
-            # Apply metadata
-            exiftool_enabled = not self.params["settings"]["no_exiftool"]
-            if self.params["format"] == "JPEG XL":
-                exiftool_enabled = self.params["settings"]["exiftool_jxl"]
-
-            if exiftool_enabled:
-                if self.params["misc"]["keep_metadata"]:
-                    self.m.copyMetadata(self.item[3], final_output)
-                else:
+            match self.params["misc"]["keep_metadata"]:
+                case "ExifTool - Wipe":
                     self.m.deleteMetadata(final_output)
+                case "ExifTool - Preserve":
+                    self.m.copyMetadata(self.item[3], final_output)
 
             # After Conversion
             if self.params["delete_original"]:
