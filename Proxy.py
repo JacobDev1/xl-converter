@@ -53,9 +53,6 @@ class Proxy():
     def getPath(self):
         return self.proxy_path
     
-    def setPath(self, path):
-        self.proxy_path = path
-
     def proxyExists(self):
         if self.proxy_path == None:
             return False
