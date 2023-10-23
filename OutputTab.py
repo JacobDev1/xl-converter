@@ -274,12 +274,12 @@ class OutputTab(QWidget):
         self.wm.setEnabledByTag("lossless", cur_format in ("JPEG XL", "WEBP"))
 
         # Effort
-        if cur_format in ("JPEG XL", "AVIF"):
+        if cur_format == "JPEG XL":
             self.wm.getWidget("int_effort_cb").setEnabled(True)
             self.onEffortToggled()  # This is important to avoid issues with the effort_sb enabled state
         else:
             self.wm.getWidget("int_effort_cb").setEnabled(False)
-            self.wm.getWidget("effort_sb").setEnabled(False)
+            self.wm.getWidget("effort_sb").setEnabled(cur_format == "AVIF")
 
         # Disable Quality Slider
         self.wm.setEnabledByTag("quality", not cur_format in ("PNG", "Smallest Lossless"))
@@ -291,7 +291,6 @@ class OutputTab(QWidget):
             self.wm.getWidget("effort_sb").setRange(0, 10)
             self.wm.getWidget("quality_l").setText("Constant Quality")
             self.wm.getWidget("effort_l").setText("Speed")
-            self.wm.getWidget("int_effort_cb").setText("Best Quality")
         else:
             if cur_format == "JPEG XL":
                 self.setQualityRange(0, 99)
@@ -300,7 +299,6 @@ class OutputTab(QWidget):
             self.wm.getWidget("effort_sb").setRange(1, 9)
             self.wm.getWidget("quality_l").setText("Quality")
             self.wm.getWidget("effort_l").setText("Effort")
-            self.wm.getWidget("int_effort_cb").setText("Intelligent")
         
         # Smallest Lossless mode
         if cur_format == "Smallest Lossless":
@@ -388,7 +386,6 @@ class OutputTab(QWidget):
             case "AVIF":
                 self.wm.setVar("avif_quality", self.wm.getWidget("quality_sl").value())
                 self.wm.setVar("avif_speed", self.wm.getWidget("effort_sb").value())
-                self.wm.setVar("avif_best_quality", self.wm.getWidget("int_effort_cb").isChecked())
             case "WEBP":
                 self.wm.setVar("webp_quality", self.wm.getWidget("quality_sl").value())
                 self.wm.setVar("webp_lossless", self.wm.getWidget("lossless_cb").isChecked())
@@ -401,13 +398,11 @@ class OutputTab(QWidget):
             case "JPEG XL":
                 self.wm.applyVar("jxl_quality", "quality_sl", 80)
                 self.wm.applyVar("jxl_effort", "effort_sb", 7)
-                self.wm.applyVar("jxl_int_effort", "int_effort_cb", False)
                 self.wm.applyVar("jxl_lossless", "lossless_cb", False)
                 self.wm.applyVar("jxl_lossless_if", "lossless_if_cb", False)
             case "AVIF":
                 self.wm.applyVar("avif_quality", "quality_sl", -20)
                 self.wm.applyVar("avif_speed", "effort_sb", 6)
-                self.wm.applyVar("avif_best_quality", "int_effort_cb", False)
             case "WEBP":
                 self.wm.applyVar("webp_quality", "quality_sl", 80)
                 self.wm.applyVar("webp_lossless", "lossless_cb", False)
@@ -420,7 +415,6 @@ class OutputTab(QWidget):
             "quality_sb",
             "quality_sl",
             "effort_sb",
-            "int_effort_cb",
             "lossless_cb",
             "lossless_if_cb",
         ])
