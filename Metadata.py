@@ -1,6 +1,12 @@
 import shutil, platform
 from Process import Process
-from VARIABLES import EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME
+from VARIABLES import (
+    EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME,
+    IMAGE_MAGICK_PATH,
+    CJXL_PATH,
+    AVIFENC_PATH,
+    OXIPNG_PATH
+)
 
 class Metadata():
     def __init__(self):
@@ -27,3 +33,38 @@ class Metadata():
     def deleteMetadata(self, dst):
         """Delete all metadata except color profile from a file."""
         self._runExifTool(f'-all= -tagsfromfile @ -colorspacetags -overwrite_original \"{dst}\"')
+    
+    def runExifTool(self, src, dst, mode):
+        match mode:
+            case "ExifTool - Wipe":
+                self.deleteMetadata(dst)
+            case "ExifTool - Preserve":
+                self.copyMetadata(src, dst)
+    
+    def getArgs(self, encoder, mode):
+        """Get metadata specific arguments for chosen encoder.
+
+        Usage:
+            args.extend(getArgs(encoder, mode))
+        """
+        match mode:
+            case "Up to Encoder - Wipe":
+                # No Switch case, because it would require a Class in this situation
+                if encoder == CJXL_PATH:
+                    return []
+                    # The following has no effect on the encoder.
+                    # return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
+                    # return ["-x exif=", "-x xmp=", "-x jumbf="]
+                    # The source code for reference https://github.com/libjxl/libjxl/blob/6f85806063394d0f32e6a112a37a259214bed4f1/tools/cjxl_main.cc
+                elif encoder == IMAGE_MAGICK_PATH:
+                    return ["-strip"]
+                elif encoder == AVIFENC_PATH:
+                    return  ["--ignore-exif", "--ignore-xmp"]
+                elif encoder == OXIPNG_PATH:
+                    return ["--strip safe"]
+                else:
+                    print(f"[Metadata - getArgs()] Unrecognized encoder ({encoder})")
+            case "Up to Encoder - Preserve":
+                return []   # Encoders preserve metadata by default
+            case _:     # Necessary
+                return []

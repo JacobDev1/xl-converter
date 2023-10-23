@@ -173,12 +173,8 @@ class Worker(QRunnable):
                 self.params["intelligent_effort"] = False
                 args[1] = "-e 9"
             
-            # Strip metadata
-            # Encoder does not seem to respect these args in any way
-            # if not self.params["misc"]["keep_metadata"]:
-            #     args["jxl"].append("-x strip=exif")
-            #     args["jxl"].append("-x strip=xmp")
-            #     args["jxl"].append("-x strip=jumbf")
+            # Handle metadata
+            args.extend(self.m.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
 
             # Set downscaling params
             if self.params["downscaling"]["enabled"]:
@@ -227,10 +223,14 @@ class Worker(QRunnable):
 
         elif self.params["format"] == "PNG":            
             if self.params["downscaling"]["enabled"]:
-                scl_params["args"] = []
-                self.d.decodeAndDownscale(scl_params, self.item_ext)
+                self.d.decodeAndDownscale(scl_params, self.item_ext, self.params["misc"]["keep_metadata"])
             else:
-                self.c.decode(self.item_abs_path, output, self.item_ext, self.n)
+                decoder = self.c.getDecoder(self.item_ext)
+
+                # Handle metadata
+                args = self.m.getArgs(decoder, self.params["misc"]["keep_metadata"])
+
+                self.c.convert(decoder, self.item_abs_path, output, args, self.n)
             
         elif self.params["format"] == "WEBP":
             multithreading = 1 if self.available_threads > 1 else 0
@@ -244,9 +244,8 @@ class Worker(QRunnable):
                 args.pop(0) # Remove quality
                 args.append("-define webp:lossless=true")
 
-            # Strip Metadata
-            if self.params["misc"]["keep_metadata"] == "Up to Encoder - Wipe":
-                args.append("-strip")
+            # Handle Metadata
+            args.extend(self.m.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
@@ -279,12 +278,8 @@ class Worker(QRunnable):
                 f"-j {self.available_threads}"
             ]
 
-            # Strip metadata
-            if self.params["misc"]["keep_metadata"] == "Up to Encoder - Wipe":
-                args.extend([
-                    "--ignore-exif",
-                    "--ignore-xmp",
-                ])
+            # Handle metadata
+            args.extend(self.m.getArgs(AVIFENC_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = AVIFENC_PATH
@@ -296,9 +291,8 @@ class Worker(QRunnable):
         elif self.params["format"] == "JPG":
             args = [f"-quality {self.params['quality']}"]
 
-            # Strip Metadata
-            if self.params["misc"]["keep_metadata"] == "Up to Encoder - Wipe":
-                args.append("-strip")
+            # Handle Metadata
+            args.extend(self.m.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
@@ -339,13 +333,10 @@ class Worker(QRunnable):
                 ]
             }
 
-            # Strip metadata
-            if self.params["misc"]["keep_metadata"] == "Up to Encoder - Wipe":
-                args["png"].append("--strip safe")
-                args["webp"].append("-strip")
-                # args["jxl"].append("-x strip=exif")   # Encoder does not respect those
-                # args["jxl"].append("-x strip=xmp")
-                # args["jxl"].append("-x strip=jumbf")
+            # Handle metadata
+            args["png"].extend(self.m.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
+            args["webp"].extend(self.m.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
+            args["jxl"].extend(self.m.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
 
             # Generate files
             for key in path_pool:
@@ -421,11 +412,8 @@ class Worker(QRunnable):
             if self.params["misc"]["attributes"]:
                 self.m.copyAttributes(self.item[3], final_output)
 
-            match self.params["misc"]["keep_metadata"]:
-                case "ExifTool - Wipe":
-                    self.m.deleteMetadata(final_output)
-                case "ExifTool - Preserve":
-                    self.m.copyMetadata(self.item[3], final_output)
+            # Apply metadata (ExifTool)
+            self.m.runExifTool(self.item[3], final_output, self.params["misc"]["keep_metadata"])
 
             # After Conversion
             if self.params["delete_original"]:

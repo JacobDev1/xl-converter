@@ -2,6 +2,7 @@ import shutil, os
 import TaskStatus
 from Convert import Convert
 from Pathing import Pathing
+from Metadata import Metadata
 from Files import Files
 from Proxy import Proxy
 from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, IMAGE_MAGICK_PATH, ALLOWED_INPUT_IMAGE_MAGICK, CJXL_PATH
@@ -11,6 +12,7 @@ class Downscale():
         self.c = Convert()
         self.path = Pathing()
         self.f = Files()
+        self.metadata = Metadata()
 
     def _downscaleTemplate(self, src, dst, _args, resample="Default", n=None):
         """For intenal use only."""
@@ -143,9 +145,11 @@ class Downscale():
             # Clean-up
             self.f.delete(downscaled_path)
     
-    def decodeAndDownscale(self, params, ext):
+    def decodeAndDownscale(self, params, ext, metadata_mode):
         """Decode to PNG with downscaling support."""
         params["enc"] = self.c.getDecoder(ext)
+        params["args"] = self.metadata.getArgs(params["enc"], metadata_mode)
+
         if params["enc"] == IMAGE_MAGICK_PATH:
             self.downscale(params)
         else:

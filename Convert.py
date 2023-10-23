@@ -40,6 +40,7 @@ class Convert():
                 if ext in ALLOWED_INPUT_IMAGE_MAGICK:
                     return IMAGE_MAGICK_PATH
                 else:
+                    print(f"[Convert - getDecoder()] Decoder for {ext} was not found")
                     return None
 
     def decode(self, src, dst, src_ext, n = None):
