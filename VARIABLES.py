@@ -32,14 +32,14 @@ ALLOWED_RESAMPLING = ("Lanczos", "Point", "Box", "Cubic", "Hermite", "Gaussian",
 
 
 if platform.system() == "Windows":
-    CJXL_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/cjxl.exe")
-    DJXL_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/djxl.exe")
-    IMAGE_MAGICK_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/magick.exe")
-    AVIFENC_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/avifenc.exe")
-    AVIFDEC_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/avifdec.exe")
-    OXIPNG_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/oxipng.exe")
-    EXIFTOOL_PATH = os.path.join(PROGRAM_FOLDER,"bin/win/exiftool.exe")
-    EXIFTOOL_FOLDER_PATH = os.path.join(PROGRAM_FOLDER,"bin/win")
+    CJXL_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "cjxl.exe")
+    DJXL_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "djxl.exe")
+    IMAGE_MAGICK_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "magick.exe")
+    AVIFENC_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "avifenc.exe")
+    AVIFDEC_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "avifdec.exe")
+    OXIPNG_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "oxipng.exe")
+    EXIFTOOL_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "exiftool.exe")
+    EXIFTOOL_FOLDER_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win")
     EXIFTOOL_BIN_NAME = "exiftool.exe"
 
     CONFIG_LOCATION = os.path.normpath(os.path.expanduser("~/AppData/Local/xl-converter"))
