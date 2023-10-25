@@ -409,12 +409,12 @@ class Worker(QRunnable):
 
         # Post conversion routines
         if os.path.isfile(final_output):    # Checking if renaming was successful
+            # Apply metadata (ExifTool)
+            self.metadata.runExifTool(self.item[3], final_output, self.params["misc"]["keep_metadata"])
+
             # Apply attributes
             if self.params["misc"]["attributes"]:
                 self.metadata.copyAttributes(self.item[3], final_output)
-
-            # Apply metadata (ExifTool)
-            self.metadata.runExifTool(self.item[3], final_output, self.params["misc"]["keep_metadata"])
 
             # After Conversion
             if self.params["delete_original"]:
