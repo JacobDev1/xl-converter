@@ -33,7 +33,7 @@ class Worker(QRunnable):
         # Convert modules
         self.c = Convert()
         self.d = Downscale()
-        self.m = Metadata()
+        self.metadata = Metadata()
         self.path = Pathing()
         self.f = Files()
         self.proxy = Proxy()
@@ -174,7 +174,7 @@ class Worker(QRunnable):
                 args[1] = "-e 9"
             
             # Handle metadata
-            args.extend(self.m.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
+            args.extend(self.metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
 
             # Set downscaling params
             if self.params["downscaling"]["enabled"]:
@@ -228,7 +228,7 @@ class Worker(QRunnable):
                 decoder = self.c.getDecoder(self.item_ext)
 
                 # Handle metadata
-                args = self.m.getArgs(decoder, self.params["misc"]["keep_metadata"])
+                args = self.metadata.getArgs(decoder, self.params["misc"]["keep_metadata"])
 
                 self.c.convert(decoder, self.item_abs_path, output, args, self.n)
             
@@ -245,7 +245,7 @@ class Worker(QRunnable):
                 args.append("-define webp:lossless=true")
 
             # Handle Metadata
-            args.extend(self.m.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
+            args.extend(self.metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
@@ -279,7 +279,7 @@ class Worker(QRunnable):
             ]
 
             # Handle metadata
-            args.extend(self.m.getArgs(AVIFENC_PATH, self.params["misc"]["keep_metadata"]))
+            args.extend(self.metadata.getArgs(AVIFENC_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = AVIFENC_PATH
@@ -292,7 +292,7 @@ class Worker(QRunnable):
             args = [f"-quality {self.params['quality']}"]
 
             # Handle Metadata
-            args.extend(self.m.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
+            args.extend(self.metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
@@ -334,9 +334,9 @@ class Worker(QRunnable):
             }
 
             # Handle metadata
-            args["png"].extend(self.m.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
-            args["webp"].extend(self.m.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
-            args["jxl"].extend(self.m.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
+            args["png"].extend(self.metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
+            args["webp"].extend(self.metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
+            args["jxl"].extend(self.metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
 
             # Generate files
             for key in path_pool:
@@ -410,10 +410,10 @@ class Worker(QRunnable):
         if os.path.isfile(final_output):    # Checking if renaming was successful
             # Apply attributes
             if self.params["misc"]["attributes"]:
-                self.m.copyAttributes(self.item[3], final_output)
+                self.metadata.copyAttributes(self.item[3], final_output)
 
             # Apply metadata (ExifTool)
-            self.m.runExifTool(self.item[3], final_output, self.params["misc"]["keep_metadata"])
+            self.metadata.runExifTool(self.item[3], final_output, self.params["misc"]["keep_metadata"])
 
             # After Conversion
             if self.params["delete_original"]:
