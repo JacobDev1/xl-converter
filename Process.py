@@ -14,7 +14,7 @@ class Process():
             subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     
     def runProcessFromPath(self, cmd, path):
-        """Run process from a specific directory."""
+        """Run process from the specified directory."""
         if VERBOSE:
             print(f"Running command from \"{path}\": {cmd}")
             subprocess.run(cmd, shell=True, cwd=path)

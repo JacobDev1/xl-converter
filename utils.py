@@ -81,6 +81,7 @@ def listToFilter(title: str, ext: []):
     return output
 
 def clip(val, _min, _max):
+    """Limit value to a given range."""
     if val > _max:
         return _max
     elif val < _min:

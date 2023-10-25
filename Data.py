@@ -34,11 +34,11 @@ class Data():
     def getItemCount(self):
         return self.item_count
     
-    def getCompletedItemsCount(self):
+    def getCompletedItemCount(self):
         return len(self.completed_items)
     
     def getTimeRemaining(self):
-        completed_len = self.getCompletedItemsCount()
+        completed_len = self.getCompletedItemCount()
         if completed_len <= 5:
             return "Time left: <calculating>"
 
@@ -53,7 +53,7 @@ class Data():
                 conv_dur.append(self.completion_times[i] - self.completion_times[i - 1])
         
         # Extrapolate
-        remaining = (self.getItemCount() - self.getCompletedItemsCount()) * mean(conv_dur)
+        remaining = (self.getItemCount() - self.getCompletedItemCount()) * mean(conv_dur)
         h = int(remaining / 3600)
         m = int((remaining  / 60) % 60)
         s = int(remaining % 60)

@@ -5,6 +5,8 @@ class Pathing():
         pass
 
     def getUniqueFilePath(self, dir, file_name: str, ext: str, add_rnd = False):
+        """Get a unique file name within a directory."""
+
         # Generate Random String
         rnd = ""
         if add_rnd:
@@ -21,9 +23,9 @@ class Pathing():
         # Check for uniqueness
         n = 1
         
-        prev = re.search(r"\([0-9]{1,}\)$", file_name)
-        if prev != None:   # Detect a previously renamed file
-            n = int(prev.group(0)[1:-1])
+        prev = re.search(r"\([0-9]{1,}\)$", file_name)  # Detect a previously renamed file
+        if prev != None:
+            n = int(prev.group(0)[1:-1])    # Parse previously assigned number
 
         while os.path.isfile(path):
             if add_rnd:
@@ -38,10 +40,7 @@ class Pathing():
         return path
     
     def getPathGIF(self, output_dir, item_name, mode):
-        """Single-purpose helper method for decoding GIF to PNG for ImageMagick.
-        
-        Returns either path or "Skip"
-        """
+        """Single-purpose method for decoding GIF to PNG with ImageMagick."""
         new_path = os.path.join(output_dir, f"{item_name}.png")
         match mode:
             case "Rename":
@@ -53,10 +52,9 @@ class Pathing():
                 return new_path
             case "Replace":
                 return new_path
-            case "Skip":
-                return "Skip"
     
     def getExtension(self, _format):
+        """Get file extension for the specified format."""
         match _format :
             case "JPEG XL":
                 return "jxl"

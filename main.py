@@ -96,14 +96,14 @@ class MainWindow(QMainWindow):
         self.data.appendCompletionTime(time.time())
 
         time_left = self.data.getTimeRemaining()
-        progress_l = f"Converted {self.data.getCompletedItemsCount()} out of {self.data.getItemCount()} images"
+        progress_l = f"Converted {self.data.getCompletedItemCount()} out of {self.data.getItemCount()} images"
         progress_l += f"\n{time_left}"
         self.progress_dialog.setLabelText(progress_l)
-        self.progress_dialog.setValue(self.data.getCompletedItemsCount())
+        self.progress_dialog.setValue(self.data.getCompletedItemCount())
 
         # print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
-        if self.data.getCompletedItemsCount() == self.data.getItemCount():
+        if self.data.getCompletedItemCount() == self.data.getItemCount():
             self.setUIEnabled(True)
             if self.progress_dialog != None:
                 self.progress_dialog.close()

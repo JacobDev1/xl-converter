@@ -23,9 +23,10 @@ class Convert():
         if n != None:   self.log(command, n)
     
     def getDecoder(self, ext):
-        """Helper function, use within this class only. Returns encoder for specific format.
+        """Return appropriate decoder path for the specified extension.
         
-            ext - extension
+        Args:
+            ext - file extension
         """
         ext = ext.lower()   # Safeguard in case of a mistake
 
@@ -43,24 +44,8 @@ class Convert():
                     print(f"[Convert - getDecoder()] Decoder for {ext} was not found")
                     return None
 
-    def decode(self, src, dst, src_ext, n = None):
-        """Decode to PNG.
-        
-            src - source path
-            dst - destination path
-            src_ext - source extension
-            n - worker number
-        """
-        encoder_path = self.getDecoder(src_ext)
-
-        if encoder_path == None:
-            self.log(f"Cannot find decoder for {src_ext}", n)
-            return False
-        else:
-            self.convert(encoder_path, src, dst, [], n)
-            return True
-
     def optimize(self, bin_path, src, args = [], n = None):
+        """Run a binary while targeting a single file."""
         command = f'\"{bin_path}\" {" ".join(args) + " " if args else ""}\"{src}\"'
         self.p.runProcess(command)
         if n != None:   self.log(command, n)

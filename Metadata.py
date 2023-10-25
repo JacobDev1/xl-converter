@@ -39,6 +39,7 @@ class Metadata():
         self._runExifTool(f'-all= -overwrite_original \"{dst}\"')
 
     def runExifTool(self, src, dst, mode):
+        """ExifTool wrapper."""
         match mode:
             case "ExifTool - Safe Wipe":
                 self.deleteMetadata(dst)
@@ -47,10 +48,11 @@ class Metadata():
             case "ExifTool - Unsafe Wipe":
                 self.deleteMetadataUnsafe(dst)
     
-    def getArgs(self, encoder, mode):
-        """Get metadata specific arguments for chosen encoder.
+    def getArgs(self, encoder, mode) -> []:
+        """Return metadata arguments for the specified encoder.
 
-        Usage:
+        Example Usage:
+            args = []
             args.extend(getArgs(encoder, mode))
         """
         match mode:
@@ -58,10 +60,9 @@ class Metadata():
                 # No Switch case, because it would require a Class in this situation
                 if encoder == CJXL_PATH:
                     return []
-                    # The following has no effect on the encoder.
+                    # The following is supposed to work, but doesn't. Encoder's source: https://github.com/libjxl/libjxl/blob/6f85806063394d0f32e6a112a37a259214bed4f1/tools/cjxl_main.cc
                     # return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
                     # return ["-x exif=", "-x xmp=", "-x jumbf="]
-                    # The source code for reference https://github.com/libjxl/libjxl/blob/6f85806063394d0f32e6a112a37a259214bed4f1/tools/cjxl_main.cc
                 elif encoder == IMAGE_MAGICK_PATH:
                     return ["-strip"]
                 elif encoder == AVIFENC_PATH:

@@ -97,6 +97,7 @@ class Downscale():
                 return True
     
     def downscaleManualModes(self, params):
+        """Internal wrapper for all regular downscaling modes."""
         # Set arguments
         args = []
         if params['resample'] != "Default" and params['resample'] in ALLOWED_RESAMPLING:

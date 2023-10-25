@@ -109,10 +109,11 @@ class Worker(QRunnable):
 
         # If file exists - for decoding GIF only
         if self.item_ext == "gif" and self.params["format"] == "PNG":
-            output = self.path.getPathGIF(output_dir, self.item_name, self.params["if_file_exists"])
-            if output == "Skip":
+            if self.params["if_file_exists"] == "Skip":
                 self.signals.completed.emit(self.n)
                 return
+
+            output = self.path.getPathGIF(output_dir, self.item_name, self.params["if_file_exists"])
             final_output = output
 
         # Skip If needed

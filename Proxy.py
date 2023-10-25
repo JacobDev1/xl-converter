@@ -42,8 +42,9 @@ class Proxy():
         return True
 
     def generate(self, src, src_ext, dst_dir, file_name, n):
+        """Generate a proxy image."""
         self.proxy_path = self.path.getUniqueFilePath(dst_dir, file_name, "png", True)
-        self.c.decode(src, self.proxy_path, src_ext, n)
+        self.c.convert(self.c.getDecoder(src_ext), src, self.proxy_path, n)
 
         if not os.path.isfile(self.proxy_path):
             return False
