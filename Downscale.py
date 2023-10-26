@@ -5,7 +5,13 @@ from Pathing import Pathing
 from Metadata import Metadata
 from Files import Files
 from Proxy import Proxy
-from VARIABLES import IMAGE_MAGICK_PATH, ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK, IMAGE_MAGICK_PATH, ALLOWED_INPUT_IMAGE_MAGICK, CJXL_PATH
+from VARIABLES import (
+    CJXL_PATH,
+    IMAGE_MAGICK_PATH,
+    ALLOWED_RESAMPLING,
+    ALLOWED_INPUT_IMAGE_MAGICK,
+    DISABLE_LOGS
+)
 
 class Downscale():
     def __init__(self):
@@ -204,6 +210,9 @@ class Downscale():
             self.log(f"[Error] Downscaling mode not recognized ({params['mode']})", params["n"])
     
     def log(self, msg, n = None):
+        if DISABLE_LOGS:
+            return
+
         if n == None:
             print(msg)
         else:

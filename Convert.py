@@ -5,6 +5,7 @@ from VARIABLES import (
     IMAGE_MAGICK_PATH,
     AVIFDEC_PATH,
     DJXL_PATH,
+    DISABLE_LOGS
 )
 import TaskStatus
 from Process import Process
@@ -74,6 +75,9 @@ class Convert():
                     os.rename(paths[i], new_path)
     
     def log(self, msg, n = None):
+        if DISABLE_LOGS:
+            return
+        
         if n == None:
             print(msg)
         else:

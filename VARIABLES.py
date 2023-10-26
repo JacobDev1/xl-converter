@@ -4,6 +4,8 @@ import os, platform
 VERSION = "0.9.2"
 VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
 
+DISABLE_LOGS = True
+
 # Filled below
 CONFIG_LOCATION = ""
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
