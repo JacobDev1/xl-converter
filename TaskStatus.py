@@ -1,6 +1,6 @@
 # Module-wide global variable
-canceled = [False]
-# This needs to stay as a list. Otherwise, Python will create multiple copies
+
+canceled = [False]  # This needs to stay as a list. Otherwise, Python will create multiple copies
 
 def wasCanceled():
     return canceled[0]

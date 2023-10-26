@@ -79,3 +79,12 @@ def listToFilter(title: str, ext: []):
 
     output += f"*.{ext[last_idx]})" # Last one (no space at the end)
     return output
+
+def clip(val, _min, _max):
+    """Limit value to a given range."""
+    if val > _max:
+        return _max
+    elif val < _min:
+        return _min
+    else:
+        return val

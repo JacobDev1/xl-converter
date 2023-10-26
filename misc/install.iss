@@ -3,7 +3,7 @@
 
 #define MyAppName "XL Converter"
 #define MyAppVersion "0.9"
-#define MyAppPublisher "Code Poems"
+#define MyAppPublisher "code poems"
 #define MyAppURL "https://codepoems.eu"
 #define MyAppExeName "xl-converter.exe"
 

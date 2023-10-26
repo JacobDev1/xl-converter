@@ -1,10 +1,18 @@
+from VARIABLES import ICON_SVG
+
 from PySide6.QtWidgets import(
     QMessageBox
 )
 
+from PySide6.QtGui import(
+    QIcon
+)
+
+
 class Notifications():
     def __init__(self):
         self.dlg = QMessageBox()
+        self.dlg.setWindowIcon(QIcon(ICON_SVG))
     
     def notify(self, title, msg):
         self.dlg.setWindowTitle(title)

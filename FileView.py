@@ -11,7 +11,7 @@ from PySide6.QtCore import(
     Qt
 )
 
-from HelperFunctions import stripPathToFilename, scanDir
+from utils import stripPathToFilename, scanDir
 from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL
 
 class FileView(QTreeWidget):

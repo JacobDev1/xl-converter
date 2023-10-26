@@ -1,6 +1,6 @@
 from FileView import *
 from VARIABLES import ALLOWED_INPUT
-from HelperFunctions import stripPathToFilename, scanDir, listToFilter
+from utils import stripPathToFilename, scanDir, listToFilter
 
 from PySide6.QtWidgets import(
     QWidget,
@@ -54,10 +54,11 @@ class InputTab(QWidget):
         self.convert_btn.setText("Convert")
         self.convert_btn.clicked.connect(self.convert.emit)
 
+        # Positions
         input_l.addWidget(add_files_btn,1,0)
         input_l.addWidget(add_folder_btn,1,1)
         input_l.addWidget(clear_list_btn,1,2)
-        input_l.addWidget(self.convert_btn,1,4)
+        input_l.addWidget(self.convert_btn,1,3,1,2)
         input_l.addWidget(self.file_view,0,0,1,0)
 
     def addFiles(self):
