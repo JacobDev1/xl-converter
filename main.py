@@ -2,15 +2,15 @@
 
 import sys, os, time
 
-from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, DEBUG
-from SettingsTab import SettingsTab # Needs to be declared before other tabs
+from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, ICON_SVG
+from SettingsTab import SettingsTab
 from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
 from ModifyTab import ModifyTab
 from Worker import Worker
 from Data import Data
-from HelperFunctions import stripPathToFilename, scanDir, burstThreadPool, setTheme
+from utils import stripPathToFilename, scanDir, burstThreadPool, setTheme, clip
 import TaskStatus
 from Notifications import Notifications
 
@@ -24,19 +24,21 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     QThreadPool,
-    Signal
+    Signal,
 )
 
 from PySide6.QtGui import (
     QDesktopServices,
-    QIcon
+    QIcon,
+    QShortcut,
+    QKeySequence
 )
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowTitle("XL Converter")
-        self.setWindowIcon(QIcon(os.path.join(PROGRAM_FOLDER,"icons/logo.svg")))
+        self.setWindowIcon(QIcon(ICON_SVG))
         self.resize(650,300)
 
         self.tab = QTabWidget(self)
@@ -46,6 +48,7 @@ class MainWindow(QMainWindow):
         self.data = Data()
         self.progress_dialog = None
         self.n = Notifications()
+        self.exceptions = []
 
         self.settings_tab = SettingsTab()   # Needs to be declared before other tabs
         settings = self.settings_tab.getSettings()
@@ -59,7 +62,7 @@ class MainWindow(QMainWindow):
 
         self.modify_tab = ModifyTab(settings)
         self.modify_tab.convert.connect(self.convert)
-        self.settings_tab.signals.all_resampling.connect(self.modify_tab.addResampling)
+        self.settings_tab.signals.custom_resampling.connect(self.modify_tab.toggleCustomResampling)
 
         self.about_tab = AboutTab()
 
@@ -69,6 +72,13 @@ class MainWindow(QMainWindow):
         self.tab.addTab(self.modify_tab, "Modify")
         self.tab.addTab(self.settings_tab, "Settings")
         self.tab.addTab(self.about_tab, "About")
+
+        # Shortcuts
+        select_tab_sc = []
+        for i in range(clip(self.tab.count(), 0, 9)):
+            select_tab_sc.append(QShortcut(QKeySequence(f"Alt+{i+1}"), self))
+            select_tab_sc[i].activated.connect(lambda i=i: self.tab.setCurrentIndex(i))   # Notice the `i=i`
+
         self.setCentralWidget(self.tab)
 
     def start(self, n):
@@ -86,16 +96,22 @@ class MainWindow(QMainWindow):
         self.data.appendCompletionTime(time.time())
 
         time_left = self.data.getTimeRemaining()
-        progress_l = f"Converted {self.data.getCompletedItemsCount()} out of {self.data.getItemCount()} images"
-        progress_l += f"\n{time_left} left" if time_left != "" else ""
+        progress_l = f"Converted {self.data.getCompletedItemCount()} out of {self.data.getItemCount()} images"
+        progress_l += f"\n{time_left}"
         self.progress_dialog.setLabelText(progress_l)
-        self.progress_dialog.setValue(self.data.getCompletedItemsCount())
+        self.progress_dialog.setValue(self.data.getCompletedItemCount())
 
-        if DEBUG:
-            print(f"Active Threads: {self.threadpool.activeThreadCount()}")
+        # print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
-        if self.data.getCompletedItemsCount() == self.data.getItemCount():
+        if self.data.getCompletedItemCount() == self.data.getItemCount():
             self.setUIEnabled(True)
+            if self.progress_dialog != None:
+                self.progress_dialog.close()
+
+            # Exceptions
+            if self.exceptions and not self.settings_tab.getSettings()["settings"]["no_exceptions"]:
+                self.n.notifyDetailed("Exceptions Occured", "Exceptions occured during conversion.", '\n'.join(self.exceptions))
+            
             if self.output_tab.isClearAfterConvChecked():
                 self.input_tab.clearInput()
 
@@ -112,6 +128,7 @@ class MainWindow(QMainWindow):
         # Fill in the parameters
         params = self.output_tab.getSettings()
         params.update(self.modify_tab.getSettings())
+        params.update(self.settings_tab.getSettings())
 
         # Check Permissions
         if params["custom_output_dir"]:
@@ -122,13 +139,19 @@ class MainWindow(QMainWindow):
                     self.n.notify("Access Error", f"Make sure the path is accessible\nand that you have write permissions.\n{err}")
                     return
 
+        # Check If Format Pool Empty
+        if params["format"] == "Smallest Lossless" and self.output_tab.smIsFormatPoolEmpty():
+            self.n.notify("Format Error", "Select at least one format.")
+            return
+
         # Check If Downscaling Allowed
         if params["downscaling"]["enabled"] and params["format"] == "Smallest Lossless":
             self.n.notify("Downscaling Disabled", "Downscaling was set to disabled,\nbecause it's not available for Smallest Lossless")
             params["downscaling"]["enabled"] = False
             self.modify_tab.disableDownscaling()
 
-        # Parse data
+        # Reset and Parse data
+        self.exceptions = []
         self.data.clear()
         self.data.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
         if self.data.getItemCount() == 0:
@@ -160,7 +183,11 @@ class MainWindow(QMainWindow):
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
+            worker.signals.exception.connect(self.exception)
             self.threadpool.start(worker)
+
+    def exception(self, msg):
+        self.exceptions.append(msg)
 
     def setUIEnabled(self, n):
         self.tab.setEnabled(n)

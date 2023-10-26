@@ -52,7 +52,8 @@ class ModifyTab(QWidget):
         self.wm.getWidget("mode_cmb").addItems(("Max File Size", "Percent", "Max Resolution", "Shortest Side", "Longest Side"))
         self.wm.getWidget("mode_cmb").currentIndexChanged.connect(self.onModeChanged)
 
-        self.mode_hb.addWidget(QLabel("Scale to"))
+        self.wm.addWidget("mode_l", QLabel("Scale to"))
+        self.mode_hb.addWidget(self.wm.getWidget("mode_l"))
         self.mode_hb.addWidget(self.wm.getWidget("mode_cmb"))
         self.downscaling_lt.addLayout(self.mode_hb)
 
@@ -142,10 +143,13 @@ class ModifyTab(QWidget):
 
         # Resample
         resample_hb = QHBoxLayout()
-        resample_hb.addWidget(QLabel("Resample"))
-        self.wm.addWidget("resample_cmb", QComboBox())
 
-        self.addResampling(settings["settings"]["all_resampling"])
+        self.wm.addWidget("resample_l", QLabel("Resample"))
+        resample_hb.addWidget(self.wm.getWidget("resample_l"))
+        self.wm.addWidget("resample_cmb", QComboBox())
+        self.wm.getWidget("resample_cmb").addItem(("Default"))
+        self.wm.getWidget("resample_cmb").addItems(ALLOWED_RESAMPLING)
+        self.resample_visible = False
 
         resample_hb.addWidget(self.wm.getWidget("resample_cmb"))
         self.downscaling_lt.addLayout(resample_hb)
@@ -155,13 +159,19 @@ class ModifyTab(QWidget):
         misc_grp_lt = QVBoxLayout()
         misc_grp.setLayout(misc_grp_lt)
 
-        # Metadata
-        # self.metadata_cb = QCheckBox("Preserve Metadata")
-        # misc_grp_lt.addWidget(self.metadata_cb)
-
         # Date / Time
         self.wm.addWidget("date_time_cb", QCheckBox("Preserve Date && Time"))
         misc_grp_lt.addWidget(self.wm.getWidget("date_time_cb"))
+
+        # Metadata
+        metadata_hb = QHBoxLayout()
+        self.wm.addWidget("metadata_l", QLabel("Metadata"))
+        self.wm.addWidget("metadata_cmb", QComboBox())
+        self.wm.getWidget("metadata_cmb").addItems(("Up to Encoder - Wipe", "Up to Encoder - Preserve", "ExifTool - Safe Wipe", "ExifTool - Preserve", "ExifTool - Unsafe Wipe"))
+
+        metadata_hb.addWidget(self.wm.getWidget("metadata_l"))
+        metadata_hb.addWidget(self.wm.getWidget("metadata_cmb"))
+        misc_grp_lt.addLayout(metadata_hb)
 
         # Bottom
         default_btn = QPushButton("Reset to Default")
@@ -181,34 +191,44 @@ class ModifyTab(QWidget):
         misc_grp.setMaximumSize(400, 232)
         downscale_grp.setMaximumSize(400, 232)
 
+        # Alignment
+        metadata_hb.setAlignment(Qt.AlignLeft)
+
         # WidgetManager Tags
         self.wm.addTags("mode_cmb", "downscale_ui")
-        self.wm.addTags("resample_cmb", "downscale_ui")
+        self.wm.addTags("mode_l", "downscale_ui")
 
-        self.wm.addTags("percent_l", "percent")
+        self.wm.addTags("percent_l", "downscale_ui", "percent")
         self.wm.addTags("percent_sb", "downscale_ui", "percent")
         
-        self.wm.addTags("pixel_h_l", "pixel")
+        self.wm.addTags("pixel_h_l", "downscale_ui", "pixel")
         self.wm.addTags("pixel_h_sb", "downscale_ui", "pixel")
-        self.wm.addTags("pixel_w_l", "pixel")
+        self.wm.addTags("pixel_w_l", "downscale_ui", "pixel")
         self.wm.addTags("pixel_w_sb", "downscale_ui", "pixel")
 
-        self.wm.addTags("file_size_l", "file_size")
+        self.wm.addTags("file_size_l", "downscale_ui", "file_size")
         self.wm.addTags("file_size_sb", "downscale_ui", "file_size")
-        self.wm.addTags("file_size_step_l", "file_size")
+        self.wm.addTags("file_size_step_l", "downscale_ui", "file_size")
         self.wm.addTags("file_size_step_sb", "downscale_ui", "file_size")
         
-        self.wm.addTags("shortest_l", "shortest")
+        self.wm.addTags("shortest_l", "downscale_ui", "shortest")
         self.wm.addTags("shortest_sb", "downscale_ui", "shortest")
 
-        self.wm.addTags("longest_l", "longest")
+        self.wm.addTags("longest_l", "downscale_ui", "longest")
         self.wm.addTags("longest_sb", "downscale_ui", "longest")
+
+        self.wm.addTags("resample_l", "downscale_ui", "resample")
+        self.wm.addTags("resample_cmb", "downscale_ui", "resample")
 
         # Set Default
         self.resetToDefault()
         self.toggleDownscaleUI(False)
         self.wm.loadState()
         self.onModeChanged()
+
+        if settings["settings"]["disable_downscaling_startup"]:
+            self.disableDownscaling()
+        self.toggleCustomResampling(settings["settings"]["custom_resampling"])
 
         # Add to main layout
         tab_lt.addWidget(downscale_grp,0,0)
@@ -221,6 +241,8 @@ class ModifyTab(QWidget):
         self.wm.getWidget("downscale_cb").setChecked(False)
 
     def resetToDefault(self):
+        self.disableDownscaling()
+        self.wm.getWidget("metadata_cmb").setCurrentIndex(0)
         self.wm.getWidget("mode_cmb").setCurrentIndex(0)
         self.wm.getWidget("resample_cmb").setCurrentIndex(0)
         self.wm.getWidget("file_size_sb").setValue(300)
@@ -251,18 +273,23 @@ class ModifyTab(QWidget):
                 "file_size": self.wm.getWidget("file_size_sb").value(),
                 "shortest_side": self.wm.getWidget("shortest_sb").value(),
                 "longest_side": self.wm.getWidget("longest_sb").value(),
-                "resample": self.wm.getWidget("resample_cmb").currentText(),
+                "resample": self.getResampling(),
             },
             "misc": {
-                # "metadata": self.metadata_cb.isChecked(),
+                "keep_metadata": self.wm.getWidget("metadata_cmb").currentText(),
                 "attributes": self.wm.getWidget("date_time_cb").isChecked(),
             }
         }
     
-    def addResampling(self, _all=False):
-        self.wm.getWidget("resample_cmb").clear()
-        if _all:
-            self.wm.getWidget("resample_cmb").addItem(("Default"))
-            self.wm.getWidget("resample_cmb").addItems(ALLOWED_RESAMPLING)
+    def getResampling(self):
+        if self.resample_visible:
+            return self.wm.getWidget("resample_cmb").currentText()
         else:
-            self.wm.getWidget("resample_cmb").addItems(("Default", "Lanczos", "Point", "Box"))
+            return "Default"
+
+    def toggleCustomResampling(self, enabled=False):
+        self.resample_visible = enabled
+        if enabled:
+            self.wm.setVisibleByTag("resample", True)
+        else:
+            self.wm.setVisibleByTag("resample", False)

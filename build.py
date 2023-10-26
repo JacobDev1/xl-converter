@@ -34,16 +34,25 @@ def copy(src, dst):
 
     try:
         shutil.copy(src, dst)
-    except OSError:
-        print(f"[Error] Copying failed ({src} -> {dst})")
+    except OSError as err:
+        print(f"[Error] Copying failed ({src} -> {dst}) ({err})")
+
+def copyTree(src, dst):
+    src = os.path.normpath(src)
+    dst = os.path.normpath(dst)
+
+    try:
+        shutil.copytree(src, dst, dirs_exist_ok=True)
+    except OSError as err:
+        print(f"[Error] Copying tree failed ({src} -> {dst}) ({err})")
 
 def makedirs(path):
     path = os.path.normpath(path)
 
     try:
         os.makedirs(path)
-    except OSError:
-        print(f"[Error] Makedirs failed ({path})")
+    except OSError as err:
+        print(f"[Error] Makedirs failed ({path}) ({err})")
 
 if __name__ == '__main__':
     # Clean
@@ -79,13 +88,9 @@ if __name__ == '__main__':
     # Copy Dependencies
     print("[Building] Copying dependencies")
     if platform.system() == "Windows":
-        makedirs(f"dist/{PROGRAM_NAME}/bin/win/")
-        for i in glob.glob("bin/win/*"):
-            copy(i, f"dist/{PROGRAM_NAME}/bin/win/")
+        copyTree("bin/win/", f"dist/{PROGRAM_NAME}/bin/win")
     elif platform.system() == "Linux":
-        makedirs(f"dist/{PROGRAM_NAME}/bin/linux/")
-        for i in glob.glob("bin/linux/*"):
-            copy(i, f"dist/{PROGRAM_NAME}/bin/linux/")
+        copyTree("bin/linux/", f"dist/{PROGRAM_NAME}/bin/linux")
 
     # Append an Installer
     print("[Building] Appending an installer")
