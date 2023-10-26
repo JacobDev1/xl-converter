@@ -1,5 +1,8 @@
 from utils import stripPathToFilename
 from statistics import mean
+import time
+
+EST_TIME_TRAIL_RANGE = 30
 
 class Data():
     def __init__(self):
@@ -8,6 +11,7 @@ class Data():
         self.completed_items = []
 
         self.completion_times = []
+        self.prev_completion_time = None
 
     def __str__(self):
         output = ""
@@ -39,25 +43,15 @@ class Data():
     
     def getTimeRemaining(self):
         completed_len = self.getCompletedItemCount()
-        if completed_len <= 5:
+        if completed_len < 2:
             return "Time left: <calculating>"
 
-        trail_range = 30
-        conv_dur = []   # (float) (seconds) Durations of the last <trail_range> conversions
-
-        if completed_len > trail_range:
-            for i in range(completed_len - trail_range, completed_len):
-                conv_dur.append(self.completion_times[i] - self.completion_times[i - 1])
-        else:
-            for i in range(1, completed_len):
-                conv_dur.append(self.completion_times[i] - self.completion_times[i - 1])
-        
         # Extrapolate
-        remaining = (self.getItemCount() - self.getCompletedItemCount()) * mean(conv_dur)
+        remaining = (self.getItemCount() - self.getCompletedItemCount()) * mean(self.completion_times)
         h = int(remaining / 3600)
         m = int((remaining  / 60) % 60)
         s = int(remaining % 60)
-
+        
         output = ""
         if h:   output += f"{h} h "
         if m:   output += f"{m} m "
@@ -68,7 +62,12 @@ class Data():
         return output
         
     def appendCompletionTime(self, n: float):
-        self.completion_times.append(n)
+        if self.prev_completion_time != None:
+            self.completion_times.append(n - self.prev_completion_time)
+            if EST_TIME_TRAIL_RANGE < len(self.completion_times):
+                self.completion_times.pop(0)
+
+        self.prev_completion_time = n
 
     def appendCompletedItem(self, n):
         self.completed_items.append(n)
