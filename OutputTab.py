@@ -323,7 +323,6 @@ class OutputTab(QWidget):
             self.wm.setVisibleByTag("lossless", False)
         else:
             self.wm.getWidget("reconstruct_jpg_cb").setVisible(False)
-            self.wm.setVisibleByTag("lossless", True)
 
         self.loadFormatState()
         
