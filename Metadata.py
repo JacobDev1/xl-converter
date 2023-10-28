@@ -4,7 +4,10 @@ from VARIABLES import (
     EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME,
     IMAGE_MAGICK_PATH,
     CJXL_PATH,
+    DJXL_PATH,
+    JXLINFO_PATH,
     AVIFENC_PATH,
+    AVIFDEC_PATH,
     OXIPNG_PATH
 )
 
@@ -63,6 +66,8 @@ class Metadata():
                     # The following is supposed to work, but doesn't. Encoder's source: https://github.com/libjxl/libjxl/blob/6f85806063394d0f32e6a112a37a259214bed4f1/tools/cjxl_main.cc
                     # return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
                     # return ["-x exif=", "-x xmp=", "-x jumbf="]
+                elif encoder in (DJXL_PATH, AVIFDEC_PATH):
+                    return []
                 elif encoder == IMAGE_MAGICK_PATH:
                     return ["-strip"]
                 elif encoder == AVIFENC_PATH:
