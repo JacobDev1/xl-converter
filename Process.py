@@ -7,6 +7,7 @@ class Process():
         pass
     
     def runProcess(self, cmd):
+        """Run process."""
         if VERBOSE:
             print(f"Running command: {cmd}")
             subprocess.run(cmd, shell=True)
@@ -20,6 +21,10 @@ class Process():
             subprocess.run(cmd, shell=True, cwd=path)
         else:
             subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=path)
+
+    def runProcessOutput(self, cmd):
+        """Run process then return its output."""
+        return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
 
     def killProcess(self, pid):
         process = psutil.Process(pid)

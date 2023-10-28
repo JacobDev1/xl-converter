@@ -5,6 +5,7 @@ from VARIABLES import (
     IMAGE_MAGICK_PATH,
     AVIFDEC_PATH,
     DJXL_PATH,
+    JXLINFO_PATH,
     DISABLE_LOGS
 )
 import TaskStatus
@@ -24,11 +25,7 @@ class Convert():
         if n != None:   self.log(command, n)
     
     def getDecoder(self, ext):
-        """Return appropriate decoder path for the specified extension.
-        
-        Args:
-            ext - file extension
-        """
+        """Return appropriate decoder path for the specified extension."""
         ext = ext.lower()   # Safeguard in case of a mistake
 
         match ext:
@@ -74,6 +71,15 @@ class Convert():
                 if paths[i] != new_path:
                     os.rename(paths[i], new_path)
     
+    def getExtensionJxl(self, src_path):
+        """Assigns extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
+        out = self.p.runProcessOutput(f"\"{JXLINFO_PATH}\" \"{src_path}\"")
+
+        if b"JPEG bitstream reconstruction data available" in out:
+            return "jpg"
+        else:
+            return "png"
+
     def log(self, msg, n = None):
         if DISABLE_LOGS:
             return

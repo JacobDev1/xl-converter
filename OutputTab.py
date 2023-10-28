@@ -172,6 +172,10 @@ class OutputTab(QWidget):
         # Lossless
         format_grp_lt.addLayout(lossless_hb)
 
+        # JPG Reconstruction
+        self.wm.addWidget("reconstruct_jpg_cb", QCheckBox("Reconstruct JPGs from JPEG XLs"))
+        format_grp_lt.addWidget(self.wm.getWidget("reconstruct_jpg_cb"))
+
         # Buttons
         reset_to_default_btn = QPushButton("Reset to Default")
         self.convert_btn_2 = QPushButton("Convert")
@@ -222,6 +226,7 @@ class OutputTab(QWidget):
             "max_compression": self.wm.getWidget("max_compression_cb").isChecked(),
             "effort": self.wm.getWidget("effort_sb").value(),
             "intelligent_effort": self.wm.getWidget("int_effort_cb").isChecked(),
+            "reconstruct_jpg": self.wm.getWidget("reconstruct_jpg_cb").isChecked(),
             "if_file_exists": self.wm.getWidget("duplicates_cmb").currentText(),
             "custom_output_dir": self.wm.getWidget("choose_output_ct_rb").isChecked(),
             "custom_output_dir_path": self.wm.getWidget("choose_output_ct_le").text(),
@@ -312,6 +317,14 @@ class OutputTab(QWidget):
             self.wm.setVisibleByTag("format_pool", False)
             self.wm.getWidget("max_compression_cb").setVisible(False)
         
+        # Decoding (PNG)
+        if cur_format == "PNG":
+            self.wm.getWidget("reconstruct_jpg_cb").setVisible(True)
+            self.wm.setVisibleByTag("lossless", False)
+        else:
+            self.wm.getWidget("reconstruct_jpg_cb").setVisible(False)
+            self.wm.setVisibleByTag("lossless", True)
+
         self.loadFormatState()
         
     def onQualitySlChanged(self):
@@ -367,6 +380,8 @@ class OutputTab(QWidget):
         # Smallest Lossless
         for i in self.wm.getWidgetsByTag("format_pool"):
             i.setChecked(True)
+        
+        self.wm.getWidget("reconstruct_jpg_cb").setChecked(True)
     
     def setQualityRange(self, _min, _max):
         for i in self.wm.getWidgetsByTag("quality"):
