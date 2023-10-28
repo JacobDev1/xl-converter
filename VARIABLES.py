@@ -50,6 +50,7 @@ if platform.system() == "Windows":
 elif platform.system() == "Linux":
     CJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/cjxl"
     DJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/djxl"
+    JXLINFO_PATH = f"{PROGRAM_FOLDER}/bin/linux/jxlinfo"
     IMAGE_MAGICK_PATH = f"{PROGRAM_FOLDER}/bin/linux/magick"
     AVIFENC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifenc"
     AVIFDEC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifdec"
