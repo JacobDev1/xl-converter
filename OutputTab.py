@@ -173,7 +173,7 @@ class OutputTab(QWidget):
         format_grp_lt.addLayout(lossless_hb)
 
         # JPG Reconstruction
-        self.wm.addWidget("reconstruct_jpg_cb", QCheckBox("Reconstruct JPGs from JPEG XLs"))
+        self.wm.addWidget("reconstruct_jpg_cb", QCheckBox("Reconstruct JPG from JPEG XL"))
         format_grp_lt.addWidget(self.wm.getWidget("reconstruct_jpg_cb"))
 
         # Buttons
