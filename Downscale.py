@@ -10,7 +10,7 @@ from VARIABLES import (
     IMAGE_MAGICK_PATH,
     ALLOWED_RESAMPLING,
     ALLOWED_INPUT_IMAGE_MAGICK,
-    DISABLE_LOGS
+    DOWNSCALE_LOGS
 )
 
 class Downscale():
@@ -210,7 +210,7 @@ class Downscale():
             self.log(f"[Error] Downscaling mode not recognized ({params['mode']})", params["n"])
     
     def log(self, msg, n = None):
-        if DISABLE_LOGS:
+        if not DOWNSCALE_LOGS:
             return
 
         if n == None:

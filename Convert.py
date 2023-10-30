@@ -6,7 +6,7 @@ from VARIABLES import (
     AVIFDEC_PATH,
     DJXL_PATH,
     JXLINFO_PATH,
-    DISABLE_LOGS
+    CONVERT_LOGS
 )
 import TaskStatus
 from Process import Process
@@ -81,7 +81,7 @@ class Convert():
             return "png"
 
     def log(self, msg, n = None):
-        if DISABLE_LOGS:
+        if not CONVERT_LOGS:
             return
         
         if n == None:

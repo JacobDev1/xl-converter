@@ -4,7 +4,13 @@ import os, platform
 VERSION = "0.9.3"
 VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
 
-DISABLE_LOGS = True
+# Logs
+PROCESS_LOGS = False
+PROCESS_LOGS_VERBOSE = False
+THREAD_LOGS = False
+CONVERT_LOGS = False
+DOWNSCALE_LOGS = False
+FILEVIEW_LOGS = False
 
 # Filled below
 CONFIG_LOCATION = ""
