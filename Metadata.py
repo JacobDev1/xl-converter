@@ -60,7 +60,6 @@ class Metadata():
         """
         match mode:
             case "Up to Encoder - Wipe":
-                # No Switch case, because it would require a Class in this situation
                 if encoder == CJXL_PATH:
                     return []
                     # The following is supposed to work, but doesn't. Encoder's source: https://github.com/libjxl/libjxl/blob/6f85806063394d0f32e6a112a37a259214bed4f1/tools/cjxl_main.cc
@@ -78,5 +77,5 @@ class Metadata():
                     print(f"[Metadata - getArgs()] Unrecognized encoder ({encoder})")
             case "Up to Encoder - Preserve":
                 return []   # Encoders preserve metadata by default
-            case _:     # Necessary
+            case _:
                 return []
