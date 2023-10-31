@@ -1,10 +1,16 @@
 from utils import removeDuplicates
 import os, platform
 
-VERSION = "0.9.2"
+VERSION = "0.9.3"
 VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
 
-DISABLE_LOGS = True
+# Logs
+PROCESS_LOGS = False
+PROCESS_LOGS_VERBOSE = False
+THREAD_LOGS = False
+CONVERT_LOGS = False
+DOWNSCALE_LOGS = False
+FILEVIEW_LOGS = False
 
 # Filled below
 CONFIG_LOCATION = ""
@@ -13,6 +19,7 @@ ICON_SVG = os.path.join(PROGRAM_FOLDER, "icons/logo.svg")
 
 CJXL_PATH = "cjxl"
 DJXL_PATH = "djxl"
+JXLINFO_PATH = "jxlinfo"
 IMAGE_MAGICK_PATH = "magick"
 AVIFENC_PATH = "avifenc"
 AVIFDEC_PATH = "avifdec"
@@ -36,6 +43,7 @@ ALLOWED_RESAMPLING = ("Lanczos", "Point", "Box", "Cubic", "Hermite", "Gaussian",
 if platform.system() == "Windows":
     CJXL_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "cjxl.exe")
     DJXL_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "djxl.exe")
+    JXLINFO_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "jxlinfo.exe")
     IMAGE_MAGICK_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "magick.exe")
     AVIFENC_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "avifenc.exe")
     AVIFDEC_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "avifdec.exe")
@@ -48,6 +56,7 @@ if platform.system() == "Windows":
 elif platform.system() == "Linux":
     CJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/cjxl"
     DJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/djxl"
+    JXLINFO_PATH = f"{PROGRAM_FOLDER}/bin/linux/jxlinfo"
     IMAGE_MAGICK_PATH = f"{PROGRAM_FOLDER}/bin/linux/magick"
     AVIFENC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifenc"
     AVIFDEC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifdec"

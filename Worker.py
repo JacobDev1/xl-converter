@@ -104,6 +104,8 @@ class Worker(QRunnable):
 
         # Assign output paths
         output_ext = self.path.getExtension(self.params["format"])
+        if self.params["format"] == "PNG" and self.item_ext == "jxl" and self.params["reconstruct_jpg"]:
+            output_ext = self.c.getExtensionJxl(self.item_abs_path)  # Reverse JPG reconstruction
         output = self.path.getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
         final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # Final destination. File from "output" will be renamed to it after conversion to prevent naming collisions
 
@@ -222,7 +224,7 @@ class Worker(QRunnable):
                 ]
                 self.c.leaveOnlySmallestFile(path_pool, output)
 
-        elif self.params["format"] == "PNG":            
+        elif self.params["format"] == "PNG":
             if self.params["downscaling"]["enabled"]:
                 self.d.decodeAndDownscale(scl_params, self.item_ext, self.params["misc"]["keep_metadata"])
             else:
