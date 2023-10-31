@@ -55,7 +55,7 @@ Always get smaller file size and quite possibly better quality.
 
 #### JPG Reconstruction
 
-Convert your JPGs to JPEG XL completely losslessly.
+Save space by converting JPG to JPEG XL losslessly. You can always reconstruct the original JPG.
 
 ### Technical
 #### Multithreading

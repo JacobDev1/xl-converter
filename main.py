@@ -2,7 +2,12 @@
 
 import sys, os, time
 
-from VARIABLES import PROGRAM_FOLDER, ALLOWED_INPUT, ICON_SVG
+from VARIABLES import (
+    PROGRAM_FOLDER,
+    ALLOWED_INPUT,
+    ICON_SVG,
+    THREAD_LOGS
+)
 from SettingsTab import SettingsTab
 from InputTab import InputTab
 from AboutTab import AboutTab
@@ -82,10 +87,12 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tab)
 
     def start(self, n):
-        print(f"[Worker #{n}] Started")
+        if THREAD_LOGS:
+            print(f"[Worker #{n}] Started")
     
     def complete(self, n):
-        print(f"[Worker #{n}] Finished")
+        if THREAD_LOGS:
+            print(f"[Worker #{n}] Finished")
 
         if self.progress_dialog.wasCanceled():
             if self.tab.isEnabled() == False:
@@ -101,7 +108,8 @@ class MainWindow(QMainWindow):
         self.progress_dialog.setLabelText(progress_l)
         self.progress_dialog.setValue(self.data.getCompletedItemCount())
 
-        # print(f"Active Threads: {self.threadpool.activeThreadCount()}")
+        if THREAD_LOGS:
+            print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
         if self.data.getCompletedItemCount() == self.data.getItemCount():
             self.setUIEnabled(True)
@@ -116,7 +124,9 @@ class MainWindow(QMainWindow):
                 self.input_tab.clearInput()
 
     def cancel(self, n):
-        print(f"[Worker #{n}] Canceled")
+        if THREAD_LOGS:
+            print(f"[Worker #{n}] Canceled")
+    
         if self.tab.isEnabled() == False:
             self.setUIEnabled(True)
 

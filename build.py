@@ -100,6 +100,11 @@ if __name__ == '__main__':
     elif platform.system() == "Windows":
         copy("misc/install.iss","dist")
 
+    # Appending a version file
+    print("[Building] Appending an update file (to place on a server)")
+    copy("misc/version.json", "dist")
+    replaceLine("dist/version.json", "latest_version", f"    \"latest_version\": \"{VERSION}\",\n")
+
     # Embed the Version Number
     print("[Building] Embedding the version number")
     if platform.system() == "Linux":

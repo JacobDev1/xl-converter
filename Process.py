@@ -1,4 +1,5 @@
 import subprocess, psutil
+from VARIABLES import PROCESS_LOGS, PROCESS_LOGS_VERBOSE
 
 VERBOSE = False
 
@@ -7,19 +8,34 @@ class Process():
         pass
     
     def runProcess(self, cmd):
-        if VERBOSE:
+        """Run process."""
+        if PROCESS_LOGS:
             print(f"Running command: {cmd}")
+
+        if PROCESS_LOGS_VERBOSE:
             subprocess.run(cmd, shell=True)
         else:
             subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     
     def runProcessFromPath(self, cmd, path):
         """Run process from the specified directory."""
-        if VERBOSE:
+        if PROCESS_LOGS:
             print(f"Running command from \"{path}\": {cmd}")
+        
+        if PROCESS_LOGS_VERBOSE:
             subprocess.run(cmd, shell=True, cwd=path)
         else:
             subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=path)
+
+    def runProcessOutput(self, cmd):
+        """Run process then return its output."""
+        if PROCESS_LOGS:
+            print(f"Running command with output: {cmd}")
+
+        out = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
+        if PROCESS_LOGS_VERBOSE:
+            print(out)
+        return out
 
     def killProcess(self, pid):
         process = psutil.Process(pid)

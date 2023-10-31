@@ -12,7 +12,7 @@ from PySide6.QtCore import(
 )
 
 from utils import stripPathToFilename, scanDir
-from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL
+from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, FILEVIEW_LOGS
 
 class FileView(QTreeWidget):
     def __init__(self, parent):
@@ -59,14 +59,14 @@ class FileView(QTreeWidget):
                 if i.isLocalFile():
                     path = str(i.toLocalFile())
                     if os.path.isdir(path):
-                        print(f"[FileView] Dropped directory: {path}")
+                        self.log(f"Dropped directory: {path}")
                         files = scanDir(path)
                         for i in files:
                             file_data = stripPathToFilename(i)
                             if file_data[1].lower() in ALLOWED_INPUT:
                                 self.addItem(file_data[0],file_data[1],file_data[3])
                     elif os.path.isfile(path):
-                        print(f"[FileView] Dropped file: {path}")
+                        self.log(f"Dropped file: {path}")
                         file_data = stripPathToFilename(path)
                         if file_data[1].lower() in ALLOWED_INPUT:
                             self.addItem(file_data[0],file_data[1],file_data[3])
@@ -77,7 +77,7 @@ class FileView(QTreeWidget):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
-            print(f"[FileView] Pressed \"Delete\"")
+            self.log("Pressed \"Delete\"")
             selected_indexes = self.selectionModel().selectedIndexes()
             deleted_indexes = []
             if len(selected_indexes) > 0:
@@ -86,7 +86,7 @@ class FileView(QTreeWidget):
                     if row not in deleted_indexes:
                         deleted_indexes.append(row)
                         self.takeTopLevelItem(row)
-                        print(f"[FileView] Removed item from list (index {row})")
+                        self.log(f"Removed item from list (index {row})")
                 
                 # Select next item
                 item_count = self.invisibleRootItem().childCount()
@@ -128,10 +128,14 @@ class FileView(QTreeWidget):
                 unique_items.append(item.text(2))
                 n += 1
             else:
-                print(f"[FileView] Duplicate found: {item.text(2)}")
+                self.log(f"Duplicate found: {item.text(2)}")
                 self.takeTopLevelItem(n)
                 item_count -= 1
     
     def disableSorting(self, disabled):
         self.setting_sorting_disabled = disabled
         self.setSortingEnabled(not disabled)
+    
+    def log(self, msg):
+        if FILEVIEW_LOGS:
+            print(f"[FileView] {msg}")
