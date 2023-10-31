@@ -1,4 +1,4 @@
-from VARIABLES import VERSION, VERSION_FILE_URL
+from VARIABLES import VERSION, VERSION_FILE_URL, ICON_SVG
 import requests
 
 from PySide6.QtWidgets import(
@@ -24,6 +24,7 @@ from PySide6.QtCore import(
 from PySide6.QtGui import(
     QDesktopServices,
     QGuiApplication,
+    QIcon,
 )
 
 class Worker(QObject):
@@ -71,6 +72,7 @@ class UpdateChecker(QDialog):
         self.worker.moveToThread(self.thread)
 
         # Layout
+        self.setWindowIcon(QIcon(ICON_SVG))
         self.setWindowTitle("Update Checker")
         self.setMinimumSize(280, 100)
         self.main_lt = QVBoxLayout()
