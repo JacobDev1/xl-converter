@@ -27,6 +27,15 @@ from PySide6.QtGui import(
     QIcon,
 )
 
+# Debugging
+SIMULATE_SERVER = False
+SIMULATE_SERVER_JSON = {
+    "latest_version": VERSION,
+    "download_url": "https://codepoems.eu/xl-converter",
+    "message": "",
+    "message_url": ""
+}
+
 class Worker(QObject):
     status_code_error = Signal(int)
     misc_error = Signal(str)
@@ -34,28 +43,31 @@ class Worker(QObject):
     finished = Signal()
 
     def run(self):
-        response = None
-        try:
-            response = requests.get(VERSION_FILE_URL)
-        except requests.ConnectionError as err:
-            self.misc_error.emit(f"Couldn't connect to the server.")
-            self.finished.emit()
-            return
+        if SIMULATE_SERVER:
+            self.json.emit(SIMULATE_SERVER_JSON)
+        else:
+            response = None
+            try:
+                response = requests.get(VERSION_FILE_URL)
+            except requests.ConnectionError as err:
+                self.misc_error.emit(f"Couldn't connect to the server.")
+                self.finished.emit()
+                return
 
-        if response.status_code != 200:
-            self.status_code_error.emit(response.status_code)
-            self.finished.emit()
-            return
-        
-        parsed = None
-        try:
-            parsed = response.json()
-        except:
-            self.misc_error.emit("Parsing JSON failed.")
-            self.finished.emit()
-            return
-        
-        self.json.emit(parsed)
+            if response.status_code != 200:
+                self.status_code_error.emit(response.status_code)
+                self.finished.emit()
+                return
+            
+            parsed = None
+            try:
+                parsed = response.json()
+            except:
+                self.misc_error.emit("Parsing JSON failed.")
+                self.finished.emit()
+                return
+            
+            self.json.emit(parsed)
 
 class UpdateChecker(QDialog):
     finished = Signal()
