@@ -3,3 +3,4 @@ pyside6
 pyinstaller
 pyqtdarktheme
 psutil
+requests
