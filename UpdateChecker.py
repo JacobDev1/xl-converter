@@ -27,14 +27,7 @@ from PySide6.QtGui import(
     QIcon,
 )
 
-# Debugging
-SIMULATE_SERVER = False
-SIMULATE_SERVER_JSON = {
-    "latest_version": VERSION,
-    "download_url": "https://codepoems.eu/xl-converter",
-    "message": "",
-    "message_url": ""
-}
+SIMULATE_SERVER = False     # For debugging
 
 class Worker(QObject):
     status_code_error = Signal(int)
@@ -44,7 +37,12 @@ class Worker(QObject):
 
     def run(self):
         if SIMULATE_SERVER:
-            self.json.emit(SIMULATE_SERVER_JSON)
+            self.json.emit({
+                "latest_version": VERSION,
+                "download_url": "https://codepoems.eu/xl-converter",
+                "message": "",
+                "message_url": ""
+            })
         else:
             response = None
             try:
