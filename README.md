@@ -70,18 +70,28 @@ Avoid picky encoders. A proxy is generated when an encoder doesn't support a for
 
 For example, this enables HEIF -> JPEG XL conversion.
 
-## Building
+## Running and Building
 
-The build will be generated to `dist/xl-converter`.
+**Important**: Supports Python up to version `3.11.6`
 
-### Windows
+### Windows 10
 
-Install [Python3](https://www.python.org/downloads/).
+Install Python from [here](https://www.python.org/downloads).
+
+Check `Add Python to environment variables` and `pip` as an option feature.
 
 Install dependencies
 
 ```
+python -m venv env
+env\Scripts\activate.bat
 pip install -r requirements.txt
+```
+
+(optionally) Run.
+
+```
+python main.py
 ```
 
 Build
@@ -90,57 +100,60 @@ Build
 python build.py
 ```
 
-#### Troubleshooting
+Every time you run or build, you need to have the `env` activated.
 
-Your executable may return `No module named 'requests'`
+```bash
+env\Scripts\activate.bat
+```
 
-To solve this, update `requests`.
+### Linux (Ubuntu, Mint etc.)
 
-`pip install requests --upgrade`
-
-Delete the `build` folder.
-
-Try building again.
-
-### Linux
-
-Install `Python3` and `pip`
+Install Python.
 
 ```bash
 sudo apt update
-sudo apt install python3
-sudo apt install pip
+sudo apt install python3 python3-pip python3-venv
 ```
 
-Install Qt dev tools.
+Download and setup repo.
 
 ```bash
-sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-```
-
-Add permissions and enter the folder
-```bash
+git clone https://github.com/JacobDev1/xl-converter.git
 chmod -R 755 xl-converter
 cd xl-converter
 ```
 
-Install dependencies
+Install dependencies.
+
 ```bash
-make setup
+python3 -m venv env
+source env/bin/activate
+pip3 install -r requirements.txt
 ```
 
-Build
+(optionally) Run.
+
+```bash
+make run
+```
+
+If it doesn't run, install Qt dev tools.
+
+```bash
+sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+```
+
+Build.
 
 ```bash
 make build
 ```
 
-## Running
+Every time you `run` or `build`, you need to have the `env` activated.
 
-Install dependencies from the [Building](#building) section and replace the last step.
-
-- Windows - `python main.py`
-- Linux - `make run`
+```bash
+source env/bin/activate
+```
 
 ## Development
 
