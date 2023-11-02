@@ -72,7 +72,7 @@ For example, this enables HEIF -> JPEG XL conversion.
 
 ## Running and Building
 
-**Important**: Supports Python up to version `3.11.6`
+**Important**: Supports Python up to version `3.11.6` (cannot be newer)
 
 ### Windows 10
 
@@ -80,10 +80,15 @@ Install Python from [here](https://www.python.org/downloads).
 
 Check `Add Python to environment variables` and `pip` as an option feature.
 
-Install dependencies
+Create a `venv`.
 
 ```
 python -m venv env
+```
+
+Install dependencies to it.
+
+```
 env\Scripts\activate.bat
 pip install -r requirements.txt
 ```
@@ -100,19 +105,15 @@ Build
 python build.py
 ```
 
-Every time you run or build, you need to have the `env` activated.
-
-```bash
-env\Scripts\activate.bat
-```
-
 ### Linux (Ubuntu, Mint etc.)
+
+#### Prerequisites
 
 Install Python.
 
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip python3-venv
+sudo apt install python3 python3-pip
 ```
 
 Download and setup repo.
@@ -123,15 +124,47 @@ chmod -R 755 xl-converter
 cd xl-converter
 ```
 
-Install dependencies.
+#### Only Running
+
+This is safe for your system, but will not allow you to build the application.
+
+Install `venv`
+
+```bash
+sudo apt install python3-venv
+```
+
+Setup environment
 
 ```bash
 python3 -m venv env
 source env/bin/activate
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-(optionally) Run.
+Run
+
+```bash
+make run
+```
+
+If it doesn't run, install Qt dev tools.
+
+```bash
+sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+```
+
+#### Building
+
+You should build this on a VM.
+
+Install dependencies.
+
+```bash
+pip install -r requirements.txt
+```
+
+Check if it runs.
 
 ```bash
 make run
@@ -149,11 +182,19 @@ Build.
 make build
 ```
 
-Every time you `run` or `build`, you need to have the `env` activated.
+### Troubleshooting Build Issues
 
-```bash
-source env/bin/activate
-```
+#### Qt dev tools on Linux
+
+Installing Qt dev tools is required on Mint. On Ubuntu, it works out of the box.
+
+#### Building on Linux
+
+Do not use `venv` for building on Linux, use a virtual machine instead. `PyInstaller` does not work well with it. On Linux Mint it just fails, on Ubuntu, it partially works.
+
+#### Python Version
+
+`pyqtdarktheme` requires version to be older than `3.12`, that's why we are using `3.11.6`.
 
 ## Development
 
