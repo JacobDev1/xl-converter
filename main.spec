@@ -8,7 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[("icons/logo.svg","icons/"),("LICENSE.txt","."),("LICENSE_3RD_PARTY.txt",".")],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

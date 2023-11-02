@@ -100,17 +100,24 @@ if __name__ == '__main__':
     elif platform.system() == "Windows":
         copy("misc/install.iss","dist")
 
-    # Appending a version file
-    print("[Building] Appending an update file (to place on a server)")
-    copy("misc/version.json", "dist")
-    replaceLine("dist/version.json", "latest_version", f"    \"latest_version\": \"{VERSION}\",\n")
-
-    # Embed the Version Number
-    print("[Building] Embedding the version number")
+    # Embed Version into an Installer
+    print("[Building] Embedding version into an installer script")
     if platform.system() == "Linux":
         replaceLine(f"{PROGRAM_FOLDER}/dist/install.sh", "VERSION=", f"VERSION=\"{VERSION}\"\n")
     elif platform.system() == "Windows":
         replaceLine(f"{PROGRAM_FOLDER}/dist/install.iss", "#define MyAppVersion", f"#define MyAppVersion \"{VERSION}\"\n")
+
+    # Append misc.
+    print("[Building] Appending an icon and license files")
+    copy("LICENSE.txt", "dist/xl-converter")
+    copy("LICENSE_3RD_PARTY.txt", "dist/xl-converter")
+    makedirs("dist/xl-converter/icons")
+    copy("icons/logo.svg", "dist/xl-converter/icons")
+    
+    # Append an update file
+    print("[Building] Appending an update file (to place on a server)")
+    copy("misc/version.json", "dist")
+    replaceLine("dist/version.json", "latest_version", f"    \"latest_version\": \"{VERSION}\",\n")
 
     # Log Last Build Platform
     with open("build/last_built_on","w") as last_built_on:
