@@ -119,6 +119,14 @@ if __name__ == '__main__':
     copy("misc/version.json", "dist")
     replaceLine("dist/version.json", "latest_version", f"    \"latest_version\": \"{VERSION}\",\n")
 
+    # Append redistributables
+    if platform.system() == "Windows":
+        print("[Building] Appending redistributables")
+        makedirs(f"dist/{PROGRAM_NAME}/redistributables")
+        copy("misc/VC_redist.x64.exe", f"dist/{PROGRAM_NAME}/redistributables")
+        # Needed for ImageMagick
+        # https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+
     # Log Last Build Platform
     with open("build/last_built_on","w") as last_built_on:
         last_built_on.write(f"{platform.system()}_{platform.architecture()}")

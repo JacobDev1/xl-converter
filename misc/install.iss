@@ -26,6 +26,7 @@ LicenseFile="..\LICENSE.txt"
 OutputBaseFilename=xl-converter
 SetupIconFile="..\icons\logo.ico"
 Compression=lzma2
+;Compression=none
 SolidCompression=yes
 WizardStyle=modern
 
@@ -44,5 +45,5 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
+Filename: "{app}\redistributables\VC_redist.x64.exe"; Parameters: "/install /passive /norestart"; Description: "Install Required Redistributables"; Flags: postinstall
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
