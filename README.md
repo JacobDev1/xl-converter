@@ -78,7 +78,13 @@ For example, this enables HEIF -> JPEG XL conversion.
 
 Install Python from [here](https://www.python.org/downloads).
 
-Check `Add Python to environment variables` and `pip` as an option feature.
+Check `Add Python to environment variables` and `pip` as option features.
+
+Download and enter the repo.
+
+```
+cd xl-converter
+```
 
 Create a `venv`.
 
