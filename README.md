@@ -99,7 +99,7 @@ env\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-(optionally) Run.
+Install redistributables from `misc/VC_redist.x64.exe` then run
 
 ```
 python main.py
