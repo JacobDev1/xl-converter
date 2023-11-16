@@ -1,4 +1,4 @@
-.PHONY: run clean build
+.PHONY: run clean build build-appimage build-7z
 
 clean:
 	rm -rf dist
@@ -11,3 +11,9 @@ run:
 
 build:
 	python3 build.py
+
+build-appimage:
+	python3 build.py -a
+
+build-7z:
+	python3 build.py -p

@@ -1,10 +1,9 @@
 # Multiplatform makefile replacement
 # I got fed up with trying to get `make` to work on Windows
 
-import platform, os, shutil, glob, subprocess, PyInstaller.__main__
+import platform, os, shutil, glob, subprocess, PyInstaller.__main__, argparse, shutil, stat
 from VARIABLES import VERSION
 
-PROGRAM_NAME = "xl-converter"
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
 
 def replaceLine(path, pattern, new_line):
@@ -54,12 +53,29 @@ def makedirs(path):
     except OSError as err:
         print(f"[Error] Makedirs failed ({path}) ({err})")
 
+def addExecPerm(path):
+    st = os.stat(path)
+    os.chmod(path, st.st_mode | stat.S_IEXEC)
+
 if __name__ == '__main__':
+    # Arguments
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("--app-image", "-a", help="package as an AppImage (Linux only)", action="store_true")
+    parser.add_argument("--pack", "-p", help="package as 7z (Linux only)", action="store_true")
+    args = parser.parse_args()
+
+    args_app_image = args.app_image
+    args_pack = False if args_app_image else args.pack
+
+    if platform.system() != "Linux":
+        args_app_image = False
+        args_pack = False
+
     # Clean
     if os.path.isdir("dist"):
         shutil.rmtree("dist")
 
-    # Important - cleans up the build folder If moved to a different platform
+    # Prevents conflict If you're using the same folder for compiling on different platforms
     if os.path.isdir("build"):  
         if os.path.isfile("build/last_built_on"):
             last_built_on = open("build/last_built_on","r")
@@ -88,31 +104,36 @@ if __name__ == '__main__':
     # Copy Dependencies
     print("[Building] Copying dependencies")
     if platform.system() == "Windows":
-        copyTree("bin/win/", f"dist/{PROGRAM_NAME}/_internal/bin/win")
+        copyTree("bin/win/", f"dist/xl-converter/_internal/bin/win")
     elif platform.system() == "Linux":
-        copyTree("bin/linux/", f"dist/{PROGRAM_NAME}/_internal/bin/linux")
+        copyTree("bin/linux/", f"dist/xl-converter/_internal/bin/linux")
 
     # Append an Installer
-    print("[Building] Appending an installer")
     if platform.system() == "Linux":
-        copy("misc/install.sh","dist")
+        if args_app_image == False:
+            print("[Building] Appending an installer script")
+            copy("misc/install.sh","dist")
+        print("[Building] Appending a desktop entry")
         copy("misc/xl-converter.desktop","dist")
     elif platform.system() == "Windows":
+        print("[Building] Appending an installer script")
         copy("misc/install.iss","dist")
 
     # Embed Version into an Installer
-    print("[Building] Embedding version into an installer script")
-    if platform.system() == "Linux":
+    if platform.system() == "Linux" and args_app_image == False:
+        print("[Building] Embedding version into an installer script")
         replaceLine(f"{PROGRAM_FOLDER}/dist/install.sh", "VERSION=", f"VERSION=\"{VERSION}\"\n")
     elif platform.system() == "Windows":
+        print("[Building] Embedding version into an installer script")
         replaceLine(f"{PROGRAM_FOLDER}/dist/install.iss", "#define MyAppVersion", f"#define MyAppVersion \"{VERSION}\"\n")
+        replaceLine(f"{PROGRAM_FOLDER}/dist/install.iss", "OutputBaseFilename=", f"OutputBaseFilename=xl-converter-win-{VERSION}-x86_64\n")
 
     # Append misc.
     print("[Building] Appending an icon and license files")
-    copy("LICENSE.txt", "dist/xl-converter")
-    copy("LICENSE_3RD_PARTY.txt", "dist/xl-converter")
-    makedirs(f"dist/{PROGRAM_NAME}/_internal/icons")
-    copy("icons/logo.svg", f"dist/{PROGRAM_NAME}/_internal/icons/logo.svg")
+    copy("LICENSE.txt", "dist/xl-converter/_internal")
+    copy("LICENSE_3RD_PARTY.txt", "dist/xl-converter/_internal")
+    makedirs(f"dist/xl-converter/_internal/icons")
+    copy("icons/logo.svg", f"dist/xl-converter/_internal/icons/logo.svg")
 
     # Append an update file
     print("[Building] Appending an update file (to place on a server)")
@@ -122,13 +143,40 @@ if __name__ == '__main__':
     # Append redistributables
     if platform.system() == "Windows":
         print("[Building] Appending redistributables")
-        makedirs(f"dist/{PROGRAM_NAME}/redistributables")
-        copy("misc/VC_redist.x64.exe", f"dist/{PROGRAM_NAME}/redistributables")
+        makedirs(f"dist/xl-converter/redistributables")
+        copy("misc/VC_redist.x64.exe", f"dist/xl-converter/redistributables")
         # Needed for ImageMagick
         # https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+
+    # Build AppImage
+    if args_app_image:
+        replaceLine("dist/xl-converter.desktop", "Icon=", "Icon=/logo\n")
+        replaceLine("dist/xl-converter.desktop", "Path=", "")
+        replaceLine("dist/xl-converter.desktop", "Exec=", "Exec=AppRun\n")
+        
+        makedirs(f"dist/AppDir/usr/bin")
+        copy("icons/logo.svg", "dist/AppDir")
+        shutil.move("dist/xl-converter.desktop", "dist/AppDir/xl-converter.desktop")
+        with open("dist/AppDir/AppRun", "w") as f:
+            f.write("#!/bin/bash\n\n")
+            f.write("exec ${APPDIR}/usr/bin/xl-converter/xl-converter $@")
+        addExecPerm(f"dist/AppDir/AppRun")
+
+        shutil.move(f"dist/xl-converter", "dist/AppDir/usr/bin")
+        subprocess.run(("misc/appimagetool", "dist/AppDir", f"dist/xl-converter-{VERSION}-x86_64.AppImage"))
+
+    # Pack 7z
+    if args_pack:
+        dst_direct = f"xl-converter-linux-{VERSION}-x86_64"
+        dst = f"dist/{dst_direct}"
+        makedirs(dst)
+        shutil.move("dist/xl-converter", dst)
+        shutil.move("dist/install.sh", dst)
+        shutil.move("dist/xl-converter.desktop", dst)
+        subprocess.run(("7z", "a", f"{dst_direct}.7z", dst_direct), cwd="dist")
 
     # Log Last Build Platform
     with open("build/last_built_on","w") as last_built_on:
         last_built_on.write(f"{platform.system()}_{platform.architecture()}")
 
-    print(f"[Building] Finished (built to dist/{PROGRAM_NAME})")
+    print(f"[Building] Finished (built to dist/xl-converter)")

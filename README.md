@@ -188,6 +188,10 @@ Build.
 make build
 ```
 
+Extra building modes:
+- `make build-appimage` - creates an AppImage
+- `make build-7z` - creates a compressed file
+
 ### Troubleshooting Build Issues
 
 #### Qt dev tools on Linux
