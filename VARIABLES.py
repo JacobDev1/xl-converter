@@ -17,6 +17,9 @@ CONFIG_LOCATION = ""
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
 ICON_SVG = os.path.join(PROGRAM_FOLDER, "icons/logo.svg")
 
+LICENSE_PATH = os.path.join(PROGRAM_FOLDER, "LICENSE.txt")
+LICENSE_3RD_PARTY_PATH = os.path.join(PROGRAM_FOLDER, "LICENSE_3RD_PARTY.txt")
+
 CJXL_PATH = "cjxl"
 DJXL_PATH = "djxl"
 JXLINFO_PATH = "jxlinfo"

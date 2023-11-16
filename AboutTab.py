@@ -1,4 +1,4 @@
-from VARIABLES import VERSION
+from VARIABLES import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
 from UpdateChecker import UpdateChecker
 
 from PySide6.QtWidgets import(
@@ -28,7 +28,7 @@ class AboutTab(QWidget):
         self.update_checker = UpdateChecker()
 
         # Label
-        credits_l = QLabel(f"<h3>XL Converter</h3>Version {VERSION}<br>contact@codepoems.eu<br>XL Converter is licensed under <a href=\"LICENSE.txt\">GPL v3</a><br><a href=\"LICENSE_3RD_PARTY.txt\">3rd party licenses")
+        credits_l = QLabel(f"<h3>XL Converter</h3>Version {VERSION}<br>contact@codepoems.eu<br>XL Converter is licensed under <a href=\"{QUrl.fromLocalFile(LICENSE_PATH).toString()}\">GPL v3</a><br><a href=\"{QUrl.fromLocalFile(LICENSE_3RD_PARTY_PATH).toString()}\">3rd party licenses")
         credits_l.setAlignment(Qt.AlignCenter)
         credits_l.setOpenExternalLinks(True)
 
