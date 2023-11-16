@@ -189,8 +189,8 @@ make build
 ```
 
 Extra building modes:
-- `make build-appimage` - creates an AppImage
-- `make build-7z` - creates a compressed file
+- `make build-7z` - creates a compressed package
+- `make build-appimage` - creates an AppImage (experimental, some distros won't launch it or display an icon)
 
 ### Troubleshooting Build Issues
 
