@@ -72,11 +72,11 @@ For example, this enables HEIF -> JPEG XL conversion.
 
 ## Running and Building
 
-**Important**: Supports Python up to version `3.11.6` (cannot be newer)
+Runs on Python `3.11.6`.
 
 ### Windows 10
 
-Install Python from [here](https://www.python.org/downloads).
+Install Python `3.11.6` from [here](https://www.python.org/downloads).
 
 Check `Add Python to environment variables` and `pip` as option features.
 
@@ -111,7 +111,7 @@ Build
 python build.py
 ```
 
-### Linux (Ubuntu, Mint etc.)
+### Linux (Ubuntu-based)
 
 #### Prerequisites
 
@@ -189,22 +189,14 @@ make build
 ```
 
 Extra building modes:
-- `make build-7z` - creates a compressed package
-- `make build-appimage` - creates an AppImage (experimental, some distros won't launch it or display an icon)
+- `make build-7z` - creates an archive
+- `make build-appimage` - creates an AppImage
 
 ### Troubleshooting Build Issues
 
-#### Qt dev tools on Linux
-
-Installing Qt dev tools is required on Mint. On Ubuntu, it works out of the box.
-
 #### Building on Linux
 
-Do not use `venv` for building on Linux, use a virtual machine instead. `PyInstaller` does not work well with it. On Linux Mint it just fails, on Ubuntu, it partially works.
-
-#### Python Version
-
-`pyqtdarktheme` requires version to be older than `3.12`, that's why we are using `3.11.6`.
+Do not use `venv` for building on Linux, use a virtual machine instead. `PyInstaller` does not work well with `venv` (on Linux specifically).
 
 ## Development
 
