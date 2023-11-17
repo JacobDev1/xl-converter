@@ -1,4 +1,4 @@
-import subprocess, psutil
+import subprocess
 from VARIABLES import PROCESS_LOGS, PROCESS_LOGS_VERBOSE
 
 VERBOSE = False
@@ -36,29 +36,3 @@ class Process():
         if PROCESS_LOGS_VERBOSE:
             print(out)
         return out
-
-    def killProcess(self, pid):
-        process = psutil.Process(pid)
-        for proc in process.children(recursive=True):
-            proc.kill()
-        process.kill()
-    
-    def runProcessTimeout(self, cmd, timeout):
-        """Run process, but kill it If it runs for too long.
-        
-        Args:
-            cmd - command
-            timeout - in seconds
-        """
-        proc = None
-        if VERBOSE:
-            print(f"Running command: {cmd}")
-            proc = subprocess.Popen(cmd, shell=True)
-        else:
-            proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        
-        try:
-            proc.wait(timeout=timeout)
-        except:
-            self.killProcess(proc.pid)
-            self.log(f"Process timed out ({command})", n)
