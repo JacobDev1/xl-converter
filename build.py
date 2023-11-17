@@ -57,25 +57,38 @@ def addExecPerm(path):
     st = os.stat(path)
     os.chmod(path, st.st_mode | stat.S_IEXEC)
 
+def rmTree(path):
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+
+class Args():
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+        self.args = {}
+        self.parser.add_argument("--app-image", "-a", help="package as an AppImage (Linux only)", action="store_true")
+        self.parser.add_argument("--pack", "-p", help="package to a 7z (Linux only)", action="store_true")
+
+        self._parseArgs()
+
+    def _parseArgs(self):
+        args = self.parser.parse_args()
+        self.args["app_image"] = args.app_image
+        self.args["pack"] = False if args.app_image else args.pack
+
+        if platform.system() != "Linux":
+            args_app_image = False
+            args_pack = False
+    
+    def getArg(self, arg):
+        return self.args[arg]
+
 if __name__ == '__main__':
-    # Arguments
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("--app-image", "-a", help="package as an AppImage (Linux only)", action="store_true")
-    parser.add_argument("--pack", "-p", help="package as 7z (Linux only)", action="store_true")
-    args = parser.parse_args()
+    args = Args()
 
-    args_app_image = args.app_image
-    args_pack = False if args_app_image else args.pack
+    # Clean-up
+    rmTree("dist")
 
-    if platform.system() != "Linux":
-        args_app_image = False
-        args_pack = False
-
-    # Clean
-    if os.path.isdir("dist"):
-        shutil.rmtree("dist")
-
-    # Prevents conflict If you're using the same folder for compiling on different platforms
+    # Prevent conflicts If the same folder is used on multiple systems
     if os.path.isdir("build"):  
         if os.path.isfile("build/last_built_on"):
             last_built_on = open("build/last_built_on","r")
@@ -84,15 +97,14 @@ if __name__ == '__main__':
             
             if last_platform == f"{platform.system()}_{platform.architecture()}":
                 print("[Building] Platform matches with previously compiled cache")
-                pass
             else:
                 print("[Building] Platform mismatch - deleting the cache")
-                shutil.rmtree("build") 
-                shutil.rmtree("__pycache__")
+                rmTree("build") 
+                rmTree("__pycache__")
         else:
             print("[Building] \"last_built_on\" not found - deleting the cache")
-            shutil.rmtree("build")
-            shutil.rmtree("__pycache__")
+            rmTree("build")
+            rmTree("__pycache__")
 
     # Preapre Directory and Build Binaries
     print("[Building] Generating binaries")
@@ -110,7 +122,7 @@ if __name__ == '__main__':
 
     # Append an Installer
     if platform.system() == "Linux":
-        if args_app_image == False:
+        if args.getArg("app_image") == False:
             print("[Building] Appending an installer script")
             copy("misc/install.sh","dist")
         print("[Building] Appending a desktop entry")
@@ -120,13 +132,13 @@ if __name__ == '__main__':
         copy("misc/install.iss","dist")
 
     # Embed Version into an Installer
-    if platform.system() == "Linux" and args_app_image == False:
+    if platform.system() == "Linux" and args.getArg("app_image") == False:
         print("[Building] Embedding version into an installer script")
-        replaceLine(f"{PROGRAM_FOLDER}/dist/install.sh", "VERSION=", f"VERSION=\"{VERSION}\"\n")
+        replaceLine(f"dist/install.sh", "VERSION=", f"VERSION=\"{VERSION}\"\n")
     elif platform.system() == "Windows":
         print("[Building] Embedding version into an installer script")
-        replaceLine(f"{PROGRAM_FOLDER}/dist/install.iss", "#define MyAppVersion", f"#define MyAppVersion \"{VERSION}\"\n")
-        replaceLine(f"{PROGRAM_FOLDER}/dist/install.iss", "OutputBaseFilename=", f"OutputBaseFilename=xl-converter-win-{VERSION}-x86_64\n")
+        replaceLine(f"dist/install.iss", "#define MyAppVersion", f"#define MyAppVersion \"{VERSION}\"\n")
+        replaceLine(f"dist/install.iss", "OutputBaseFilename=", f"OutputBaseFilename=xl-converter-win-{VERSION}-x86_64\n")
 
     # Append misc.
     print("[Building] Appending an icon and license files")
@@ -149,7 +161,7 @@ if __name__ == '__main__':
         # https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
 
     # Build AppImage
-    if args_app_image:
+    if args.getArg("app_image"):
         replaceLine("dist/xl-converter.desktop", "Icon=", "Icon=/logo\n")
         replaceLine("dist/xl-converter.desktop", "Path=", "")
         replaceLine("dist/xl-converter.desktop", "Exec=", "Exec=AppRun\n")
@@ -166,7 +178,7 @@ if __name__ == '__main__':
         subprocess.run(("misc/appimagetool", "dist/AppDir", f"dist/xl-converter-{VERSION}-x86_64.AppImage"))
 
     # Pack 7z
-    if args_pack:
+    if args.getArg("pack"):
         dst_direct = f"xl-converter-linux-{VERSION}-x86_64"
         dst = f"dist/{dst_direct}"
         makedirs(dst)
