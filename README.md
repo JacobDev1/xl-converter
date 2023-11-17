@@ -189,8 +189,8 @@ make build
 ```
 
 Extra building modes:
-- `make build-7z` - creates an archive
-- `make build-appimage` - creates an AppImage
+- `make build-7z` - package to a 7z file
+- `make build-appimage` - package as an AppImage
 
 ### Troubleshooting Build Issues
 
