@@ -102,11 +102,8 @@ class FileView(QTreeWidget):
         #     pass
     
     def selectAllItems(self):
-        item_count = self.invisibleRootItem().childCount()
-
-        if item_count > 0:
-            for i in range(item_count):
-                item = self.invisibleRootItem().child(i).setSelected(True)
+        if self.invisibleRootItem().childCount() > 0:
+            self.selectAll()
 
     def resizeToContent(self):
         for i in range(0, self.columnCount() - 1):  # The last one resizes with the window
