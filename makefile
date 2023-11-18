@@ -1,4 +1,4 @@
-.PHONY: run clean build build-appimage build-7z
+.PHONY: run clean build build-appimage build-7z src-full src-min
 
 clean:
 	rm -rf dist
@@ -17,3 +17,11 @@ build-appimage:
 
 build-7z:
 	python3 build.py -p
+
+src-full: clean
+	mkdir -p dist/src
+	rsync -a --exclude-from=.gitignore ./ dist/src/
+
+src-min: clean
+	mkdir -p dist/src
+	rsync -a --exclude-from=.gitignore --exclude=.git --exclude=screenshots --exclude=.github ./ dist/src/
