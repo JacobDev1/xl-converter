@@ -78,29 +78,45 @@ class FileView(QTreeWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
             self.log("Pressed \"Delete\"")
+            root = self.invisibleRootItem()
+
             selected_indexes = self.selectionModel().selectedIndexes()
-            deleted_indexes = []
-            if len(selected_indexes) > 0:
-                for i in range(len(selected_indexes)-1,0,-1): # Descending, not to shift order
-                    row = selected_indexes[i].row()
-                    if row not in deleted_indexes:
-                        deleted_indexes.append(row)
-                        self.takeTopLevelItem(row)
-                        self.log(f"Removed item from list (index {row})")
-                
-                # Select next item
-                item_count = self.invisibleRootItem().childCount()
-                if item_count > 0:
-                    row = selected_indexes[0].row()
-                    next_row = row
-                    if row == item_count:
-                        next_row -= 1
-                    self.invisibleRootItem().child(next_row).setSelected(True)
-        # elif event.key() == Qt.Key_Up:
-        #     pass
-        # elif event.key() == Qt.Key_Down:
-        #     pass
-    
+            if not selected_indexes:
+                return
+
+            selected_rows = sorted(set(idx.row() for idx in selected_indexes), reverse=True)
+            next_row = -1
+
+            if root.childCount() == 0:
+                next_row = -1
+            elif selected_rows[0] == root.childCount() - 1:
+                next_row = max(0, selected_rows[0] - 1)
+            else:
+                next_row = selected_rows[0]
+
+            for row in selected_rows:
+                self.takeTopLevelItem(row)
+                self.log(f"Removed item from list (index {row})")
+            
+            if root.childCount() > 0:
+                self.setCurrentIndex(self.model().index(next_row, 0))
+        elif event.key() == Qt.Key_Up:
+            cur_idx = self.currentIndex()
+
+            if cur_idx.isValid() and cur_idx.row() > 0:
+                new_idx = self.model().index(cur_idx.row() - 1, cur_idx.column())
+                self.setCurrentIndex(new_idx)
+        elif event.key() == Qt.Key_Down:
+            cur_idx = self.currentIndex()
+
+            if cur_idx.isValid() and cur_idx.row() < self.model().rowCount(cur_idx.parent()) - 1:
+                new_idx = self.model().index(cur_idx.row() + 1, cur_idx.column())
+                self.setCurrentIndex(new_idx)
+        elif event.key() == Qt.Key_Home:
+            self.setCurrentIndex(self.model().index(0, 0))
+        elif event.key() == Qt.Key_End:
+            self.setCurrentIndex(self.model().index(self.model().rowCount() - 1, 0))
+
     def selectAllItems(self):
         if self.invisibleRootItem().childCount() > 0:
             self.selectAll()
