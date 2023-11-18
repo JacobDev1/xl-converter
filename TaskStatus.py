@@ -1,12 +1,13 @@
 # Module-wide global variable
 
-canceled = [False]  # This needs to stay as a list. Otherwise, Python will create multiple copies
+class Status:
+    canceled = False
 
 def wasCanceled():
-    return canceled[0]
+    return Status.canceled
 
 def cancel():
-    canceled[0] = True
+    Status.canceled = True
 
 def reset():
-    canceled[0] = False
+    Status.canceled = False
