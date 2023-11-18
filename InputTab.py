@@ -65,16 +65,20 @@ class InputTab(QWidget):
         dlg = QFileDialog()
         dlg.setWindowTitle("Add Images")
         dlg.setFileMode(QFileDialog.ExistingFiles)
-        dlg.setNameFilter(listToFilter("Images", ALLOWED_INPUT))
+        dlg.setNameFilter(listToFilter("Images", ALLOWED_INPUT))    # Filter is used instead of ALLOWED_INPUT
+
+        items = []
+        if dlg.exec():
+            file_paths = dlg.selectedFiles()
+            for file in file_paths:
+                file_data = stripPathToFilename(file)
+                items.append((file_data[0], file_data[1], file_data[3]))
+        
+        if not items:
+            return
 
         self.file_view.beforeAddingItems()
-        filepaths = ""
-        if dlg.exec():
-            filepaths = dlg.selectedFiles()
-            for i in filepaths:
-                file_data = stripPathToFilename(i)
-                self.file_view.addItem(file_data[0], file_data[1], file_data[3])
-        
+        self.file_view.addItems(items)
         self.file_view.finishAddingItems()
 
     def addFolder(self):
@@ -82,14 +86,16 @@ class InputTab(QWidget):
         dlg.setWindowTitle("Add Images from a Folder")
         dlg.setFileMode(QFileDialog.Directory)
         
-        self.file_view.beforeAddingItems()
+        items = []
         if dlg.exec():
             files = scanDir(dlg.selectedFiles()[0])
-            for i in files:
-                file_data = stripPathToFilename(i)
-                if file_data[1] in ALLOWED_INPUT:
-                    self.file_view.addItem(file_data[0], file_data[1], file_data[3])
+            for file in files:
+                file_data = stripPathToFilename(file)
+                if file_data[1].lower() in ALLOWED_INPUT:
+                    items.append((file_data[0], file_data[1], file_data[3]))
         
+        self.file_view.beforeAddingItems()
+        self.file_view.addItems(items)
         self.file_view.finishAddingItems()
 
     def clearInput(self):

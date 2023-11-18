@@ -4,7 +4,7 @@ from PySide6.QtWidgets import(
     QTreeWidget,
     QAbstractItemView,
     QTreeWidgetItem,
-    QWidget
+    QWidget,
 )
 
 from PySide6.QtCore import(
@@ -27,9 +27,9 @@ class FileView(QTreeWidget):
         self.setDragDropMode(QAbstractItemView.InternalMove)    # Required for dropEvent to fire
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.sortByColumn(1, Qt.SortOrder.DescendingOrder)
-    
-    def addItem(self, *fields):
-        self.addTopLevelItem(QTreeWidgetItem(None, (fields[0],fields[1],fields[2])))
+
+    def addItems(self, items):
+        self.invisibleRootItem().addChildren([QTreeWidgetItem(None, (fields[0],fields[1],fields[2])) for fields in items])
 
     def beforeAddingItems(self):
         """Run before adding items"""
@@ -48,12 +48,14 @@ class FileView(QTreeWidget):
             event.accept()
         else:
             event.ignore()
-    
+
     def dropEvent(self, event):
         if event.mimeData().hasUrls():
             event.accept()
-            
+
             self.beforeAddingItems()
+
+            items = []
             for i in event.mimeData().urls():
                 path = ""
                 if i.isLocalFile():
@@ -61,18 +63,20 @@ class FileView(QTreeWidget):
                     if os.path.isdir(path):
                         self.log(f"Dropped directory: {path}")
                         files = scanDir(path)
-                        for i in files:
-                            file_data = stripPathToFilename(i)
+                        for file in files:
+                            file_data = stripPathToFilename(file)
                             if file_data[1].lower() in ALLOWED_INPUT:
-                                self.addItem(file_data[0],file_data[1],file_data[3])
+                                items.append((file_data[0], file_data[1], file_data[3]))
                     elif os.path.isfile(path):
                         self.log(f"Dropped file: {path}")
                         file_data = stripPathToFilename(path)
                         if file_data[1].lower() in ALLOWED_INPUT:
-                            self.addItem(file_data[0],file_data[1],file_data[3])
+                            items.append((file_data[0], file_data[1], file_data[3]))
                 else:
                     path = str(i.toString())
-            
+
+            self.addItems(items)
+            # QApplication.processEvents()
             self.finishAddingItems()
 
     def keyPressEvent(self, event):
