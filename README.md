@@ -7,7 +7,7 @@ Powerful image converter for the latest formats with support for multithreading,
 
 Available for both Windows and Linux.
 
-![](screenshots/screenshot_0.png)
+![](misc/screenshots/screenshot_0.png)
 
 ## Support This Project
 
@@ -33,7 +33,7 @@ More details in the [documentation](https://xl-converter-docs.codepoems.eu/suppo
 
 Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you.
 
-![](screenshots/screenshot_4.png)
+![](misc/screenshots/screenshot_1.png)
 
 Manual downscaling methods are also available.
 
@@ -45,7 +45,7 @@ Picks the smallest out of two.
 
 Utilize multiple formats to get the smallest file size.
 
-![](screenshots/screenshot_6.png)
+![](misc/screenshots/screenshot_2.png)
 
 ### JPEG XL
 
