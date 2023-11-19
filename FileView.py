@@ -52,9 +52,7 @@ class FileView(QTreeWidget):
     def dropEvent(self, event):
         if event.mimeData().hasUrls():
             event.accept()
-
-            self.startAddingItems()
-
+            
             items = []
             for i in event.mimeData().urls():
                 path = ""
@@ -75,47 +73,18 @@ class FileView(QTreeWidget):
                 else:
                     path = str(i.toString())
 
+            self.startAddingItems()
             self.addItems(items)
             # QApplication.processEvents()
             self.finishAddingItems()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
-            self.log("Pressed \"Delete\"")
-            root = self.invisibleRootItem()
-
-            selected_indexes = self.selectionModel().selectedIndexes()
-            if not selected_indexes:
-                return
-
-            selected_rows = sorted(set(idx.row() for idx in selected_indexes), reverse=True)
-            next_row = -1
-
-            if root.childCount() == 0:
-                next_row = -1
-            elif selected_rows[0] == root.childCount() - 1:
-                next_row = max(0, selected_rows[0] - 1)
-            else:
-                next_row = selected_rows[0]
-
-            for row in selected_rows:
-                self.takeTopLevelItem(row)
-                self.log(f"Removed item from list (index {row})")
-            
-            if root.childCount() > 0:
-                self.setCurrentIndex(self.model().index(next_row, 0))
+            self.deleteSelected()
         elif event.key() == Qt.Key_Up:
-            cur_idx = self.currentIndex()
-
-            if cur_idx.isValid() and cur_idx.row() > 0:
-                new_idx = self.model().index(cur_idx.row() - 1, cur_idx.column())
-                self.setCurrentIndex(new_idx)
+            self.moveSelectionUp()
         elif event.key() == Qt.Key_Down:
-            cur_idx = self.currentIndex()
-
-            if cur_idx.isValid() and cur_idx.row() < self.model().rowCount(cur_idx.parent()) - 1:
-                new_idx = self.model().index(cur_idx.row() + 1, cur_idx.column())
-                self.setCurrentIndex(new_idx)
+            self.moveSelectionDown()
         elif event.key() == Qt.Key_Home:
             self.setCurrentIndex(self.model().index(0, 0))
         elif event.key() == Qt.Key_End:
@@ -124,6 +93,44 @@ class FileView(QTreeWidget):
     def selectAllItems(self):
         if self.invisibleRootItem().childCount() > 0:
             self.selectAll()
+    
+    def moveSelectionDown(self):
+        cur_idx = self.currentIndex()
+
+        if cur_idx.isValid() and cur_idx.row() < self.model().rowCount(cur_idx.parent()) - 1:
+            new_idx = self.model().index(cur_idx.row() + 1, cur_idx.column())
+            self.setCurrentIndex(new_idx)
+    
+    def moveSelectionUp(self):
+        cur_idx = self.currentIndex()
+
+        if cur_idx.isValid() and cur_idx.row() > 0:
+            new_idx = self.model().index(cur_idx.row() - 1, cur_idx.column())
+            self.setCurrentIndex(new_idx)
+
+    def deleteSelected(self):
+        root = self.invisibleRootItem()
+
+        selected_indexes = self.selectionModel().selectedIndexes()
+        if not selected_indexes:
+            return
+
+        selected_rows = sorted(set(idx.row() for idx in selected_indexes), reverse=True)
+        next_row = -1
+
+        if root.childCount() == 0:
+            next_row = -1
+        elif selected_rows[0] == root.childCount() - 1:
+            next_row = max(0, selected_rows[0] - 1)
+        else:
+            next_row = selected_rows[0]
+
+        for row in selected_rows:
+            self.takeTopLevelItem(row)
+            self.log(f"Removed item from list (index {row})")
+        
+        if root.childCount() > 0:
+            self.setCurrentIndex(self.model().index(next_row, 0))
 
     def resizeToContent(self):
         for i in range(0, self.columnCount() - 1):  # The last one resizes with the window
@@ -132,22 +139,19 @@ class FileView(QTreeWidget):
     def scrollToLastItem(self):
         item_count = self.invisibleRootItem().childCount()
         self.scrollToItem(self.invisibleRootItem().child(item_count - 1))
-
+    
     def removeDuplicates(self):
-        """Remove all duplicates. Avoid calling often."""
-        item_count = self.invisibleRootItem().childCount()
-        unique_items = []
-        
-        n = 0
-        while n < item_count:
+        unique_items = set()
+
+        for n in range(self.invisibleRootItem().childCount() - 1, -1, -1):
             item = self.invisibleRootItem().child(n)
-            if item.text(2) not in unique_items:
-                unique_items.append(item.text(2))
-                n += 1
-            else:
-                self.log(f"Duplicate found: {item.text(2)}")
+            path = item.text(2)
+            if path in unique_items:
+                self.log(f"Duplicate found: {path}")
                 self.takeTopLevelItem(n)
-                item_count -= 1
+            else:
+                unique_items.add(path)
+
     
     def disableSorting(self, disabled):
         self.setting_sorting_disabled = disabled
