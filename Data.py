@@ -58,8 +58,11 @@ class Data():
         if h:   output += f"{h} h "
         if m:   output += f"{m} m "
         if s:   output += f"{s} s"
-        if output == "": output += "0 s"
-        output += " left"
+
+        if output == "":
+            output = "Almost done..."
+        else:
+            output += " left"
 
         return output
         
