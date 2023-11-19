@@ -102,12 +102,10 @@ class SettingsTab(QWidget):
 
     def getSettings(self):
         return {
-            "settings": {
-                "custom_resampling": self.wm.getWidget("custom_resampling_cb").isChecked(),
-                "sorting_disabled": self.wm.getWidget("no_sorting_cb").isChecked(),
-                "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked(),
-                "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked(),
-            }
+            "custom_resampling": self.wm.getWidget("custom_resampling_cb").isChecked(),
+            "sorting_disabled": self.wm.getWidget("no_sorting_cb").isChecked(),
+            "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked(),
+            "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked(),
         }
     
     def resetToDefault(self):

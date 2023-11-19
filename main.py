@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
                 self.progress_dialog.close()
 
             # Exceptions
-            if self.exceptions and not self.settings_tab.getSettings()["settings"]["no_exceptions"]:
+            if self.exceptions and not self.settings_tab.getSettings()["no_exceptions"]:
                 self.n.notifyDetailed("Exceptions Occured", "Exceptions occured during conversion.", '\n'.join(self.exceptions))
             
             if self.output_tab.isClearAfterConvChecked():
@@ -138,7 +138,7 @@ class MainWindow(QMainWindow):
         # Fill in the parameters
         params = self.output_tab.getSettings()
         params.update(self.modify_tab.getSettings())
-        params.update(self.settings_tab.getSettings())
+        # params["settings"] = self.settings_tab.getSettings()
 
         # Check Permissions
         if params["custom_output_dir"]:

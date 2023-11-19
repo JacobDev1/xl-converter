@@ -26,7 +26,7 @@ class InputTab(QWidget):
         self.file_view = FileView(self)
 
         # Apply Settings
-        self.disableSorting(settings["settings"]["sorting_disabled"])
+        self.disableSorting(settings["sorting_disabled"])
 
         # Shortcuts
         self.select_all_sc = QShortcut(QKeySequence('Ctrl+A'), self)
