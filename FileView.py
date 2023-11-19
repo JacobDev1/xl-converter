@@ -31,7 +31,7 @@ class FileView(QTreeWidget):
     def addItems(self, items):
         self.invisibleRootItem().addChildren([QTreeWidgetItem(None, (fields[0],fields[1],fields[2])) for fields in items])
 
-    def beforeAddingItems(self):
+    def startAddingItems(self):
         """Run before adding items"""
         self.setSortingEnabled(False)
 
@@ -53,7 +53,7 @@ class FileView(QTreeWidget):
         if event.mimeData().hasUrls():
             event.accept()
 
-            self.beforeAddingItems()
+            self.startAddingItems()
 
             items = []
             for i in event.mimeData().urls():

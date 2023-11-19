@@ -77,7 +77,7 @@ class InputTab(QWidget):
         if not items:
             return
 
-        self.file_view.beforeAddingItems()
+        self.file_view.startAddingItems()
         self.file_view.addItems(items)
         self.file_view.finishAddingItems()
 
@@ -94,7 +94,7 @@ class InputTab(QWidget):
                 if file_data[1].lower() in ALLOWED_INPUT:
                     items.append((file_data[0], file_data[1], file_data[3]))
         
-        self.file_view.beforeAddingItems()
+        self.file_view.startAddingItems()
         self.file_view.addItems(items)
         self.file_view.finishAddingItems()
 
