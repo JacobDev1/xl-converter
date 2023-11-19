@@ -72,8 +72,6 @@ For example, this enables HEIF -> JPEG XL conversion.
 
 ## Running and Building
 
-Runs on Python `3.11.6`.
-
 ### Windows 10
 
 Install Python `3.11.6` from [here](https://www.python.org/downloads).
@@ -82,47 +80,47 @@ Check `Add Python to environment variables` and `pip` as option features.
 
 Download and enter the repo.
 
-```
+```cmd
 cd xl-converter
 ```
 
-Create a `venv`.
+Setup `venv`.
 
-```
+```cmd
 python -m venv env
-```
-
-Install dependencies to it.
-
-```
 env\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-Install redistributables from `misc/VC_redist.x64.exe` then run
+Install redistributables
 
+```cmd
+misc\VC_redist.x64.exe
 ```
+
+Run the application
+
+```cmd
 python main.py
 ```
 
-Build
+You can also build it.
 
-```
+```cmd
 python build.py
 ```
 
 ### Linux (Ubuntu-based)
 
-#### Prerequisites
-
-Install Python.
+Install packages.
 
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip
+sudo apt install python3 python3-pip python3-venv git
+sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 ```
 
-Download and setup repo.
+Clone and setup repo.
 
 ```bash
 git clone https://github.com/JacobDev1/xl-converter.git
@@ -130,73 +128,63 @@ chmod -R 755 xl-converter
 cd xl-converter
 ```
 
-#### Only Running
-
-This is safe for your system, but will not allow you to build the application.
-
-Install `venv`
-
-```bash
-sudo apt install python3-venv
-```
-
-Setup environment
+Create and activate a virtual environment.
 
 ```bash
 python3 -m venv env
 source env/bin/activate
-pip install -r requirements.txt
 ```
 
-Run
-
-```bash
-make run
-```
-
-If it doesn't run, install Qt dev tools.
-
-```bash
-sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-```
-
-#### Building
-
-You should build this on a VM.
-
-Install dependencies.
+Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Check if it runs.
+Now, you can run it.
 
 ```bash
 make run
 ```
 
-If it doesn't run, install Qt dev tools.
-
-```bash
-sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-```
-
-Build.
+...or build it.
 
 ```bash
 make build
 ```
 
 Extra building modes:
-- `make build-7z` - package to a 7z file
+- `make build-7z` - package to a 7z file (with an installer)
 - `make build-appimage` - package as an AppImage
 
 ### Troubleshooting Build Issues
 
 #### Building on Linux
 
-Do not use `venv` for building on Linux, use a virtual machine instead. `PyInstaller` does not work well with `venv` (on Linux specifically).
+The build may not be generated successfully, because `PyInstaller` sometimes clashes with virtual environments on Linux.
+
+If the executable doesn't launch do the following.
+
+Deactivate the virtual environment.
+
+```bash
+deactivate
+```
+
+Install packages globally.
+```bash
+pip install -r requirements.txt
+```
+
+Try again.
+
+```bash
+make build
+```
+
+#### Python Version on Linux
+
+The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
 
 ## Development
 
