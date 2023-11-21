@@ -4,6 +4,6 @@ Name=XL Converter
 Comment=Powerful image converter for the latest formats
 Path=/opt/xl-converter
 Exec=/opt/xl-converter/xl-converter
-Icon=/opt/xl-converter/icons/logo.svg
+Icon=/opt/xl-converter/_internal/icons/logo.svg
 Terminal=false
 Categories=Graphics
