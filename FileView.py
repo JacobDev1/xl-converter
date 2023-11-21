@@ -28,6 +28,7 @@ class FileView(QTreeWidget):
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.sortByColumn(1, Qt.SortOrder.DescendingOrder)
 
+    # Adding items
     def addItems(self, items):
         self.invisibleRootItem().addChildren([QTreeWidgetItem(None, (fields[0],fields[1],fields[2])) for fields in items])
 
@@ -43,6 +44,23 @@ class FileView(QTreeWidget):
         if not self.setting_sorting_disabled:
             self.setSortingEnabled(True)
 
+    def removeDuplicates(self):
+        unique_items = set()
+
+        for n in range(self.invisibleRootItem().childCount() - 1, -1, -1):
+            item = self.invisibleRootItem().child(n)
+            path = item.text(2)
+            if path in unique_items:
+                self.log(f"Duplicate found: {path}")
+                self.takeTopLevelItem(n)
+            else:
+                unique_items.add(path)
+
+    def disableSorting(self, disabled):
+        self.setting_sorting_disabled = disabled
+        self.setSortingEnabled(not disabled)
+
+    # Events
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.accept()
@@ -86,10 +104,11 @@ class FileView(QTreeWidget):
         elif event.key() == Qt.Key_Down:
             self.moveSelectionDown()
         elif event.key() == Qt.Key_Home:
-            self.setCurrentIndex(self.model().index(0, 0))
+            self.moveSelectionToTop()
         elif event.key() == Qt.Key_End:
-            self.setCurrentIndex(self.model().index(self.model().rowCount() - 1, 0))
+            self.moveSelectionToBottom()
 
+    # Navigation
     def selectAllItems(self):
         if self.invisibleRootItem().childCount() > 0:
             self.selectAll()
@@ -108,6 +127,21 @@ class FileView(QTreeWidget):
             new_idx = self.model().index(cur_idx.row() - 1, cur_idx.column())
             self.setCurrentIndex(new_idx)
 
+    def moveSelectionToTop(self):
+        self.setCurrentIndex(self.model().index(0, 0))
+    
+    def moveSelectionToBottom(self):
+        self.setCurrentIndex(self.model().index(self.model().rowCount() - 1, 0))
+
+    def scrollToLastItem(self):
+        item_count = self.invisibleRootItem().childCount()
+        self.scrollToItem(self.invisibleRootItem().child(item_count - 1))
+    
+    def resizeToContent(self):
+        for i in range(0, self.columnCount() - 1):  # The last one resizes with the window
+            self.resizeColumnToContents(i)
+    
+    # Operations
     def deleteSelected(self):
         root = self.invisibleRootItem()
 
@@ -131,32 +165,8 @@ class FileView(QTreeWidget):
         
         if root.childCount() > 0:
             self.setCurrentIndex(self.model().index(next_row, 0))
-
-    def resizeToContent(self):
-        for i in range(0, self.columnCount() - 1):  # The last one resizes with the window
-            self.resizeColumnToContents(i)
     
-    def scrollToLastItem(self):
-        item_count = self.invisibleRootItem().childCount()
-        self.scrollToItem(self.invisibleRootItem().child(item_count - 1))
-    
-    def removeDuplicates(self):
-        unique_items = set()
-
-        for n in range(self.invisibleRootItem().childCount() - 1, -1, -1):
-            item = self.invisibleRootItem().child(n)
-            path = item.text(2)
-            if path in unique_items:
-                self.log(f"Duplicate found: {path}")
-                self.takeTopLevelItem(n)
-            else:
-                unique_items.add(path)
-
-    
-    def disableSorting(self, disabled):
-        self.setting_sorting_disabled = disabled
-        self.setSortingEnabled(not disabled)
-    
+    # Misc.
     def log(self, msg):
         if FILEVIEW_LOGS:
             print(f"[FileView] {msg}")
