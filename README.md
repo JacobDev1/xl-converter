@@ -154,8 +154,8 @@ make build
 ```
 
 Extra building modes:
-- `make build-7z` - package to a 7z file (with an installer)
-- `make build-appimage` - package as an AppImage
+- `make build-7z` - package to a 7z file (with an installer) (requires `p7zip-full`)
+- `make build-appimage` - package as an AppImage (requires `fuse`)
 
 ### Troubleshooting Build Issues
 
