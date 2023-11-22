@@ -48,16 +48,21 @@ class Data():
 
         # Extrapolate
         remaining = (self.getItemCount() - self.getCompletedItemCount()) * mean(self.completion_times)
-        h = int(remaining / 3600)
-        m = int((remaining  / 60) % 60)
+        d = int(remaining / (3600 * 24))
+        h = int((remaining // 3600) % 24)
+        m = int((remaining // 60) % 60)
         s = int(remaining % 60)
         
         output = ""
+        if d:   output += f"{d} d "
         if h:   output += f"{h} h "
         if m:   output += f"{m} m "
         if s:   output += f"{s} s"
-        if output == "": output += "0 s"
-        output += " left"
+
+        if output == "":
+            output = "Almost done..."
+        else:
+            output += " left"
 
         return output
         

@@ -133,8 +133,8 @@ class WidgetManager():
         }
 
         try:
-            with open(self.save_state_path, "w") as file:
-                file.writelines(json.dumps(output, indent=4))
+            with open(self.save_state_path, "w") as f:
+                f.writelines(json.dumps(output, indent=4))
         except OSError as err:
             self.log(err)
 
@@ -145,9 +145,9 @@ class WidgetManager():
         # Load JSON        
         loaded = ""
         try:
-            with open(self.save_state_path, "r") as file:
+            with open(self.save_state_path, "r") as f:
                 try:
-                    loaded = json.load(file)
+                    loaded = json.load(f)
                 except:
                     self.log("Parsing JSON failed. Cannot load saved states.")
                     return

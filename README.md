@@ -7,7 +7,7 @@ Powerful image converter for the latest formats with support for multithreading,
 
 Available for both Windows and Linux.
 
-![](screenshots/screenshot_0.png)
+![](misc/screenshots/screenshot_0.png)
 
 ## Support This Project
 
@@ -33,7 +33,7 @@ More details in the [documentation](https://xl-converter-docs.codepoems.eu/suppo
 
 Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you.
 
-![](screenshots/screenshot_4.png)
+![](misc/screenshots/screenshot_1.png)
 
 Manual downscaling methods are also available.
 
@@ -45,7 +45,7 @@ Picks the smallest out of two.
 
 Utilize multiple formats to get the smallest file size.
 
-![](screenshots/screenshot_6.png)
+![](misc/screenshots/screenshot_2.png)
 
 ### JPEG XL
 
@@ -70,77 +70,121 @@ Avoid picky encoders. A proxy is generated when an encoder doesn't support a for
 
 For example, this enables HEIF -> JPEG XL conversion.
 
-## Building
+## Running and Building
 
-The build will be generated to `dist/xl-converter`.
+### Windows 10
 
-### Windows
+Install Python `3.11.6` from [here](https://www.python.org/downloads).
 
-Install [Python3](https://www.python.org/downloads/).
+Check `Add Python to environment variables` and `pip` as option features.
 
-Install dependencies
+Download and enter the repo.
 
+```cmd
+cd xl-converter
 ```
+
+Setup `venv`.
+
+```cmd
+python -m venv env
+env\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-Build
+Install redistributables
 
+```cmd
+misc\VC_redist.x64.exe
 ```
+
+Run the application
+
+```cmd
+python main.py
+```
+
+You can also build it.
+
+```cmd
 python build.py
 ```
 
-#### Troubleshooting
+### Linux (Ubuntu-based)
 
-Your executable may return `No module named 'requests'`
-
-To solve this, update `requests`.
-
-`pip install requests --upgrade`
-
-Delete the `build` folder.
-
-Try building again.
-
-### Linux
-
-Install `Python3` and `pip`
+Install packages.
 
 ```bash
 sudo apt update
-sudo apt install python3
-sudo apt install pip
+sudo apt install python3 python3-pip python3-venv git
+sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 ```
 
-Install Qt dev tools.
+Clone and setup repo.
 
 ```bash
-sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
-```
-
-Add permissions and enter the folder
-```bash
+git clone https://github.com/JacobDev1/xl-converter.git
 chmod -R 755 xl-converter
 cd xl-converter
 ```
 
-Install dependencies
+Create and activate a virtual environment.
+
 ```bash
-make setup
+python3 -m venv env
+source env/bin/activate
 ```
 
-Build
+Install Python dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Now, you can run it.
+
+```bash
+make run
+```
+
+...or build it.
 
 ```bash
 make build
 ```
 
-## Running
+Extra building modes:
+- `make build-7z` - package to a 7z file (with an installer) (requires `p7zip-full`)
+- `make build-appimage` - package as an AppImage (requires `fuse`)
 
-Install dependencies from the [Building](#building) section and replace the last step.
+### Troubleshooting Build Issues
 
-- Windows - `python main.py`
-- Linux - `make run`
+#### Building on Linux
+
+The build may not be generated successfully, because `PyInstaller` sometimes clashes with virtual environments on Linux.
+
+If the executable doesn't launch do the following.
+
+Deactivate the virtual environment.
+
+```bash
+deactivate
+```
+
+Install packages globally.
+```bash
+pip install -r requirements.txt
+```
+
+Try again.
+
+```bash
+make build
+```
+
+#### Python Version on Linux
+
+The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
 
 ## Development
 
