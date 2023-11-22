@@ -2,15 +2,15 @@
 
 VERSION="0.9"
 
-echo "XL Converter $VERSION installer"
-echo "----------------------------"
+echo -e "\nXL Converter $VERSION Installer\n"
+
 if [ -d "/opt/xl-converter" ]; then
-    echo "1. Update (/opt/xl-converter)"
+    echo "[1] Update (/opt/xl-converter)"
 else
-    echo "1. Install (/opt/xl-converter)"
+    echo "[1] Install (/opt/xl-converter)"
 fi
 
-echo "2. Exit"
+echo -e "[2] Exit\n"
 
 read -p "Choice: " choice
 
@@ -25,10 +25,10 @@ if [ $choice == "1" ]; then
     fi
 
     # Install
+    echo "Installing..."
     sudo cp -r xl-converter /opt/xl-converter
     sudo chmod -R +x /opt/xl-converter
     
-    echo "Desktop shortcut added"
-    echo "Start menu entry added"
     echo "Installation completed"
+    echo "You will find shortcuts in the start menu and the desktop"
 fi

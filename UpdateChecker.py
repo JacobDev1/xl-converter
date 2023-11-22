@@ -1,4 +1,4 @@
-from VARIABLES import VERSION, VERSION_FILE_URL
+from VARIABLES import VERSION, VERSION_FILE_URL, ICON_SVG
 import requests
 
 from PySide6.QtWidgets import(
@@ -24,7 +24,10 @@ from PySide6.QtCore import(
 from PySide6.QtGui import(
     QDesktopServices,
     QGuiApplication,
+    QIcon,
 )
+
+SIMULATE_SERVER = False     # For debugging
 
 class Worker(QObject):
     status_code_error = Signal(int)
@@ -33,28 +36,36 @@ class Worker(QObject):
     finished = Signal()
 
     def run(self):
-        response = None
-        try:
-            response = requests.get(VERSION_FILE_URL)
-        except requests.ConnectionError as err:
-            self.misc_error.emit(f"Couldn't connect to the server.")
-            self.finished.emit()
-            return
+        if SIMULATE_SERVER:
+            self.json.emit({
+                "latest_version": VERSION,
+                "download_url": "https://codepoems.eu/xl-converter",
+                "message": "",
+                "message_url": ""
+            })
+        else:
+            response = None
+            try:
+                response = requests.get(VERSION_FILE_URL)
+            except requests.ConnectionError as err:
+                self.misc_error.emit(f"Couldn't connect to the server.")
+                self.finished.emit()
+                return
 
-        if response.status_code != 200:
-            self.status_code_error.emit(response.status_code)
-            self.finished.emit()
-            return
-        
-        parsed = None
-        try:
-            parsed = response.json()
-        except:
-            self.misc_error.emit("Parsing JSON failed.")
-            self.finished.emit()
-            return
-        
-        self.json.emit(parsed)
+            if response.status_code != 200:
+                self.status_code_error.emit(response.status_code)
+                self.finished.emit()
+                return
+            
+            parsed = None
+            try:
+                parsed = response.json()
+            except:
+                self.misc_error.emit("Parsing JSON failed.")
+                self.finished.emit()
+                return
+            
+            self.json.emit(parsed)
 
 class UpdateChecker(QDialog):
     finished = Signal()
@@ -71,6 +82,7 @@ class UpdateChecker(QDialog):
         self.worker.moveToThread(self.thread)
 
         # Layout
+        self.setWindowIcon(QIcon(ICON_SVG))
         self.setWindowTitle("Update Checker")
         self.setMinimumSize(280, 100)
         self.main_lt = QVBoxLayout()

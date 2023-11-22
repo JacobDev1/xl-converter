@@ -4,3 +4,4 @@ dist
 .vscode
 __pycache__
 tmp.py
+env

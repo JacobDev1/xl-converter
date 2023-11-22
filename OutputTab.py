@@ -279,15 +279,16 @@ class OutputTab(QWidget):
         self.wm.setEnabledByTag("lossless", cur_format in ("JPEG XL", "WEBP"))
 
         # Effort
+        self.wm.getWidget("int_effort_cb").setEnabled(cur_format == "JPEG XL")
+        self.wm.getWidget("effort_sb").setEnabled(cur_format in ("JPEG XL", "AVIF"))
+        self.wm.getWidget("effort_l").setEnabled(cur_format in ("JPEG XL", "AVIF"))
+
         if cur_format == "JPEG XL":
-            self.wm.getWidget("int_effort_cb").setEnabled(True)
-            self.onEffortToggled()  # This is important to avoid issues with the effort_sb enabled state
-        else:
-            self.wm.getWidget("int_effort_cb").setEnabled(False)
-            self.wm.getWidget("effort_sb").setEnabled(cur_format == "AVIF")
+            self.onEffortToggled()  # It's very important to update int_effort_cb to avoid issues when changing formats while it's enabled
 
         # Disable Quality Slider
         self.wm.setEnabledByTag("quality", not cur_format in ("PNG", "Smallest Lossless"))
+        self.wm.getWidget("quality_l").setEnabled(not cur_format in ("PNG", "Smallest Lossless"))
 
         # Quality Slider Range and label
         if cur_format == "AVIF":

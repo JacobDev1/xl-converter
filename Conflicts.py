@@ -39,11 +39,11 @@ class Conflicts():
                     self.jxl_int_e = False
                     self.jxl_e = 7
                     self.jxl_conflict = True
-                    self.conflict_msg.append(f"Intelligent effort is not available for {_format} - defaulted to 7")
+                    self.conflict_msg.append(f"Intelligent effort is not compatible with {ext.upper()} - defaulted to 7")
                 elif effort > 7:   # Efforts bigger than 7 cause the encoder to crash while processing APNGs
                     self.jxl_e = 7
                     self.jxl_conflict = True
-                    self.conflict_msg.append(f"Effort bigger than 7 is not available for {_format} - defaulted to 7")
+                    self.conflict_msg.append(f"Efforts bigger than 7 are not compatible with {ext.upper()} - defaulted to 7")
 
             # Downscaling
             if downscaling:

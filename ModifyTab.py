@@ -226,9 +226,9 @@ class ModifyTab(QWidget):
         self.wm.loadState()
         self.onModeChanged()
 
-        if settings["settings"]["disable_downscaling_startup"]:
+        if settings["disable_downscaling_startup"]:
             self.disableDownscaling()
-        self.toggleCustomResampling(settings["settings"]["custom_resampling"])
+        self.toggleCustomResampling(settings["custom_resampling"])
 
         # Add to main layout
         tab_lt.addWidget(downscale_grp,0,0)

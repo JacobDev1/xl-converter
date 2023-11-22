@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2023 code poems <contact@codepoems.eu> -->
+<!-- This file is currently unused. It still needs more work on validation. -->
+<component type="desktop-application">
+  <id>eu.codepoems.xl-converter</id>
+  <metadata_license>CC-BY-SA-3.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>XL Converter</name>
+  <summary>Powerful image converter for the latest formats</summary>
+
+  <description>
+    <p>Batch convert images to the latest formats. Supports JPEG XL, AVIF, WEBP, and JPG.</p>
+    <p>Features</p>
+    <ul>
+        <li>The fastest way of converting to JPEG XL</li>
+        <li>Intelligent Effort - reduces file size</li>
+        <li>Lossless encoding from JPG to JPEG XL, and reconstructing the original JPG</li>
+        <li>Picking between lossly and lossless, depending on size</li>
+        <li>Dynamic Downscaling - scales down images using file size</li>
+        <li>Smallest Lossless - uses multiple formats</li>
+        <li>Image proxy to so you can feed it more formats (like HEIF)</li>
+        <li>Clean, user-focused interface with dark mode</li>        
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">xl-converter.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>The interface</caption>
+      <image>https://codepoems.eu/wp-content/uploads/2023/09/xl-converter-v_0_9.webp</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://codepoems.eu/xl-converter/</url>
+  <project_group>code poems</project_group>
+
+  <provides>
+    <binary>xl-converter</binary>
+  </provides>
+
+  <releases>
+    <release version="0.9.3" date="2023-10-31">
+      <description>
+        <p>Changelog</p>
+      </description>
+    </release>
+  </releases>
+</component>
