@@ -25,7 +25,7 @@ Easy to digest documentation with tutorials.
 
 Encode to **JPEG XL, AVIF, WEBP, and JPG**.
 
-More details in the [documentation](https://xl-converter-docs.codepoems.eu/supported-formats).
+More details are in the [documentation](https://xl-converter-docs.codepoems.eu/supported-formats).
 
 ## Features
 ### General
@@ -51,7 +51,7 @@ Utilize multiple formats to get the smallest file size.
 
 #### Intelligent Effort
 
-Always get smaller file size and quite possibly better quality.
+Optimizes `Effort` for smallest size.
 
 #### JPG Reconstruction
 
@@ -60,7 +60,7 @@ Save space by converting JPG to JPEG XL losslessly. You can always reconstruct t
 ### Technical
 #### Multithreading
 
-XL Converter can fully utilize your CPU regardless If an encoder does multitreading well.
+XL Converter can fully utilize your CPU regardless If an encoder does multithreading well.
 
 This speeds up conversion by a lot, especially for JPEG XL.
 
@@ -120,7 +120,7 @@ sudo apt install python3 python3-pip python3-venv git
 sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 ```
 
-Clone and setup repo.
+Clone and set up repo.
 
 ```bash
 git clone https://github.com/JacobDev1/xl-converter.git
