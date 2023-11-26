@@ -424,5 +424,7 @@ class Worker(QRunnable):
                     self.f.delete(self.item[3], True)
                 elif self.params["delete_original_mode"] == "Permanently":
                     self.f.delete(self.item[3])
+        elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently, see Pathing)
+            self.exception("Conversion failed")
 
         self.signals.completed.emit(self.n)
