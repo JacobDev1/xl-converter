@@ -60,6 +60,8 @@ class MainWindow(QMainWindow):
 
         self.input_tab = InputTab(settings)
         self.settings_tab.signals.disable_sorting.connect(self.input_tab.disableSorting)
+        self.settings_tab.signals.save_file_list.connect(self.input_tab.saveFileList)
+        self.settings_tab.signals.load_file_list.connect(self.input_tab.loadFileList)
         self.input_tab.convert.connect(self.convert)
 
         self.output_tab = OutputTab(self.threadpool.maxThreadCount())

@@ -24,6 +24,8 @@ from PySide6.QtCore import(
 class Signals(QObject):
     custom_resampling = Signal(bool)
     disable_sorting = Signal(bool)
+    save_file_list = Signal()
+    load_file_list = Signal()
 
 class SettingsTab(QWidget):
     def __init__(self):
@@ -62,6 +64,18 @@ class SettingsTab(QWidget):
         self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
         self.wm.getWidget("custom_resampling_cb").toggled.connect(self.signals.custom_resampling.emit)
         conv_grp_lt.addWidget(self.wm.getWidget("custom_resampling_cb"))
+
+        # File List
+        file_list_hbox = QHBoxLayout()
+        self.wm.addWidget("file_list_l", QLabel("File List"))
+        self.wm.addWidget("file_list_save_btn", QPushButton("Save"))
+        self.wm.getWidget("file_list_save_btn").clicked.connect(self.signals.save_file_list)
+        self.wm.addWidget("file_list_load_btn", QPushButton("Load"))
+        self.wm.getWidget("file_list_load_btn").clicked.connect(self.signals.load_file_list)
+        file_list_hbox.addWidget(self.wm.getWidget("file_list_l"))
+        file_list_hbox.addWidget(self.wm.getWidget("file_list_save_btn"))
+        file_list_hbox.addWidget(self.wm.getWidget("file_list_load_btn"))
+        conv_grp_lt.addLayout(file_list_hbox)
 
         # logs_hbox = QHBoxLayout()
         # self.wm.addWidget("logs_cb", QCheckBox("Enable Logs"))

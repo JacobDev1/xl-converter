@@ -10,12 +10,13 @@ from PySide6.QtWidgets import(
 )
 
 from PySide6.QtCore import(
-    Signal
+    Signal,
+    QUrl
 )
 
 from PySide6.QtGui import(
     QShortcut,
-    QKeySequence
+    QKeySequence,
 )
 
 class InputTab(QWidget):
@@ -61,43 +62,74 @@ class InputTab(QWidget):
         input_l.addWidget(self.convert_btn,1,3,1,2)
         input_l.addWidget(self.file_view,0,0,1,0)
 
+    def _addItems(self, file_paths):
+        """Internal method for adding items to the file list.""" 
+        if not file_paths:
+            return
+        
+        items = []
+        for file in file_paths:
+            file_data = stripPathToFilename(file)
+            if file_data[1].lower() in ALLOWED_INPUT:
+                items.append((file_data[0], file_data[1], file_data[3]))
+        
+        self.file_view.startAddingItems()
+        self.file_view.addItems(items)
+        self.file_view.finishAddingItems()
+
     def addFiles(self):
         dlg = QFileDialog()
         dlg.setWindowTitle("Add Images")
         dlg.setFileMode(QFileDialog.ExistingFiles)
-        dlg.setNameFilter(listToFilter("Images", ALLOWED_INPUT))    # Filter is used instead of ALLOWED_INPUT
+        dlg.setNameFilter(listToFilter("Images", ALLOWED_INPUT))
 
-        items = []
         if dlg.exec():
             file_paths = dlg.selectedFiles()
-            for file in file_paths:
-                file_data = stripPathToFilename(file)
-                items.append((file_data[0], file_data[1], file_data[3]))
-        
-        if not items:
-            return
-
-        self.file_view.startAddingItems()
-        self.file_view.addItems(items)
-        self.file_view.finishAddingItems()
+            self._addItems(file_paths)
 
     def addFolder(self):
         dlg = QFileDialog()
         dlg.setWindowTitle("Add Images from a Folder")
         dlg.setFileMode(QFileDialog.Directory)
-        
-        items = []
-        if dlg.exec():
-            files = scanDir(dlg.selectedFiles()[0])
-            for file in files:
-                file_data = stripPathToFilename(file)
-                if file_data[1].lower() in ALLOWED_INPUT:
-                    items.append((file_data[0], file_data[1], file_data[3]))
-        
-        self.file_view.startAddingItems()
-        self.file_view.addItems(items)
-        self.file_view.finishAddingItems()
 
+        if dlg.exec():
+            file_paths = scanDir(dlg.selectedFiles()[0])
+            self._addItems(file_paths)
+
+    def saveFileList(self):
+        item_count = self.file_view.topLevelItemCount()
+        
+        if item_count == 0:
+            return
+
+        dlg, _ = QFileDialog.getSaveFileUrl(
+            self,
+            "Save File List",
+            QUrl.fromLocalFile("File List.txt"),
+            "Text File (*.txt);;All Files (*)"
+        )   # Options can be added
+
+        if not dlg.isValid():
+            return
+
+        with open(dlg.toLocalFile(), "w") as file:
+            for row in range(item_count):
+                path = self.file_view.topLevelItem(row).text(2)
+                if path is not None:
+                    file.write(f"{path}\n")
+
+    def loadFileList(self):
+        dlg, _ = QFileDialog.getOpenFileUrl(self, "Load File List")
+
+        if not dlg.isValid():
+            return
+            
+        paths = []
+        with open(dlg.toLocalFile(), "r") as file:
+            paths = [line.replace('\n', '') for line in file.readlines()]
+        
+        self._addItems(paths)
+    
     def clearInput(self):
         self.file_view.clear()
     
