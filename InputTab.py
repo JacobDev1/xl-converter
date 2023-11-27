@@ -1,6 +1,7 @@
 from FileView import *
 from VARIABLES import ALLOWED_INPUT
 from utils import stripPathToFilename, scanDir, listToFilter
+from Notifications import Notifications
 
 from PySide6.QtWidgets import(
     QWidget,
@@ -25,6 +26,7 @@ class InputTab(QWidget):
     def __init__(self, settings):
         super(InputTab, self).__init__()
         self.file_view = FileView(self)
+        self.notify = Notifications()
 
         # Apply Settings
         self.disableSorting(settings["sorting_disabled"])
@@ -112,11 +114,15 @@ class InputTab(QWidget):
         if not dlg.isValid():
             return
 
-        with open(dlg.toLocalFile(), "w") as file:
-            for row in range(item_count):
-                path = self.file_view.topLevelItem(row).text(2)
-                if path is not None:
-                    file.write(f"{path}\n")
+        try:
+            with open(dlg.toLocalFile(), "w") as file:
+                for row in range(item_count):
+                    path = self.file_view.topLevelItem(row).text(2)
+                    if path is not None:
+                        file.write(f"{path}\n")
+        except Exception as err:
+            self.notify.notifyDetailed("File Error", "Saving file list failed", str(err))
+
 
     def loadFileList(self):
         dlg, _ = QFileDialog.getOpenFileUrl(self, "Load File List")
@@ -124,11 +130,13 @@ class InputTab(QWidget):
         if not dlg.isValid():
             return
             
-        paths = []
-        with open(dlg.toLocalFile(), "r") as file:
-            paths = [line.replace('\n', '') for line in file.readlines()]
-        
-        self._addItems(paths)
+        try:
+            paths = []
+            with open(dlg.toLocalFile(), "r") as file:
+                paths = [line.replace('\n', '') for line in file.readlines()]
+            self._addItems(paths)
+        except Exception as err:
+            self.notify.notifyDetailed("File Error", "Loading file list failed", str(err))
     
     def clearInput(self):
         self.file_view.clear()
