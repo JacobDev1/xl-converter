@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
                 try:
                     os.makedirs(params["custom_output_dir_path"], exist_ok=True)
                 except OSError as err:
-                    self.n.notify("Access Error", f"Make sure the path is accessible\nand that you have write permissions.\n{err}")
+                    self.n.notifyDetailed("Access Error", f"Make sure the path is accessible\nand that you have write permissions.", str(err))
                     return
 
         # Check If Format Pool Empty
