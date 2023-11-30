@@ -5,3 +5,4 @@ dist
 __pycache__
 tmp.py
 env
+test_img
