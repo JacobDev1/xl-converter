@@ -102,6 +102,7 @@ class InputTab(QWidget):
         item_count = self.file_view.topLevelItemCount()
         
         if item_count == 0:
+            self.notify.notify("Empty List", "File list is empty, there is nothing to save.")
             return
 
         dlg, _ = QFileDialog.getSaveFileUrl(
