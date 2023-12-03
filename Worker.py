@@ -169,7 +169,7 @@ class Worker(QRunnable):
 
             if self.params["lossless"]:
                 args[0] = "-q 100"
-                args[3] = "--lossless_jpeg=1"   # JPG reconstruction
+                args[2] = "--lossless_jpeg=1"   # JPG reconstruction
 
             # For lossless best Effort is always 9
             if self.params["intelligent_effort"] and (self.params["quality"] == 100 or self.params["lossless"]):
