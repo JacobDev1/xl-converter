@@ -49,7 +49,13 @@ class ModifyTab(QWidget):
         self.mode_hb = QHBoxLayout()
 
         self.wm.addWidget("mode_cmb", QComboBox())
-        self.wm.getWidget("mode_cmb").addItems(("Max File Size", "Percent", "Max Resolution", "Shortest Side", "Longest Side"))
+        self.wm.getWidget("mode_cmb").addItems((
+            "Max Resolution",
+            "Percent",
+            "Shortest Side",
+            "Longest Side",
+            "Max File Size",
+            ))
         self.wm.getWidget("mode_cmb").currentIndexChanged.connect(self.onModeChanged)
 
         self.wm.addWidget("mode_l", QLabel("Scale to"))
