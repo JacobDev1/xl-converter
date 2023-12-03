@@ -66,5 +66,7 @@ class Pathing():
                 return "webp"
             case "JPG":
                 return "jpg"
+            case "Smallest Lossless":   # Handled in Worker
+                return None
             case _:
                 print(f"[Pathing - getExtension()] No extension declared for {_format}")
