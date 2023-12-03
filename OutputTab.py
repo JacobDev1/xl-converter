@@ -307,16 +307,11 @@ class OutputTab(QWidget):
             self.wm.getWidget("effort_l").setText("Effort")
         
         # Smallest Lossless mode
-        if cur_format == "Smallest Lossless":
-            self.wm.setVisibleByTag("lossless", False)
-            self.wm.setVisibleByTag("effort", False)
-            self.wm.setVisibleByTag("format_pool", True)
-            self.wm.getWidget("max_compression_cb").setVisible(True)
-        else:
-            self.wm.setVisibleByTag("lossless", True)
-            self.wm.setVisibleByTag("effort", True)
-            self.wm.setVisibleByTag("format_pool", False)
-            self.wm.getWidget("max_compression_cb").setVisible(False)
+        is_sm_l = cur_format == "Smallest Lossless"
+        self.wm.setVisibleByTag("lossless", not is_sm_l)
+        self.wm.setVisibleByTag("effort", not is_sm_l)
+        self.wm.setVisibleByTag("format_pool", is_sm_l)
+        self.wm.getWidget("max_compression_cb").setVisible(is_sm_l)
         
         # Decoding (PNG)
         if cur_format == "PNG":
