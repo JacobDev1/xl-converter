@@ -65,6 +65,11 @@ class Downscale():
             # Normal conversion
             self.c.convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
 
+            # Failed conversion check (happens with corrupt images)
+            if not os.path.isfile(params["dst"]):
+                self.f.delete(proxy_src)
+                return False
+
             # Cap amount
             if amount >= 99:
                 self.f.delete(proxy_src)
