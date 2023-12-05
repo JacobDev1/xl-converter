@@ -35,11 +35,12 @@ def scanDir(path):
     for i in Path(path).rglob("*"):
         if os.path.isfile(i):
             items.add(os.path.abspath(i))
-    return items
+    return list(items)  # So it can be access by an index
 
 class TestMainWindow(unittest.TestCase):
     def setUp(self):
         self.main_window = MainWindow()
+        self.delete_tmp_dir("jxl")
         self.sample_img_list = scanDir(SAMPLE_IMG_FOLDER)
     
     def tearDown(self):
@@ -86,15 +87,25 @@ class TestMainWindow(unittest.TestCase):
         self.main_window.output_tab.resetToDefault()
         self.main_window.modify_tab.resetToDefault()
         self.main_window.settings_tab.resetToDefault()
+        self.main_window.output_tab.wm.getWidget("threads_sl").setValue(self.main_window.output_tab.MAX_THREAD_COUNT)   # To speed up testing
 
     def convert(self):
         self.main_window.convert()
     
-    def deleteTmpDir(self, name):
+    def delete_tmp_dir(self, name):
         try:
             shutil.rmtree(os.path.join(SAMPLE_IMG_FOLDER, name))
         except OSError as err:
-            print(err)
+            pass
+    
+    def get_tmp_path(self, folder):
+        return os.path.join(SAMPLE_IMG_FOLDER, folder)
+
+    def set_effort(self, effort):
+        self.main_window.output_tab.wm.getWidget("effort_sb").setValue(effort)
+    
+    def wait_for_done(self):
+        self.main_window.threadpool.waitForDone()
 
     # Tests
     def test_initialization(self):
@@ -135,30 +146,56 @@ class TestMainWindow(unittest.TestCase):
         self.set_custom_output("jxl")
         self.convert()
         
-        self.main_window.threadpool.waitForDone()
+        self.wait_for_done()
         converted = scanDir(os.path.join(SAMPLE_IMG_FOLDER, "jxl"))
         self.assertEqual(len(converted), len(self.get_items()))
 
-        self.deleteTmpDir("jxl")
+        self.delete_tmp_dir("jxl")
     
     def test_jpeg_xl_effort(self):
         self.clear_list()
         self.reset_to_default()
 
         self.add_file(self.sample_img_list[0])
-        print(self.get_items())
+        self.set_format("JPEG XL")
+        self.set_custom_output("jxl")
 
-    def test_jpeg_xl_int_effort(self):
-        pass
+        self.set_effort(7)
+        self.convert()
+        
+        self.set_effort(9)
+        self.convert()
 
-    def test_jpeg_xl_lossless(self):
-        pass
+        self.wait_for_done()
+        converted = scanDir(self.get_tmp_path("jxl"))
+        self.assertNotEqual(os.path.getsize(converted[0]), os.path.getsize(converted[1]))
+        self.delete_tmp_dir("jxl")
 
-    def test_jpeg_xl_jpg_reconstruction(self):
-        pass    # jxlinfo bin / check_output
+    # def test_jpeg_xl_int_effort(self):
+    #     pass
 
-    def test_avif(self):
-        pass
+    # def test_jpeg_xl_lossless(self):
+    #     # First, convert to jpg. This should result in effort 9
+    #     pass
+
+    # def test_jpeg_xl_jpg_reconstruction(self):
+    #     pass    # jxlinfo bin / check_output
+
+    # def test_avif(self):
+    #     pass
+
+    # def test_proxy(self):
+    #     # convert file to jpg -> webp -> jxl -> avif to test proxy
+    #     pass
+
+    # def test_rename(self):
+    #     pass
+
+    # def test_replace(self):
+    #     pass
+
+    # def test_skip(self):
+    #     pass
 
 if __name__ == "__main__":
     unittest.main()
