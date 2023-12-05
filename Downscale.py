@@ -2,7 +2,6 @@ import shutil, os
 
 import TaskStatus
 from Convert import Convert
-from Pathing import Pathing
 from Metadata import Metadata
 from Proxy import Proxy
 from VARIABLES import (
@@ -12,12 +11,11 @@ from VARIABLES import (
     ALLOWED_INPUT_IMAGE_MAGICK,
     DOWNSCALE_LOGS
 )
-from utils import delete
+from utils import delete, getUniqueFilePath
 
 class Downscale():
     def __init__(self):
         self.c = Convert()
-        self.path = Pathing()
         self.metadata = Metadata()
 
     def _downscaleTemplate(self, src, dst, _args, resample="Default", n=None):
@@ -48,7 +46,7 @@ class Downscale():
         """Downscale image to fit under a certain file size."""
         # Prepare data
         amount = params["step"]
-        proxy_src = self.path.getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
+        proxy_src = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
         shutil.copy(params["src"], proxy_src)
 
         # Int. Effort
@@ -93,7 +91,7 @@ class Downscale():
                 # JPEG XL - intelligent effort
                 if params["format"] == "JPEG XL" and params["jxl_int_e"]:
                     params["args"][1] = "-e 9"
-                    e9_tmp = self.path.getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
+                    e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
 
                     self.c.convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
 
@@ -129,7 +127,7 @@ class Downscale():
             args.extend(params["args"])
             self.c.convert(IMAGE_MAGICK_PATH, params["src"], params["dst"], args, params["n"])
         else:
-            downscaled_path = self.path.getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
+            downscaled_path = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
 
             # Downscale
             # Proxy was handled before in Worker.py
@@ -145,7 +143,7 @@ class Downscale():
             if params["format"] == "JPEG XL" and params["jxl_int_e"]: 
                 params["args"][1] = "-e 9"
 
-                e9_tmp = self.path.getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
+                e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
                 self.c.convert(params["enc"], downscaled_path, e9_tmp, params["args"], params["n"])
 
                 if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
@@ -166,7 +164,7 @@ class Downscale():
             self.downscale(params)
         else:
             # Generate proxy
-            proxy_path = self.path.getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
+            proxy_path = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
             self.c.convert(params["enc"], params["src"], proxy_path, [], params["n"])
 
             # Downscale

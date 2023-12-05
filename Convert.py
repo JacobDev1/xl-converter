@@ -1,5 +1,4 @@
 import os, shutil
-from send2trash import send2trash
 from VARIABLES import (
     ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK,
     IMAGE_MAGICK_PATH,
@@ -10,13 +9,11 @@ from VARIABLES import (
 )
 import TaskStatus
 from Process import Process
-from Pathing import Pathing
 
 # Methods for converting files
 class Convert():
     def __init__(self):
         self.p = Process()
-        self.path = Pathing()
     
     def convert(self, encoder_path, src, dst, args = [], n = None):
         """Universal method for all encoders."""

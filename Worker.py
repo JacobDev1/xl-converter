@@ -8,10 +8,9 @@ from VARIABLES import (
 
 from Convert import Convert
 from Metadata import Metadata
-from Pathing import Pathing
 from Downscale import Downscale
 from Proxy import Proxy
-from utils import delete
+from utils import delete, getUniqueFilePath, getPathGIF, getExtension
 from Conflicts import Conflicts
 import TaskStatus
 
@@ -40,7 +39,6 @@ class Worker(QRunnable):
         self.c = Convert()
         self.d = Downscale()
         self.metadata = Metadata()
-        self.path = Pathing()
         self.proxy = Proxy()
         self.conflicts = Conflicts()
 
@@ -108,10 +106,10 @@ class Worker(QRunnable):
             output_dir = self.item[2]
 
         # Assign output paths
-        output_ext = self.path.getExtension(self.params["format"])
+        output_ext = getExtension(self.params["format"])
         if self.params["format"] == "PNG" and self.item_ext == "jxl" and self.params["reconstruct_jpg"]:
             output_ext = self.c.getExtensionJxl(self.item_abs_path)  # Reverse JPG reconstruction
-        output = self.path.getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
+        output = getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
         final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # Final destination. File from "output" will be renamed to it after conversion to prevent naming collisions
 
         # If file exists - for decoding GIF only
@@ -120,7 +118,7 @@ class Worker(QRunnable):
                 self.signals.completed.emit(self.n)
                 return
 
-            output = self.path.getPathGIF(output_dir, self.item_name, self.params["if_file_exists"])
+            output = getPathGIF(output_dir, self.item_name, self.params["if_file_exists"])
             final_output = output
 
         # Skip If needed
@@ -194,8 +192,8 @@ class Worker(QRunnable):
                 self.d.downscale(scl_params)
             elif self.params["intelligent_effort"]:
                 path_pool = [
-                    self.path.getUniqueFilePath(output_dir,self.item_name + "_e7", "jxl", True),
-                    self.path.getUniqueFilePath(output_dir,self.item_name + "_e9", "jxl", True),
+                    getUniqueFilePath(output_dir,self.item_name + "_e7", "jxl", True),
+                    getUniqueFilePath(output_dir,self.item_name + "_e9", "jxl", True),
                 ]
                 args[1] = "-e 7"
                 self.c.convert(CJXL_PATH, self.item_abs_path, path_pool[0], args, self.n)
@@ -220,7 +218,7 @@ class Worker(QRunnable):
                     args[1] = "-e 9"
                 args[0] = "-q 100"
 
-                lossless_path = self.path.getUniqueFilePath(self.item_dir, self.item_name + "_l", "jxl", True)
+                lossless_path = getUniqueFilePath(self.item_dir, self.item_name + "_l", "jxl", True)
                 self.c.convert(CJXL_PATH, self.item_abs_path, lossless_path, args, self.n)
 
                 path_pool = [
@@ -266,7 +264,7 @@ class Worker(QRunnable):
                 args.pop(0) # Remove quality
                 args.append("-define webp:lossless=true")
 
-                lossless_path = self.path.getUniqueFilePath(self.item_dir, self.item_name + "_l", "webp", True)
+                lossless_path = getUniqueFilePath(self.item_dir, self.item_name + "_l", "webp", True)
                 self.c.convert(IMAGE_MAGICK_PATH, self.item_abs_path, lossless_path, args, self.n)
 
                 path_pool = [
@@ -314,7 +312,7 @@ class Worker(QRunnable):
             path_pool = {}
             for key in self.params["smallest_format_pool"]:     # Iterate through formats ("png", "webp", "jxl")
                 if self.params["smallest_format_pool"][key]:    # If format enabled
-                    path_pool[key] = self.path.getUniqueFilePath(output_dir, self.item_name, key, True) # Add format
+                    path_pool[key] = getUniqueFilePath(output_dir, self.item_name, key, True) # Add format
 
             # Check if no formats selected
             if len(path_pool) == 0:
@@ -405,7 +403,7 @@ class Worker(QRunnable):
                         delete(final_output)
                     os.rename(output, final_output)
                 case "Rename":
-                    final_output = self.path.getUniqueFilePath(output_dir, self.item_name, output_ext, False)
+                    final_output = getUniqueFilePath(output_dir, self.item_name, output_ext, False)
                     os.rename(output, final_output)
                 case "Skip":    # Only for "Smallest Lossless", other cases were handled before
                     if self.params["format"] == "Smallest Lossless":
@@ -429,7 +427,7 @@ class Worker(QRunnable):
                     delete(self.item[3], True)
                 elif self.params["delete_original_mode"] == "Permanently":
                     delete(self.item[3])
-        elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently, see Pathing)
+        elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently)
             self.exception("Conversion failed")
 
         self.signals.completed.emit(self.n)
