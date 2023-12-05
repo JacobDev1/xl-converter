@@ -1,9 +1,9 @@
 import shutil, os
+
 import TaskStatus
 from Convert import Convert
 from Pathing import Pathing
 from Metadata import Metadata
-from Files import Files
 from Proxy import Proxy
 from VARIABLES import (
     CJXL_PATH,
@@ -12,12 +12,12 @@ from VARIABLES import (
     ALLOWED_INPUT_IMAGE_MAGICK,
     DOWNSCALE_LOGS
 )
+from utils import delete
 
 class Downscale():
     def __init__(self):
         self.c = Convert()
         self.path = Pathing()
-        self.f = Files()
         self.metadata = Metadata()
 
     def _downscaleTemplate(self, src, dst, _args, resample="Default", n=None):
@@ -58,8 +58,8 @@ class Downscale():
         # Downscale until it's small enough
         while True:
             if TaskStatus.wasCanceled():
-                self.f.delete(proxy_src)
-                self.f.delete(params["dst"])
+                delete(proxy_src)
+                delete(params["dst"])
                 return False
 
             # Normal conversion
@@ -67,12 +67,12 @@ class Downscale():
 
             # Failed conversion check (happens with corrupt images)
             if not os.path.isfile(params["dst"]):
-                self.f.delete(proxy_src)
+                delete(proxy_src)
                 return False
 
             # Cap amount
             if amount >= 99:
-                self.f.delete(proxy_src)
+                delete(proxy_src)
                 return False
 
             # If bigger - resize
@@ -83,8 +83,8 @@ class Downscale():
                     self.log("[Error] Cannot downscale to less than 1%", params["n"])
                 
                 if TaskStatus.wasCanceled():
-                    self.f.delete(proxy_src)
-                    self.f.delete(params["dst"])
+                    delete(proxy_src)
+                    delete(params["dst"])
                     return False
 
                 self.downscaleByPercent(params["src"], proxy_src, amount, params["resample"], params["n"])
@@ -98,13 +98,13 @@ class Downscale():
                     self.c.convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
 
                     if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
-                        self.f.delete(params["dst"])
+                        delete(params["dst"])
                         os.rename(e9_tmp, params["dst"])
                     else:
-                        self.f.delete(e9_tmp)
+                        delete(e9_tmp)
 
                 # Clean-up
-                self.f.delete(proxy_src)
+                delete(proxy_src)
                 return True
     
     def downscaleManualModes(self, params):
@@ -149,13 +149,13 @@ class Downscale():
                 self.c.convert(params["enc"], downscaled_path, e9_tmp, params["args"], params["n"])
 
                 if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
-                    self.f.delete(params["dst"])
+                    delete(params["dst"])
                     os.rename(e9_tmp, params["dst"])
                 else:
-                    self.f.delete(e9_tmp)
+                    delete(e9_tmp)
 
             # Clean-up
-            self.f.delete(downscaled_path)
+            delete(downscaled_path)
     
     def decodeAndDownscale(self, params, ext, metadata_mode):
         """Decode to PNG with downscaling support."""
@@ -175,7 +175,7 @@ class Downscale():
             self.downscale(params)
 
             # Clean-up
-            self.f.delete(proxy_path)
+            delete(proxy_path)
 
     def downscale(self, params):
         """A wrapper for all downscaling methods. Keeps the same aspect ratio.

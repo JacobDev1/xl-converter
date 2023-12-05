@@ -1,6 +1,20 @@
 import os, re, platform
 from pathlib import Path
+
 import qdarktheme
+from send2trash import send2trash
+
+def delete(path, trash=False):
+    """Delete a file (or move to trash)."""
+    try:
+        if trash:
+            send2trash(path)
+        else:
+            os.remove(path)
+    except OSError as err:
+        print(f"[Error] Failed to delete the file ({path})\n{err}")
+        return False
+    return True
 
 def stripPathToFilename(path):
     """Dissect path into its parts.
@@ -26,36 +40,6 @@ def scanDir(path):
         if os.path.isdir(i) == False:
             files.append(os.path.abspath(i))    # Convert POSIX path to str
     return files    # table
-
-def burstThreadPool(workers_n, cores_a):
-        """Returns a list of how many threads each worker can use. 
-        arguments:
-            workers_n - number of workers.
-            cores_a - available cores.
-        returns (examples):
-            burstThreadPool(3, 6) -> [2,2,2]
-            burstThreadPool(3, 5) -> [2,2,1]
-            burstThreadPool(2, 5) -> [3,2]
-        """
-        if workers_n >= cores_a:
-            return []
-        
-        if workers_n == 1:
-            return [cores_a]
-        else:
-            thread_pool = []
-            
-            # Fill in thread_pool
-            for i in range(workers_n):
-                thread_pool.append(1)
-            
-            # Spread out threads
-            n = 0
-            while sum(thread_pool) < cores_a:
-                thread_pool[n] += 1
-                n += 1
-
-            return thread_pool
 
 def setTheme(theme="dark"):
     match theme:

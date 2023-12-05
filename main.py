@@ -15,7 +15,7 @@ from OutputTab import OutputTab
 from ModifyTab import ModifyTab
 from Worker import Worker
 from Data import Data
-from utils import stripPathToFilename, scanDir, burstThreadPool, setTheme, clip
+from utils import setTheme, clip
 import TaskStatus
 from Notifications import Notifications
 

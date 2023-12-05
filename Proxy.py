@@ -1,13 +1,13 @@
-from Files import Files
 from Convert import Convert
 from Pathing import Pathing
 from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
+from utils import delete
+
 import os
 
 class Proxy():
     def __init__(self):
         self.proxy_path = None
-        self.f = Files()
         self.c = Convert()
         self.path = Pathing()
 
@@ -63,5 +63,5 @@ class Proxy():
     def cleanup(self):
         """Deletes a proxy If one was generated"""
         if self.proxy_path != None:
-            self.f.delete(self.proxy_path)
+            delete(self.proxy_path)
             self.proxy_path = None

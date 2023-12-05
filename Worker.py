@@ -11,7 +11,7 @@ from Metadata import Metadata
 from Pathing import Pathing
 from Downscale import Downscale
 from Proxy import Proxy
-from Files import Files
+from utils import delete
 from Conflicts import Conflicts
 import TaskStatus
 
@@ -41,7 +41,6 @@ class Worker(QRunnable):
         self.d = Downscale()
         self.metadata = Metadata()
         self.path = Pathing()
-        self.f = Files()
         self.proxy = Proxy()
         self.conflicts = Conflicts()
 
@@ -202,7 +201,7 @@ class Worker(QRunnable):
                 self.c.convert(CJXL_PATH, self.item_abs_path, path_pool[0], args, self.n)
 
                 if TaskStatus.wasCanceled():
-                    self.f.delete(path_pool[0])
+                    delete(path_pool[0])
                     self.signals.canceled.emit(self.n)
                     return
 
@@ -377,7 +376,7 @@ class Worker(QRunnable):
             # Remove bigger files
             for key in path_pool:
                 if key != sm_f_key:
-                    self.f.delete(path_pool[key])
+                    delete(path_pool[key])
             
             # Handle the smallest file
             output = path_pool[sm_f_key]
@@ -403,7 +402,7 @@ class Worker(QRunnable):
             match self.params["if_file_exists"]:
                 case "Replace":
                     if os.path.isfile(final_output):
-                        self.f.delete(final_output)
+                        delete(final_output)
                     os.rename(output, final_output)
                 case "Rename":
                     final_output = self.path.getUniqueFilePath(output_dir, self.item_name, output_ext, False)
@@ -411,7 +410,7 @@ class Worker(QRunnable):
                 case "Skip":    # Only for "Smallest Lossless", other cases were handled before
                     if self.params["format"] == "Smallest Lossless":
                         if os.path.isfile(final_output):
-                            self.f.delete(output)
+                            delete(output)
                         else:
                             os.rename(output, final_output)
 
@@ -427,9 +426,9 @@ class Worker(QRunnable):
             # After Conversion
             if self.params["delete_original"]:
                 if self.params["delete_original_mode"] == "To Trash":
-                    self.f.delete(self.item[3], True)
+                    delete(self.item[3], True)
                 elif self.params["delete_original_mode"] == "Permanently":
-                    self.f.delete(self.item[3])
+                    delete(self.item[3])
         elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently, see Pathing)
             self.exception("Conversion failed")
 
