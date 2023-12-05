@@ -186,9 +186,14 @@ make build
 
 The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
 
-## Development
+## Bug Reports
 
-- `unstable` - all changes are committed here first
-- `stable` - current stable release
+You can submit a bug report in 2 ways
+- \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
+- \[private\] Email me at contact@codepoems.eu
 
-Contributions are not accepted to avoid legal issues. Forward your code and feature suggestions to [my email](https://codepoems.eu/about/).
+## Contributions
+
+Pull requests are ignored to avoid potential legal complications when reusing the code.
+
+Forward your code and feature suggestions to my email at contact@codepoems.eu
