@@ -1,4 +1,4 @@
-from utils import stripPathToFilename
+from pathing import stripPathToFilename
 from statistics import mean
 import time
 

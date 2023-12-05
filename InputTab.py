@@ -1,6 +1,7 @@
 from FileView import *
 from VARIABLES import ALLOWED_INPUT
-from utils import stripPathToFilename, scanDir, listToFilter
+from utils import scanDir, listToFilter
+from pathing import stripPathToFilename
 from Notifications import Notifications
 
 from PySide6.QtWidgets import(

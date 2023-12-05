@@ -10,7 +10,8 @@ from Convert import Convert
 from Metadata import Metadata
 from Downscale import Downscale
 from Proxy import Proxy
-from utils import delete, getUniqueFilePath, getPathGIF, getExtension
+from utils import delete
+from pathing import getUniqueFilePath, getPathGIF, getExtension
 from Conflicts import Conflicts
 import TaskStatus
 

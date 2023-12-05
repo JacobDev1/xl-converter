@@ -11,7 +11,8 @@ from VARIABLES import (
     ALLOWED_INPUT_IMAGE_MAGICK,
     DOWNSCALE_LOGS
 )
-from utils import delete, getUniqueFilePath
+from utils import delete
+from pathing import getUniqueFilePath
 
 class Downscale():
     def __init__(self):

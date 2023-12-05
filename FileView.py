@@ -10,7 +10,8 @@ from PySide6.QtCore import(
     Qt
 )
 
-from utils import stripPathToFilename, scanDir
+from pathing import stripPathToFilename
+from utils import scanDir
 from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, FILEVIEW_LOGS
 
 class FileView(QTreeWidget):
