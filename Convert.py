@@ -8,17 +8,14 @@ from VARIABLES import (
     CONVERT_LOGS
 )
 import TaskStatus
-from Process import Process
+from process import runProcess, runProcessOutput
 
 # Methods for converting files
 class Convert():
-    def __init__(self):
-        self.p = Process()
-    
     def convert(self, encoder_path, src, dst, args = [], n = None):
         """Universal method for all encoders."""
         command = f'\"{encoder_path}\" \"{src}\" {" ".join(args) + " " if args else ""}\"{dst}\"'
-        self.p.runProcess(command)
+        runProcess(command)
         if n != None:   self.log(command, n)
     
     def getDecoder(self, ext):
@@ -42,7 +39,7 @@ class Convert():
     def optimize(self, bin_path, src, args = [], n = None):
         """Run a binary while targeting a single file."""
         command = f'\"{bin_path}\" {" ".join(args) + " " if args else ""}\"{src}\"'
-        self.p.runProcess(command)
+        runProcess(command)
         if n != None:   self.log(command, n)
     
     def leaveOnlySmallestFile(self, paths: [], new_path):
@@ -70,7 +67,7 @@ class Convert():
     
     def getExtensionJxl(self, src_path):
         """Assigns extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
-        out = self.p.runProcessOutput(f"\"{JXLINFO_PATH}\" \"{src_path}\"")
+        out = runProcessOutput(f"\"{JXLINFO_PATH}\" \"{src_path}\"")
 
         if b"JPEG bitstream reconstruction data available" in out:
             return "jpg"
