@@ -22,18 +22,14 @@ from Notifications import Notifications
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
-    QGridLayout,
     QTabWidget,
     QProgressDialog,
-    QMessageBox
 )
 from PySide6.QtCore import (
     QThreadPool,
-    Signal,
 )
 
 from PySide6.QtGui import (
-    QDesktopServices,
     QIcon,
     QShortcut,
     QKeySequence

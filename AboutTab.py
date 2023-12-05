@@ -4,7 +4,6 @@ from UpdateChecker import UpdateChecker
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
-    QHBoxLayout,
     QLabel,
     QPushButton,
     QSizePolicy,

@@ -17,7 +17,6 @@ from PySide6.QtCore import(
     QUrl,
     QObject,
     Signal,
-    Slot,
     QThread,
 )
 
