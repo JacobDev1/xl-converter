@@ -7,36 +7,20 @@ class Pathing():
     def getUniqueFilePath(self, dir, file_name: str, ext: str, add_rnd = False):
         """Get a unique file name within a directory."""
 
-        # Generate Random String
-        rnd = ""
-        if add_rnd:
-            for i in range(3):
-                rnd += str(hex(random.randint(0, 0xf)))[2:]  # Yes, it's random and a hex number. There are no actual words generated.
-        
-        # Setup Path
-        path = ""
-        if add_rnd:
-            path = os.path.join(dir,f"{file_name}_{rnd}.{ext}")
-        else:
-            path = os.path.join(dir,f"{file_name}.{ext}")
+        rnd_str = "_" + "".join(random.choice("0123456789abcdef") for _ in range(3)) if add_rnd else ""     # hex
+        path = os.path.join(dir,f"{file_name}{rnd_str}.{ext}")
 
-        # Check for uniqueness
-        n = 1
+        prev = re.search(r"\([0-9]{1,}\)$", file_name)  	# Detect a previously renamed file
+        n = int(prev.group(0)[1:-1]) if prev else 1			# Parse previously assigned number
         
-        prev = re.search(r"\([0-9]{1,}\)$", file_name)  # Detect a previously renamed file
-        if prev != None:
-            n = int(prev.group(0)[1:-1])    # Parse previously assigned number
+        strip_p = prev and len(file_name) >= len(prev.group(0))                     # bool
+        spacing = "" if strip_p else " "											# Add spacing to files without parenthesis
+        new_file_name = file_name[:-len(prev.group(0))] if strip_p else file_name	# Strip parenthesis
 
         while os.path.isfile(path):
-            if add_rnd:
-                path = os.path.join(dir,f"{file_name}_{rnd}.{ext}")
-            else:
-                if prev != None and len(file_name) > len(prev.group(0)):
-                    spacing = "" if file_name[len(file_name) - len(prev.group(0)) - 1] != " " else ""  # Add spacing to "file(1)", not "file (1)"
-                    path = os.path.join(dir,f"{file_name[:-len(prev.group(0))]}{spacing}({n}).{ext}")
-                else:
-                    path = os.path.join(dir,f"{file_name} ({n}).{ext}")
+            path = os.path.join(dir,f"{new_file_name}{spacing}({n}){rnd_str}.{ext}")
             n += 1
+
         return path
     
     def getPathGIF(self, output_dir, item_name, mode):
