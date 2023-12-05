@@ -2,7 +2,6 @@ import shutil, os
 
 import TaskStatus
 from Convert import Convert
-from Metadata import Metadata
 from Proxy import Proxy
 from VARIABLES import (
     CJXL_PATH,
@@ -13,11 +12,11 @@ from VARIABLES import (
 )
 from utils import delete
 from pathing import getUniqueFilePath
+import metadata
 
 class Downscale():
     def __init__(self):
         self.c = Convert()
-        self.metadata = Metadata()
 
     def _downscaleTemplate(self, src, dst, _args, resample="Default", n=None):
         """For intenal use only."""
@@ -159,7 +158,7 @@ class Downscale():
     def decodeAndDownscale(self, params, ext, metadata_mode):
         """Decode to PNG with downscaling support."""
         params["enc"] = self.c.getDecoder(ext)
-        params["args"] = self.metadata.getArgs(params["enc"], metadata_mode)
+        params["args"] = metadata.getArgs(params["enc"], metadata_mode)
 
         if params["enc"] == IMAGE_MAGICK_PATH:
             self.downscale(params)

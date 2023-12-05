@@ -7,13 +7,13 @@ from VARIABLES import (
 )
 
 from Convert import Convert
-from Metadata import Metadata
 from Downscale import Downscale
 from Proxy import Proxy
 from utils import delete
 from pathing import getUniqueFilePath, getPathGIF, getExtension
 from Conflicts import Conflicts
 import TaskStatus
+import metadata
 
 import os, subprocess, shutil, copy
 
@@ -39,7 +39,6 @@ class Worker(QRunnable):
         # Convert modules
         self.c = Convert()
         self.d = Downscale()
-        self.metadata = Metadata()
         self.proxy = Proxy()
         self.conflicts = Conflicts()
 
@@ -181,7 +180,7 @@ class Worker(QRunnable):
                 args[1] = "-e 9"
             
             # Handle metadata
-            args.extend(self.metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
+            args.extend(metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
 
             # Set downscaling params
             if self.params["downscaling"]["enabled"]:
@@ -235,7 +234,7 @@ class Worker(QRunnable):
                 decoder = self.c.getDecoder(self.item_ext)
 
                 # Handle metadata
-                args = self.metadata.getArgs(decoder, self.params["misc"]["keep_metadata"])
+                args = metadata.getArgs(decoder, self.params["misc"]["keep_metadata"])
 
                 self.c.convert(decoder, self.item_abs_path, output, args, self.n)
             
@@ -252,7 +251,7 @@ class Worker(QRunnable):
                 args.append("-define webp:lossless=true")
 
             # Handle Metadata
-            args.extend(self.metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
+            args.extend(metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
@@ -286,7 +285,7 @@ class Worker(QRunnable):
             ]
 
             # Handle metadata
-            args.extend(self.metadata.getArgs(AVIFENC_PATH, self.params["misc"]["keep_metadata"]))
+            args.extend(metadata.getArgs(AVIFENC_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = AVIFENC_PATH
@@ -299,7 +298,7 @@ class Worker(QRunnable):
             args = [f"-quality {self.params['quality']}"]
 
             # Handle Metadata
-            args.extend(self.metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
+            args.extend(metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
 
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
@@ -341,9 +340,9 @@ class Worker(QRunnable):
             }
 
             # Handle metadata
-            args["png"].extend(self.metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
-            args["webp"].extend(self.metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
-            args["jxl"].extend(self.metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
+            args["png"].extend(metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
+            args["webp"].extend(metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
+            args["jxl"].extend(metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
 
             # Generate files
             for key in path_pool:
@@ -416,11 +415,11 @@ class Worker(QRunnable):
         # Post conversion routines
         if os.path.isfile(final_output):    # Checking if renaming was successful
             # Apply metadata (ExifTool)
-            self.metadata.runExifTool(self.item[3], final_output, self.params["misc"]["keep_metadata"])
+            metadata.runExifTool(self.item[3], final_output, self.params["misc"]["keep_metadata"])
 
             # Apply attributes
             if self.params["misc"]["attributes"]:
-                self.metadata.copyAttributes(self.item[3], final_output)
+                metadata.copyAttributes(self.item[3], final_output)
 
             # After Conversion
             if self.params["delete_original"]:
