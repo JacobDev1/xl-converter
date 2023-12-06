@@ -1,4 +1,4 @@
-from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
+from variables import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
 from utils import delete
 from pathing import getUniqueFilePath
 from convert import convert, getDecoder

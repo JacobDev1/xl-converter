@@ -1,5 +1,5 @@
 import subprocess
-from VARIABLES import PROCESS_LOGS, PROCESS_LOGS_VERBOSE
+from variables import PROCESS_LOGS, PROCESS_LOGS_VERBOSE
 
 def runProcess(cmd):
     """Run process."""

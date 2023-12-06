@@ -2,7 +2,7 @@
 
 import sys, os, time
 
-from VARIABLES import (
+from variables import (
     PROGRAM_FOLDER,
     ALLOWED_INPUT,
     ICON_SVG,

@@ -1,5 +1,5 @@
 from FileView import *
-from VARIABLES import ALLOWED_INPUT
+from variables import ALLOWED_INPUT
 from utils import scanDir, listToFilter
 from pathing import stripPathToFilename
 from Notifications import Notifications

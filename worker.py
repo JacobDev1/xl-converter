@@ -1,4 +1,4 @@
-from VARIABLES import (
+from variables import (
     CJXL_PATH,
     JPEG_ALIASES,
     AVIFENC_PATH,

@@ -1,5 +1,5 @@
 import platform, os, shutil, glob, subprocess, PyInstaller.__main__, argparse, shutil, stat
-from VARIABLES import VERSION
+from variables import VERSION
 
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
 

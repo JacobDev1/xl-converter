@@ -12,7 +12,7 @@ from PySide6.QtCore import(
 
 from pathing import stripPathToFilename
 from utils import scanDir
-from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, FILEVIEW_LOGS
+from variables import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, FILEVIEW_LOGS
 
 class FileView(QTreeWidget):
     def __init__(self, parent):

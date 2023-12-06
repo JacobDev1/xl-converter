@@ -1,5 +1,5 @@
 import os, shutil
-from VARIABLES import (
+from variables import (
     ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK,
     IMAGE_MAGICK_PATH,
     AVIFDEC_PATH,
