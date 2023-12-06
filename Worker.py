@@ -10,7 +10,7 @@ from Downscale import Downscale
 from Proxy import Proxy
 from utils import delete
 from pathing import getUniqueFilePath, getPathGIF, getExtension
-from Conflicts import Conflicts
+from conflicts import Conflicts
 import TaskStatus
 import metadata
 from convert import convert, getDecoder, getExtensionJxl, optimize, leaveOnlySmallestFile
