@@ -13,7 +13,7 @@ from InputTab import InputTab
 from AboutTab import AboutTab
 from OutputTab import OutputTab
 from ModifyTab import ModifyTab
-from Worker import Worker
+from worker import Worker
 from data import Data
 from utils import setTheme, clip
 import TaskStatus
