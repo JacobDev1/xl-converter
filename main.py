@@ -14,7 +14,7 @@ from AboutTab import AboutTab
 from OutputTab import OutputTab
 from ModifyTab import ModifyTab
 from Worker import Worker
-from Data import Data
+from data import Data
 from utils import setTheme, clip
 import TaskStatus
 from Notifications import Notifications
