@@ -1,5 +1,5 @@
 from utils import setTheme
-from WidgetManager import WidgetManager
+from widget_manager import WidgetManager
 
 from PySide6.QtWidgets import(
     QWidget,
