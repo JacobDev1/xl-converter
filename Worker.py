@@ -6,7 +6,6 @@ from VARIABLES import (
     OXIPNG_PATH
 )
 
-from Downscale import Downscale
 from Proxy import Proxy
 from utils import delete
 from pathing import getUniqueFilePath, getPathGIF, getExtension
@@ -14,6 +13,7 @@ from conflicts import Conflicts
 import TaskStatus
 import metadata
 from convert import convert, getDecoder, getExtensionJxl, optimize, leaveOnlySmallestFile
+from downscale import downscale, decodeAndDownscale
 
 import os, subprocess, shutil, copy
 
@@ -37,7 +37,6 @@ class Worker(QRunnable):
         self.params = copy.deepcopy(params)
 
         # Convert modules
-        self.d = Downscale()
         self.proxy = Proxy()
         self.conflicts = Conflicts()
 
@@ -188,7 +187,7 @@ class Worker(QRunnable):
                 scl_params["args"] = args
 
             if self.params["downscaling"]["enabled"] and self.params["intelligent_effort"]:
-                self.d.downscale(scl_params)
+                downscale(scl_params)
             elif self.params["intelligent_effort"]:
                 path_pool = [
                     getUniqueFilePath(output_dir,self.item_name + "_e7", "jxl", True),
@@ -208,7 +207,7 @@ class Worker(QRunnable):
                 leaveOnlySmallestFile(path_pool, output)
             else:
                 if self.params["downscaling"]["enabled"]:
-                    self.d.downscale(scl_params)
+                    downscale(scl_params)
                 else:
                     convert(CJXL_PATH, self.item_abs_path, output, args, self.n)                
             
@@ -228,7 +227,7 @@ class Worker(QRunnable):
 
         elif self.params["format"] == "PNG":
             if self.params["downscaling"]["enabled"]:
-                self.d.decodeAndDownscale(scl_params, self.item_ext, self.params["misc"]["keep_metadata"])
+                decodeAndDownscale(scl_params, self.item_ext, self.params["misc"]["keep_metadata"])
             else:
                 decoder = getDecoder(self.item_ext)
 
@@ -255,7 +254,7 @@ class Worker(QRunnable):
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
                 scl_params["args"] = args
-                self.d.downscale(scl_params)
+                downscale(scl_params)
             else:
                 convert(IMAGE_MAGICK_PATH, self.item_abs_path, output, args, self.n)
 
@@ -289,7 +288,7 @@ class Worker(QRunnable):
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = AVIFENC_PATH
                 scl_params["args"] = args
-                self.d.downscale(scl_params)
+                downscale(scl_params)
             else:
                 convert(AVIFENC_PATH, self.item_abs_path, output, args, self.n)
                     
@@ -302,7 +301,7 @@ class Worker(QRunnable):
             if self.params["downscaling"]["enabled"]:
                 scl_params["enc"] = IMAGE_MAGICK_PATH
                 scl_params["args"] = args
-                self.d.downscale(scl_params)
+                downscale(scl_params)
             else:
                 convert(IMAGE_MAGICK_PATH, self.item_abs_path, output, args, self.n)
         elif self.params["format"] == "Smallest Lossless":
