@@ -10,7 +10,7 @@ from proxy import Proxy
 from utils import delete
 from pathing import getUniqueFilePath, getPathGIF, getExtension
 from conflicts import Conflicts
-import TaskStatus
+import task_status
 import metadata
 from convert import convert, getDecoder, getExtensionJxl, optimize, leaveOnlySmallestFile
 from downscale import downscale, decodeAndDownscale
@@ -58,7 +58,7 @@ class Worker(QRunnable):
 
     @Slot()
     def run(self):
-        if TaskStatus.wasCanceled():
+        if task_status.wasCanceled():
             self.signals.canceled.emit(self.n)
             return
         
@@ -196,7 +196,7 @@ class Worker(QRunnable):
                 args[1] = "-e 7"
                 convert(CJXL_PATH, self.item_abs_path, path_pool[0], args, self.n)
 
-                if TaskStatus.wasCanceled():
+                if task_status.wasCanceled():
                     delete(path_pool[0])
                     self.signals.canceled.emit(self.n)
                     return

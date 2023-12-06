@@ -1,6 +1,6 @@
 import shutil, os
 
-import TaskStatus
+import task_status
 from VARIABLES import (
     CJXL_PATH,
     IMAGE_MAGICK_PATH,
@@ -15,7 +15,7 @@ from convert import convert, getDecoder
 
 def _downscaleTemplate(src, dst, _args, resample="Default", n=None):
     """For intenal use only."""
-    if TaskStatus.wasCanceled():
+    if task_status.wasCanceled():
         return
 
     args = []
@@ -50,7 +50,7 @@ def downscaleToMaxFileSize(params):
 
     # Downscale until it's small enough
     while True:
-        if TaskStatus.wasCanceled():
+        if task_status.wasCanceled():
             delete(proxy_src)
             delete(params["dst"])
             return False
@@ -75,7 +75,7 @@ def downscaleToMaxFileSize(params):
                 amount = 99 # Cap amount
                 log("[Error] Cannot downscale to less than 1%", params["n"])
             
-            if TaskStatus.wasCanceled():
+            if task_status.wasCanceled():
                 delete(proxy_src)
                 delete(params["dst"])
                 return False
@@ -197,7 +197,7 @@ def downscale(params):
         "resample": - resampling method
         "n" - worker number
     """
-    if TaskStatus.wasCanceled():
+    if task_status.wasCanceled():
         return False
     
     if params["mode"] == "Max File Size":

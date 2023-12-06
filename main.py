@@ -16,7 +16,7 @@ from ModifyTab import ModifyTab
 from worker import Worker
 from data import Data
 from utils import setTheme, clip
-import TaskStatus
+import task_status
 from Notifications import Notifications
 
 from PySide6.QtWidgets import (
@@ -170,7 +170,7 @@ class MainWindow(QMainWindow):
         self.progress_dialog.setWindowTitle("XL Converter")
         self.progress_dialog.setMinimumWidth(350)
         self.progress_dialog.show()
-        self.progress_dialog.canceled.connect(TaskStatus.cancel)
+        self.progress_dialog.canceled.connect(task_status.cancel)
 
         # Configure Multithreading
         threads_per_worker = 1
@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
                 self.threadpool.setMaxThreadCount(self.output_tab.getUsedThreadCount())
 
         # Start workers
-        TaskStatus.reset()
+        task_status.reset()
         self.setUIEnabled(False)
 
         for i in range(0,self.data.getItemCount()):

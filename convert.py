@@ -7,7 +7,7 @@ from VARIABLES import (
     JXLINFO_PATH,
     CONVERT_LOGS
 )
-import TaskStatus
+import task_status
 from process import runProcess, runProcessOutput
 
 def convert(encoder_path, src, dst, args = [], n = None):
