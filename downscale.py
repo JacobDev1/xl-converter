@@ -1,7 +1,6 @@
 import shutil, os
 
 import TaskStatus
-from Proxy import Proxy
 from VARIABLES import (
     CJXL_PATH,
     IMAGE_MAGICK_PATH,

@@ -6,7 +6,7 @@ from VARIABLES import (
     OXIPNG_PATH
 )
 
-from Proxy import Proxy
+from proxy import Proxy
 from utils import delete
 from pathing import getUniqueFilePath, getPathGIF, getExtension
 from conflicts import Conflicts
