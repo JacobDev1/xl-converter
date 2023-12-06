@@ -1,7 +1,6 @@
 import shutil, os
 
 import TaskStatus
-from Convert import Convert
 from Proxy import Proxy
 from VARIABLES import (
     CJXL_PATH,
@@ -13,11 +12,9 @@ from VARIABLES import (
 from utils import delete
 from pathing import getUniqueFilePath
 import metadata
+from convert import convert, getDecoder
 
 class Downscale():
-    def __init__(self):
-        self.c = Convert()
-
     def _downscaleTemplate(self, src, dst, _args, resample="Default", n=None):
         """For intenal use only."""
         if TaskStatus.wasCanceled():
@@ -28,7 +25,7 @@ class Downscale():
             args.append(f"-filter {resample}")  # Needs to come first
         args.extend(_args)
 
-        self.c.convert(IMAGE_MAGICK_PATH, src, dst, args, n)
+        convert(IMAGE_MAGICK_PATH, src, dst, args, n)
 
     def downscaleByPercent(self, src, dst, amount=10, resample="Default", n=None):
         self._downscaleTemplate(src, dst, [f"-resize {100 - amount}%"], resample, n)
@@ -61,7 +58,7 @@ class Downscale():
                 return False
 
             # Normal conversion
-            self.c.convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
+            convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
 
             # Failed conversion check (happens with corrupt images)
             if not os.path.isfile(params["dst"]):
@@ -93,7 +90,7 @@ class Downscale():
                     params["args"][1] = "-e 9"
                     e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
 
-                    self.c.convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
+                    convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
 
                     if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
                         delete(params["dst"])
@@ -125,26 +122,26 @@ class Downscale():
         # Downscale
         if params["enc"] == IMAGE_MAGICK_PATH:  # We can just add arguments If the encoder is ImageMagick, since it also handles downscaling
             args.extend(params["args"])
-            self.c.convert(IMAGE_MAGICK_PATH, params["src"], params["dst"], args, params["n"])
+            convert(IMAGE_MAGICK_PATH, params["src"], params["dst"], args, params["n"])
         else:
             downscaled_path = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
 
             # Downscale
             # Proxy was handled before in Worker.py
-            self.c.convert(IMAGE_MAGICK_PATH, params["src"], downscaled_path, args, params["n"])
+            convert(IMAGE_MAGICK_PATH, params["src"], downscaled_path, args, params["n"])
             
             # Convert
             if params["format"] == "JPEG XL" and params["jxl_int_e"]: 
                 params["args"][1] == "-e 7"
 
-            self.c.convert(params["enc"], downscaled_path, params["dst"], params["args"], params["n"])
+            convert(params["enc"], downscaled_path, params["dst"], params["args"], params["n"])
 
             # Intelligent Effort
             if params["format"] == "JPEG XL" and params["jxl_int_e"]: 
                 params["args"][1] = "-e 9"
 
                 e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
-                self.c.convert(params["enc"], downscaled_path, e9_tmp, params["args"], params["n"])
+                convert(params["enc"], downscaled_path, e9_tmp, params["args"], params["n"])
 
                 if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
                     delete(params["dst"])
@@ -157,7 +154,7 @@ class Downscale():
     
     def decodeAndDownscale(self, params, ext, metadata_mode):
         """Decode to PNG with downscaling support."""
-        params["enc"] = self.c.getDecoder(ext)
+        params["enc"] = getDecoder(ext)
         params["args"] = metadata.getArgs(params["enc"], metadata_mode)
 
         if params["enc"] == IMAGE_MAGICK_PATH:
@@ -165,7 +162,7 @@ class Downscale():
         else:
             # Generate proxy
             proxy_path = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
-            self.c.convert(params["enc"], params["src"], proxy_path, [], params["n"])
+            convert(params["enc"], params["src"], proxy_path, [], params["n"])
 
             # Downscale
             params["src"] = proxy_path
