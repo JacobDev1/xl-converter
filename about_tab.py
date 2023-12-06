@@ -1,5 +1,5 @@
 from variables import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
-from UpdateChecker import UpdateChecker
+from update_checker import UpdateChecker
 
 from PySide6.QtWidgets import(
     QWidget,

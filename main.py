@@ -8,16 +8,16 @@ from variables import (
     ICON_SVG,
     THREAD_LOGS
 )
-from SettingsTab import SettingsTab
-from InputTab import InputTab
-from AboutTab import AboutTab
-from OutputTab import OutputTab
-from ModifyTab import ModifyTab
+from settings_tab import SettingsTab
+from input_tab import InputTab
+from about_tab import AboutTab
+from output_tab import OutputTab
+from modify_tab import ModifyTab
 from worker import Worker
 from data import Data
 from utils import setTheme, clip
 import task_status
-from Notifications import Notifications
+from notifications import Notifications
 
 from PySide6.QtWidgets import (
     QApplication,
