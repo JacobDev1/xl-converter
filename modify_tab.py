@@ -118,8 +118,12 @@ class ModifyTab(QWidget):
 
         self.wm.getWidget("file_size_step_sb").setRange(1, 99)
         self.wm.getWidget("file_size_step_sb").setSuffix(" %")
-        
+
+        self.wm.addWidget("file_size_step_fast_cb", QCheckBox("Auto (Linear Regression)"))
+        self.wm.getWidget("file_size_step_fast_cb").toggled.connect(self.toggleFastMode)
+
         file_size_hb.addWidget(self.wm.getWidget("file_size_step_l"))
+        file_size_hb.addWidget(self.wm.getWidget("file_size_step_fast_cb"))
         file_size_hb.addWidget(self.wm.getWidget("file_size_step_sb"))
         self.downscaling_lt.addLayout(file_size_hb)
 
@@ -215,6 +219,7 @@ class ModifyTab(QWidget):
         self.wm.addTags("file_size_l", "downscale_ui", "file_size")
         self.wm.addTags("file_size_sb", "downscale_ui", "file_size")
         self.wm.addTags("file_size_step_l", "downscale_ui", "file_size")
+        self.wm.addTags("file_size_step_fast_cb", "downscale_ui", "file_size")
         self.wm.addTags("file_size_step_sb", "downscale_ui", "file_size")
         
         self.wm.addTags("shortest_l", "downscale_ui", "shortest")
@@ -231,6 +236,7 @@ class ModifyTab(QWidget):
         self.toggleDownscaleUI(False)
         self.wm.loadState()
         self.onModeChanged()
+        self.toggleFastMode()
 
         if settings["disable_downscaling_startup"]:
             self.disableDownscaling()
@@ -242,17 +248,24 @@ class ModifyTab(QWidget):
     
     def toggleDownscaleUI(self, n):
         self.wm.setEnabledByTag("downscale_ui", n)
+        self.toggleFastMode()
     
     def disableDownscaling(self):
         self.wm.getWidget("downscale_cb").setChecked(False)
+    
+    def toggleFastMode(self):
+        if self.wm.getWidget("downscale_cb").isChecked():
+            self.wm.getWidget("file_size_step_sb").setEnabled(not self.wm.getWidget("file_size_step_fast_cb").isChecked())
 
     def resetToDefault(self):
         self.disableDownscaling()
         self.wm.getWidget("metadata_cmb").setCurrentIndex(0)
+        self.wm.getWidget("date_time_cb").setChecked(False)
         self.wm.getWidget("mode_cmb").setCurrentIndex(0)
         self.wm.getWidget("resample_cmb").setCurrentIndex(0)
         self.wm.getWidget("file_size_sb").setValue(300)
         self.wm.getWidget("file_size_step_sb").setValue(10)
+        self.wm.getWidget("file_size_step_fast_cb").setChecked(True)
         self.wm.getWidget("percent_sb").setValue(80)
         self.wm.getWidget("pixel_w_sb").setValue(2000)
         self.wm.getWidget("pixel_h_sb").setValue(2000)
@@ -274,6 +287,7 @@ class ModifyTab(QWidget):
                 "mode": self.wm.getWidget("mode_cmb").currentText(),
                 "percent": self.wm.getWidget("percent_sb").value(),
                 "file_size_step": self.wm.getWidget("file_size_step_sb").value(),
+                "file_size_step_fast": self.wm.getWidget("file_size_step_fast_cb").isChecked(),
                 "width": self.wm.getWidget("pixel_w_sb").value(),
                 "height": self.wm.getWidget("pixel_w_sb").value(),
                 "file_size": self.wm.getWidget("file_size_sb").value(),
