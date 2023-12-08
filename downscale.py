@@ -8,97 +8,37 @@ from variables import (
     ALLOWED_INPUT_IMAGE_MAGICK,
     DOWNSCALE_LOGS
 )
-from utils import delete
+from utils import delete, clip
 from pathing import getUniqueFilePath
 import metadata
 from convert import convert, getDecoder
 
-def _downscaleTemplate(src, dst, _args, resample="Default", n=None):
-    """For intenal use only."""
-    if task_status.wasCanceled():
-        return
+# ------------------------------------------------------------
+#                           Helper
+# ------------------------------------------------------------
+
+def _downscaleToPercent(src, dst, amount=90, resample="Default", n=None):
+    amount = clip(amount, 1, 100)
 
     args = []
     if resample != "Default" and resample in ALLOWED_RESAMPLING:
         args.append(f"-filter {resample}")  # Needs to come first
-    args.extend(_args)
+    args.extend([f"-resize {amount}%"])
 
     convert(IMAGE_MAGICK_PATH, src, dst, args, n)
 
-def downscaleByPercent(src, dst, amount=10, resample="Default", n=None):
-    _downscaleTemplate(src, dst, [f"-resize {100 - amount}%"], resample, n)
+def log(msg, n = None):
+    if not DOWNSCALE_LOGS:
+        return
 
-def downscaleToMaxRes(src, dst, max_w, max_h, resample="Default", n=None):
-    _downscaleTemplate(src, dst, [f"-resize {max_w}x{max_h}"], resample, n)
+    if n == None:
+        print(msg)
+    else:
+        print(f"[Worker #{n}] {msg}")
 
-def downscaleToShortestSide(src, dst, max_res, resample="Default", n=None):
-    _downscaleTemplate(src, dst, [f"-resize \"{max_res}x{max_res}^>\""], resample, n)
-
-def downscaleToLongestSide(src, dst, max_res, resample="Default", n=None):
-    _downscaleTemplate(src, dst, [f"-resize \"{max_res}x{max_res}>\""], resample, n)
-
-def _downscaleToMaxFileSize(params):
-    """Downscale image to fit under a certain file size."""
-    # Prepare data
-    amount = params["step"]
-    proxy_src = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
-    shutil.copy(params["src"], proxy_src)
-
-    # Int. Effort
-    if params["format"] == "JPEG XL" and params["jxl_int_e"]:
-        params["args"][1] = "-e 7"
-
-    # Downscale until it's small enough
-    while True:
-        if task_status.wasCanceled():
-            delete(proxy_src)
-            delete(params["dst"])
-            return False
-
-        # Normal conversion
-        convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-
-        # Failed conversion check (in case of corrupt images)
-        if not os.path.isfile(params["dst"]):
-            delete(proxy_src)
-            return False
-
-        # Cap amount
-        if amount >= 99:
-            delete(proxy_src)
-            return False
-
-        # If bigger - resize
-        if (os.path.getsize(params["dst"]) / 1024) > params["max_size"]:
-            amount += params["step"]
-            if amount > 99:
-                amount = 99 # Cap amount
-                log("[Error] Cannot downscale to less than 1%", params["n"])
-            
-            if task_status.wasCanceled():
-                delete(proxy_src)
-                delete(params["dst"])
-                return False
-
-            downscaleByPercent(params["src"], proxy_src, amount, params["resample"], params["n"])
-
-        else:
-            # JPEG XL - intelligent effort
-            if params["format"] == "JPEG XL" and params["jxl_int_e"]:
-                params["args"][1] = "-e 9"
-                e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
-
-                convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
-
-                if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
-                    delete(params["dst"])
-                    os.rename(e9_tmp, params["dst"])
-                else:
-                    delete(e9_tmp)
-
-            # Clean-up
-            delete(proxy_src)
-            return True
+# ------------------------------------------------------------
+#                           Math
+# ------------------------------------------------------------
 
 def _linearRegression(x, y):
     """Identical to numpy.polyfit(x, y, 1)."""
@@ -130,9 +70,30 @@ def _extrapolateScale(sample_points, desired_size) -> int:
 
     return int(y_new)
 
-def _downscaleToMaxFileSizeStepAuto(params):
+def _isInRangeOrSmaller(value, range_center, fault_tolerance) -> bool:
+    """Returns True If value is in range or smaller.
+
+    parameters:
+        value: number
+        range_center: number
+        fault_tolerance: percent
+    """
+    upper_ceil = range_center + range_center * (fault_tolerance / 100)
+    # bottom_ceil = range_center - range_center * (fault_tolerance / 100)
+
+    if upper_ceil > value:
+        return True
+    else:
+        return False
+
+# ------------------------------------------------------------
+#                           Scaling
+# ------------------------------------------------------------
+
+def _downscaleToMaxFileSize(params):
+    """Downscale image to fit under a certain file size."""
     # Prepare data
-    size_samples = []
+    amount = 100
     proxy_src = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
     shutil.copy(params["src"], proxy_src)
 
@@ -140,81 +101,125 @@ def _downscaleToMaxFileSizeStepAuto(params):
     if params["format"] == "JPEG XL" and params["jxl_int_e"]:
         params["args"][1] = "-e 7"
 
-    # Regular conversion
-    convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-
-    if os.path.getsize(params["dst"]) < params["max_size"] * 1024:
-        delete(proxy_src)
-        return True
-
-    if task_status.wasCanceled():   # These are used at various points to abort the process
-        delete(proxy_src)
-        return False
-
-    # 1st pass
-    downscaleByPercent(params["src"], proxy_src, 10, params["resample"], params["n"])
-    convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-
-    if not os.path.isfile(params["dst"]) or task_status.wasCanceled():  # Failed conversion check (in case of corrupt images)
-        delete(proxy_src)
-        return False
-    
-    size_samples.append([os.path.getsize(params["dst"]), 90])
-    if size_samples[0][0] < params["max_size"] * 1024:                  # These signal success
-        delete(proxy_src)
-        return True
-
-    if task_status.wasCanceled():
-        delete(proxy_src)
-        delete(params["dst"])
-        return False
-    
-    # 2nd pass
-    downscaleByPercent(params["src"], proxy_src, 20, params["resample"], params["n"])
-    convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-    
-    size_samples.append([os.path.getsize(params["dst"]), 80])
-    if size_samples[1][0] < params["max_size"]  * 1024:
-        delete(proxy_src)
-        return True
-
-    if task_status.wasCanceled():
-        delete(proxy_src)
-        delete(params["dst"])
-        return False
-
-    # Use extrapolated data
-    amount = _extrapolateScale(size_samples, params["max_size"] * 1024)
-    downscaleByPercent(params["src"], proxy_src, 100 - amount, params["resample"], params["n"])
-    convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-
-    # Scale down until size req. is met
-    while os.path.getsize(params["dst"]) > params["max_size"]  * 1024:
-        amount -= 10
-        if amount <= 0:
+    # Downscale until it's small enough
+    while True:
+        if task_status.wasCanceled():
             delete(proxy_src)
             delete(params["dst"])
             return False
-        
-        downscaleByPercent(params["src"], proxy_src, 100 - amount, params["resample"], params["n"])
+
+        # Normal conversion
         convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
+
+        # Failed conversion check (in case of corrupt images)
+        if not os.path.isfile(params["dst"]):
+            delete(proxy_src)
+            return False
+
+        # If bigger - resize
+        if (os.path.getsize(params["dst"]) / 1024) > params["max_size"]:
+            amount -= params["step"]
+            if amount < 1:
+                delete(proxy_src)
+                return False
+                log("[Error] Cannot downscale to less than 1%", params["n"])
+            
+            if task_status.wasCanceled():
+                delete(proxy_src)
+                delete(params["dst"])
+                return False
+
+            _downscaleToPercent(params["src"], proxy_src, amount, params["resample"], params["n"])
+
+        else:
+            # JPEG XL - intelligent effort
+            if params["format"] == "JPEG XL" and params["jxl_int_e"]:
+                params["args"][1] = "-e 9"
+                e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
+
+                convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
+
+                if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
+                    delete(params["dst"])
+                    os.rename(e9_tmp, params["dst"])
+                else:
+                    delete(e9_tmp)
+
+            # Clean-up
+            delete(proxy_src)
+            return True
+
+def _downscaleToFileSizeStepAuto(params):
+    # Prepare data
+    size_samples = []
+    proxy_src = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
 
     # JPEG XL - intelligent effort
     if params["format"] == "JPEG XL" and params["jxl_int_e"]:
-        params["args"][1] = "-e 9"
-        e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
+        params["args"][1] = "-e 7"
 
-        convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
+    # Sample 2 data points (evenly)
+    _downscaleToPercent(params["src"], proxy_src, 66, params["resample"], params["n"])
+    convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
+    size_samples.append([os.path.getsize(params["dst"]), 66])
+    
+    if not os.path.isfile(params["dst"]) or task_status.wasCanceled():  # Failed conversion check (in case of corrupt images)
+        delete(proxy_src)
+        delete(params["dst"])
+        return False
 
-        if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
-            delete(params["dst"])
-            os.rename(e9_tmp, params["dst"])
-        else:
-            delete(e9_tmp)
+    _downscaleToPercent(params["src"], proxy_src, 33, params["resample"], params["n"])
+    convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
+    size_samples.append([os.path.getsize(params["dst"]), 33])
 
-    # Cleanup
-    delete(proxy_src)
-    return True
+    delete(params["dst"])
+
+    if task_status.wasCanceled():
+        delete(proxy_src)
+        return False
+
+    # Use gathered data
+    extrapolated_scale = _extrapolateScale(size_samples, params["max_size"] * 1024)
+
+    if extrapolated_scale < 0:
+        delete(proxy_src)
+        return False
+    elif extrapolated_scale >= 100:
+        # Non-downscaled conversion
+        convert(params["enc"], params["src"], params["dst"], params["args"], params["n"])
+        delete(proxy_src)
+        return True
+    else:
+        while True:
+            _downscaleToPercent(params["src"], proxy_src, extrapolated_scale, params["resample"], params["n"])
+            convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
+
+            extrapolated_scale -= 10
+            
+            if _isInRangeOrSmaller(os.path.getsize(params["dst"]), params["max_size"]  * 1024, 10):
+                break
+
+            if task_status.wasCanceled():
+                delete(proxy_src)
+                delete(params["dst"])
+                return False
+        
+        # JPEG XL - intelligent effort
+        if params["format"] == "JPEG XL" and params["jxl_int_e"]:
+            params["args"][1] = "-e 9"
+            e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
+
+            convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
+
+            if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
+                delete(params["dst"])
+                os.rename(e9_tmp, params["dst"])
+            else:
+                delete(e9_tmp)
+
+        # Cleanup
+        delete(proxy_src)
+        return True
 
 def _downscaleManualModes(params):
     """Internal wrapper for all regular downscaling modes."""
@@ -265,6 +270,10 @@ def _downscaleManualModes(params):
 
         # Clean-up
         delete(downscaled_path)
+
+# ------------------------------------------------------------
+#                           Public
+# ------------------------------------------------------------
 
 def decodeAndDownscale(params, ext, metadata_mode):
     """Decode to PNG with downscaling support."""
@@ -318,19 +327,10 @@ def downscale(params):
     
     if params["mode"] == "Max File Size":
         if params["step_fast"]:
-            _downscaleToMaxFileSizeStepAuto(params)
+            _downscaleToFileSizeStepAuto(params)
         else:
             _downscaleToMaxFileSize(params)
     elif params["mode"] in ("Percent", "Max Resolution", "Shortest Side", "Longest Side"):
         _downscaleManualModes(params)
     else:
         log(f"[Error] Downscaling mode not recognized ({params['mode']})", params["n"])
-
-def log(msg, n = None):
-    if not DOWNSCALE_LOGS:
-        return
-
-    if n == None:
-        print(msg)
-    else:
-        print(f"[Worker #{n}] {msg}")
