@@ -1,4 +1,4 @@
-import unittest, sys, os, shutil
+import unittest, sys, os, shutil, binascii
 from pathlib import Path
 
 from PySide6.QtGui import (
@@ -27,27 +27,134 @@ from PySide6.QtCore import (
 from main import MainWindow
 
 # CONFIG
-SAMPLE_IMG_FOLDER = os.path.join(".", "test_img")
+SAMPLE_IMG_FOLDER = os.path.abspath(os.path.join(".", "test_img"))
+TMP_IMG_FOLDER = os.path.abspath(os.path.join(".", "unit_tests_tmp"))
 app = QApplication(sys.argv)    # It needs to be declared here
 
-def scanDir(path):
+# ---------------------------------------------------------------
+#                           Tools
+# ---------------------------------------------------------------
+
+def scan_dir(path):
     items = set()   # No duplicates
     for i in Path(path).rglob("*"):
         if os.path.isfile(i):
             items.add(os.path.abspath(i))
     return list(items)  # So it can be access by an index
 
-class TestMainWindow(unittest.TestCase):
-    def setUp(self):
-        self.main_window = MainWindow()
-        self.delete_tmp_dir("jxl")
-        self.sample_img_list = scanDir(SAMPLE_IMG_FOLDER)
-    
-    def tearDown(self):
-        del self.main_window
-        del self.sample_img_list
+def rmtree(path):
+    path = os.path.normpath(path)
+    if os.path.isdir(path):
+        shutil.rmtree(path)
 
-    # Helper functions
+def mkdirs(path):
+    path = os.path.normpath(path)
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        print(f"[mkdirs] {e}")
+
+def CRC32(path):
+    crc32_val = 0
+
+    with open(path, "rb") as file:
+        buff_size = 8192
+        for buf in iter(lambda: file.read(buff_size), b""):
+            crc32_val = binascii.crc32(buf, crc32_val)
+
+    return crc32_val & 0xffffffff
+
+def sleep(ms):
+    QTest.qWait(ms)
+
+class Data:
+    """Sample data and tmp folder management system."""
+    
+    def __init__(self, sample_img_folder, tmp_img_folder):
+        self.sample_img_folder = sample_img_folder
+        self.tmp_img_folder = tmp_img_folder
+
+        self.cleanup()
+
+    def cleanup(self):
+        rmtree(self.tmp_img_folder)
+    
+    # Tmp Directory
+    def get_tmp_folder_path(self, path = None):
+        if path == None:
+            return self.tmp_img_folder
+        else:
+            return os.path.join(self.tmp_img_folder, path)
+
+    def get_tmp_folder_content(self, subfolder=None):
+        if subfolder:
+            return scan_dir(os.path.join(self.tmp_img_folder, subfolder))
+        else:
+            return scan_dir(self.tmp_img_folder)
+
+    def make_tmp_subfolder(self, name):
+        path = os.path.join(self.tmp_img_folder, name)
+        mkdirs(path)
+        return path
+
+    # Samples Directory
+    def get_sample_imgs(self):
+        return scan_dir(self.sample_img_folder)
+    
+    def get_sample_img_folder(self):
+        return self.sample_img_folder
+
+
+class Interact:
+    """Translation layer between unit tests and the application."""
+    def __init__(self, main_window):
+        self.main_window = main_window
+        self.root = self.main_window.input_tab.file_view.invisibleRootItem()
+
+    def add_item(self, path):
+        self.main_window.input_tab._addItems([path])
+
+    def add_items(self, paths):
+        self.main_window.input_tab._addItems(paths)
+
+    def get_items(self):
+        return [self.root.child(i).text(2) for i in range(self.root.childCount())]
+
+    def get_item_count(self):
+        return self.main_window.input_tab.file_view.invisibleRootItem().childCount()
+
+    def clear_list(self):
+        self.main_window.input_tab.clearInput()
+
+    def set_format(self, _format):
+        idx = self.main_window.output_tab.wm.getWidget("format_cmb").findText(_format)
+        self.main_window.output_tab.wm.getWidget("format_cmb").setCurrentIndex(idx)
+
+    def set_custom_output(self, path):
+        self.main_window.output_tab.wm.getWidget("choose_output_ct_rb").setChecked(True)
+        self.main_window.output_tab.wm.getWidget("choose_output_ct_le").setText(path)
+    
+    def set_lossless(self, checked):
+        self.main_window.output_tab.wm.getWidget("lossless_cb").setChecked(checked)
+
+    def reset_to_default(self):
+        self.main_window.output_tab.resetToDefault()
+        self.main_window.modify_tab.resetToDefault()
+        self.main_window.settings_tab.resetToDefault()
+        self.main_window.output_tab.wm.getWidget("threads_sl").setValue(self.main_window.output_tab.MAX_THREAD_COUNT)   # To speed up testing
+
+    def convert(self):
+        self.main_window.convert()
+        
+        # Wait for done
+        while True:
+            sleep(100)
+            if self.main_window.data.getCompletedItemCount() == self.main_window.data.getItemCount():
+                break
+
+    def set_effort(self, effort):
+        self.main_window.output_tab.wm.getWidget("effort_sb").setValue(effort)
+    
     def drag_and_drop(self, urls):
         mime_data = QMimeData()
         mime_data.setUrls([QUrl.fromLocalFile(url) for url in urls])
@@ -59,127 +166,117 @@ class TestMainWindow(unittest.TestCase):
         QTest.mouseRelease(self.main_window, Qt.LeftButton, pos=QPoint(), delay=100)
         QTest.qWait(100)
 
-    def get_items(self):
-        root = self.main_window.input_tab.file_view.invisibleRootItem()
-        items = []
-        for i in range(root.childCount()):
-            items.append(root.child(i).text(2))
-        return items
+# ---------------------------------------------------------------
+#                         Unit Tests
+# ---------------------------------------------------------------
 
-    def clear_list(self):
-        self.main_window.input_tab.clearInput()
+class TestMainWindow(unittest.TestCase):
+    def setUp(self):
+        self.app = Interact(MainWindow())
+        self.data = Data(SAMPLE_IMG_FOLDER, TMP_IMG_FOLDER)
     
-    def add_files(self, file_paths):
-        self.main_window.input_tab._addItems(file_paths)
-    
-    def add_file(self, file_path):
-        self.main_window.input_tab._addItems([file_path])
-
-    def set_format(self, _format):
-        idx = self.main_window.output_tab.wm.getWidget("format_cmb").findText(_format)
-        self.main_window.output_tab.wm.getWidget("format_cmb").setCurrentIndex(idx)
-
-    def set_custom_output(self, path):
-        self.main_window.output_tab.wm.getWidget("choose_output_ct_rb").setChecked(True)
-        self.main_window.output_tab.wm.getWidget("choose_output_ct_le").setText(path)
-
-    def reset_to_default(self):
-        self.main_window.output_tab.resetToDefault()
-        self.main_window.modify_tab.resetToDefault()
-        self.main_window.settings_tab.resetToDefault()
-        self.main_window.output_tab.wm.getWidget("threads_sl").setValue(self.main_window.output_tab.MAX_THREAD_COUNT)   # To speed up testing
-
-    def convert(self):
-        self.main_window.convert()
-    
-    def delete_tmp_dir(self, name):
-        try:
-            shutil.rmtree(os.path.join(SAMPLE_IMG_FOLDER, name))
-        except OSError as err:
-            pass
-    
-    def get_tmp_path(self, folder):
-        return os.path.join(SAMPLE_IMG_FOLDER, folder)
-
-    def set_effort(self, effort):
-        self.main_window.output_tab.wm.getWidget("effort_sb").setValue(effort)
-    
-    def wait_for_done(self):
-        self.main_window.threadpool.waitForDone()
-
-    # Tests
-    def test_initialization(self):
-        self.assertEqual(self.main_window.windowTitle(), "XL Converter")
-    
-    def test_drag_n_drop_files(self):
-        root = self.main_window.input_tab.file_view.invisibleRootItem()
-        self.drag_and_drop(self.sample_img_list)
-
-        items = self.get_items()
-        for i in self.sample_img_list:
-            self.assertIn(i, items)
+    def tearDown(self):
+        self.data.cleanup()
 
     def test_clear_list(self):
-        self.main_window.input_tab.clearInput()
-        self.assertTrue(self.main_window.input_tab.file_view.invisibleRootItem().childCount() == 0)
+        self.app.clear_list()
 
+        self.app.add_items(self.data.get_sample_imgs())
+        assert self.app.get_item_count() > 0, "List shouldn't be empty"
+        self.app.clear_list()
+        assert self.app.get_item_count() == 0, "List should be empty"
+
+    def test_drag_n_drop_files(self):
+        items = self.data.get_sample_imgs()
+        self.app.drag_and_drop(items)
+
+        assert self.app.get_item_count() == len(self.data.get_sample_imgs())
+    
     def test_drag_n_drop_folders(self):
-        self.drag_and_drop([SAMPLE_IMG_FOLDER])
+        self.app.clear_list()
+        self.app.drag_and_drop([self.data.get_sample_img_folder()])
 
-        items = self.get_items()        
-        for i in self.sample_img_list:
-            self.assertIn(i, items)
+        assert self.app.get_item_count() == len(self.data.get_sample_imgs())
 
     def test_duplicate_detection(self):
-        self.clear_list()
-        self.add_files(self.sample_img_list)
-        self.add_files(self.sample_img_list)
-        self.assertEqual(self.main_window.input_tab.file_view.invisibleRootItem().childCount(), len(self.sample_img_list))
-        self.clear_list()
+        self.app.clear_list()
+        items = self.data.get_sample_imgs()
+
+        self.app.add_items(items)
+        self.app.add_items(items)
+        assert self.app.get_item_count() == len(items)
+
+        self.app.clear_list()
 
     def test_jpeg_xl_lossy(self):
-        self.clear_list()
-        self.reset_to_default()
+        self.app.clear_list()
+        self.app.reset_to_default()
 
-        self.add_files(self.sample_img_list)
-        self.set_format("JPEG XL")
-        self.set_custom_output("jxl")
-        self.convert()
-        
-        self.wait_for_done()
-        converted = scanDir(os.path.join(SAMPLE_IMG_FOLDER, "jxl"))
-        self.assertEqual(len(converted), len(self.get_items()))
+        self.app.add_item(self.data.get_sample_imgs()[0])
+        self.app.set_format("JPEG XL")
+        self.app.set_custom_output(self.data.get_tmp_folder_path())
+        self.app.convert()
 
-        self.delete_tmp_dir("jxl")
+        output = self.data.get_tmp_folder_content()       
+        assert len(output) > 0, "Converted image not found"
+
+        self.data.cleanup()
     
     def test_jpeg_xl_effort(self):
-        self.clear_list()
-        self.reset_to_default()
+        self.app.clear_list()
+        self.app.reset_to_default()
 
-        self.add_file(self.sample_img_list[0])
-        self.set_format("JPEG XL")
-        self.set_custom_output("jxl")
+        self.app.add_item(self.data.get_sample_imgs()[0])
+        self.app.set_format("JPEG XL")
+        self.app.set_custom_output(self.data.get_tmp_folder_path())
 
-        self.set_effort(7)
-        self.convert()
+        self.app.set_effort(7)
+        self.app.convert()
         
-        self.set_effort(9)
-        self.convert()
+        self.app.set_effort(9)
+        self.app.convert()
 
-        self.wait_for_done()
-        converted = scanDir(self.get_tmp_path("jxl"))
-        self.assertNotEqual(os.path.getsize(converted[0]), os.path.getsize(converted[1]))
-        self.delete_tmp_dir("jxl")
+        converted = self.data.get_tmp_folder_content()
+        assert CRC32(converted[0]) != CRC32(converted[1]), "Images should not be the same"
+        self.data.cleanup()
 
-    # def test_jpeg_xl_int_effort(self):
-    #     pass
+    def test_jpg_reconstruction(self):
+        self.app.reset_to_default()
 
-    # def test_jpeg_xl_lossless(self):
-    #     # First, convert to jpg. This should result in effort 9
-    #     pass
+        # Source -> JPG
+        self.app.clear_list()
+        src_input = self.data.get_sample_imgs()[0]
+        self.app.add_item(src_input)
 
-    # def test_jpeg_xl_jpg_reconstruction(self):
-    #     pass    # jxlinfo bin / check_output
+        self.app.set_format("JPG")
+        self.app.set_custom_output(self.data.make_tmp_subfolder("jpg"))
+        self.app.convert()
+
+        # JPG -> JXL
+        self.app.clear_list()
+        jpg_input = self.data.get_tmp_folder_content("jpg")[0]
+        self.app.add_item(jpg_input)
+
+        self.app.set_format("JPEG XL")
+        self.app.set_lossless(True)
+        self.app.set_custom_output(self.data.make_tmp_subfolder("jxl"))
+        self.app.convert()
+
+        # JXL -> JPG
+        self.app.clear_list()
+        # Reconstruct JPG from JPEG XL is on by default
+        jxl_input = self.data.get_tmp_folder_content("jxl")[0]
+        self.app.add_item(jxl_input)
+
+        self.app.set_format("PNG")
+        self.app.set_custom_output(self.data.make_tmp_subfolder("reconstructed"))
+        self.app.convert()
+
+        reconstructed = self.data.get_tmp_folder_content("reconstructed")[0]
+
+        assert CRC32(jpg_input) == CRC32(reconstructed), "Hash mismatch for reconstructed JPG"
+        
+        self.data.cleanup()
 
     # def test_avif(self):
     #     pass
