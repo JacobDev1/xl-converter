@@ -272,9 +272,47 @@ class TestMainWindow(unittest.TestCase):
         
         self.data.cleanup()
 
-    # def test_avif(self):
-    #     pass
+    def test_avif(self): 
+        self.app.reset_to_default()
+        self.app.clear_list()
 
+        self.app.set_format("AVIF")
+        self.app.set_custom_output(self.data.make_tmp_subfolder("avif"))
+        self.app.add_item(self.data.get_sample_imgs()[0])
+        self.app.convert()
+
+        converted = self.data.get_tmp_folder_content()[0]
+        assert Path(converted).suffix == ".avif", "AVIF file not found"
+
+        self.data.cleanup()
+    
+    def test_webp(self): 
+        self.app.reset_to_default()
+        self.app.clear_list()
+
+        self.app.set_format("WEBP")
+        self.app.set_custom_output(self.data.make_tmp_subfolder("webp"))
+        self.app.add_item(self.data.get_sample_imgs()[0])
+        self.app.convert()
+
+        converted = self.data.get_tmp_folder_content()[0]
+        assert Path(converted).suffix == ".webp", "WEBP file not found"
+
+        self.data.cleanup()
+    
+    def test_jpg(self): 
+        self.app.reset_to_default()
+        self.app.clear_list()
+
+        self.app.set_format("JPG")
+        self.app.set_custom_output(self.data.make_tmp_subfolder("jpg"))
+        self.app.add_item(self.data.get_sample_imgs()[0])
+        self.app.convert()
+
+        converted = self.data.get_tmp_folder_content()[0]
+        assert Path(converted).suffix == ".jpg", "JPG file not found"
+
+        self.data.cleanup()
     # def test_proxy(self):
     #     # convert file to jpg -> webp -> jxl -> avif to test proxy
     #     pass
