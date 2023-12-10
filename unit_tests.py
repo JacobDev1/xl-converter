@@ -65,6 +65,7 @@ class Data:
     
     def __init__(self, sample_img_folder, tmp_img_folder):
         self.sample_img_folder = sample_img_folder
+        self.sample_img_folder_content_cached = scan_dir(sample_img_folder)
         self.tmp_img_folder = tmp_img_folder
 
         self.cleanup()
@@ -91,8 +92,11 @@ class Data:
         return path
 
     # Samples Directory
+    def get_sample_img(self):
+        return self.sample_img_folder_content_cached[0]
+
     def get_sample_imgs(self):
-        return scan_dir(self.sample_img_folder)
+        return self.sample_img_folder_content_cached
     
     def get_sample_img_folder(self):
         return self.sample_img_folder
@@ -137,10 +141,20 @@ class Interact:
         self.main_window.settings_tab.resetToDefault()
         self.main_window.output_tab.wm.getWidget("threads_sl").setValue(self.main_window.output_tab.MAX_THREAD_COUNT)   # To speed up testing
 
+    def convert_preset(self, src, dst, format, lossless=False, effort=7):
+        self.clear_list()
+        self.set_format(format)
+        self.set_custom_output(dst)
+        self.add_item(src)
+        self.set_lossless(lossless)
+        self.set_effort(effort)
+        self.convert()
+
     def convert(self):
         self.main_window.convert()
-        
-        # Wait for done
+        self.wait_for_done()
+
+    def wait_for_done(self):
         while True:
             sleep(100)
             if self.main_window.data.getCompletedItemCount() == self.main_window.data.getItemCount():
@@ -165,158 +179,109 @@ class Interact:
 # ---------------------------------------------------------------
 
 class TestMainWindow(unittest.TestCase):
-    def setUp(self):
+    def __init__(self, *args, **kwargs):
+        super(TestMainWindow, self).__init__(*args, **kwargs)
         self.app = Interact(MainWindow())
         self.data = Data(SAMPLE_IMG_FOLDER, TMP_IMG_FOLDER)
+
+    def setUp(self):
+        self.app.reset_to_default()
+        self.app.clear_list()
     
     def tearDown(self):
         self.data.cleanup()
 
     def test_clear_list(self):
-        self.app.clear_list()
-
         self.app.add_items(self.data.get_sample_imgs())
         assert self.app.get_item_count() > 0, "List shouldn't be empty"
         self.app.clear_list()
         assert self.app.get_item_count() == 0, "List should be empty"
 
     def test_drag_n_drop_files(self):
-        items = self.data.get_sample_imgs()
-        self.app.drag_and_drop(items)
-
+        self.app.drag_and_drop(self.data.get_sample_imgs())
         assert self.app.get_item_count() == len(self.data.get_sample_imgs())
     
     def test_drag_n_drop_folders(self):
-        self.app.clear_list()
         self.app.drag_and_drop([self.data.get_sample_img_folder()])
-
         assert self.app.get_item_count() == len(self.data.get_sample_imgs())
 
     def test_duplicate_detection(self):
-        self.app.clear_list()
         items = self.data.get_sample_imgs()
-
         self.app.add_items(items)
         self.app.add_items(items)
         assert self.app.get_item_count() == len(items)
 
-        self.app.clear_list()
-
     def test_jpeg_xl_lossy(self):
-        self.app.clear_list()
-        self.app.reset_to_default()
-
-        self.app.add_item(self.data.get_sample_imgs()[0])
-        self.app.set_format("JPEG XL")
-        self.app.set_custom_output(self.data.get_tmp_folder_path())
-        self.app.convert()
-
-        output = self.data.get_tmp_folder_content()       
-        assert len(output) > 0, "Converted image not found"
-
-        self.data.cleanup()
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPEG XL")
+        assert len(self.data.get_tmp_folder_content() ) > 0, "Converted image not found"
     
     def test_jpeg_xl_effort(self):
-        self.app.clear_list()
-        self.app.reset_to_default()
-
-        self.app.add_item(self.data.get_sample_imgs()[0])
-        self.app.set_format("JPEG XL")
-        self.app.set_custom_output(self.data.get_tmp_folder_path())
-
-        self.app.set_effort(7)
-        self.app.convert()
-        
-        self.app.set_effort(9)
-        self.app.convert()
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPEG XL", effort=7)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPEG XL", effort=9)
 
         converted = self.data.get_tmp_folder_content()
         assert CRC32(converted[0]) != CRC32(converted[1]), "Images should not be the same"
-        self.data.cleanup()
 
     def test_jpg_reconstruction(self):
-        self.app.reset_to_default()
-
         # Source -> JPG
-        self.app.clear_list()
-        src_input = self.data.get_sample_imgs()[0]
-        self.app.add_item(src_input)
-
-        self.app.set_format("JPG")
-        self.app.set_custom_output(self.data.make_tmp_subfolder("jpg"))
-        self.app.convert()
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("jpg"), "JPG")
 
         # JPG -> JXL
-        self.app.clear_list()
-        jpg_input = self.data.get_tmp_folder_content("jpg")[0]
-        self.app.add_item(jpg_input)
-
-        self.app.set_format("JPEG XL")
-        self.app.set_lossless(True)
-        self.app.set_custom_output(self.data.make_tmp_subfolder("jxl"))
-        self.app.convert()
+        self.app.convert_preset(self.data.get_tmp_folder_content("jpg")[0], self.data.make_tmp_subfolder("jxl"), "JPEG XL", lossless=True)
 
         # JXL -> JPG
-        self.app.clear_list()
-        # Reconstruct JPG from JPEG XL is on by default
-        jxl_input = self.data.get_tmp_folder_content("jxl")[0]
-        self.app.add_item(jxl_input)
+        self.app.convert_preset(self.data.get_tmp_folder_content("jxl")[0], self.data.make_tmp_subfolder("reconstructed"), "PNG")
 
-        self.app.set_format("PNG")
-        self.app.set_custom_output(self.data.make_tmp_subfolder("reconstructed"))
-        self.app.convert()
-
-        reconstructed = self.data.get_tmp_folder_content("reconstructed")[0]
-
-        assert CRC32(jpg_input) == CRC32(reconstructed), "Hash mismatch for reconstructed JPG"
-        
-        self.data.cleanup()
+        assert CRC32(self.data.get_tmp_folder_content("jpg")[0]) == CRC32(self.data.get_tmp_folder_content("reconstructed")[0]), "Hash mismatch for reconstructed JPG"
 
     def test_avif(self): 
-        self.app.reset_to_default()
-        self.app.clear_list()
-
-        self.app.set_format("AVIF")
-        self.app.set_custom_output(self.data.make_tmp_subfolder("avif"))
-        self.app.add_item(self.data.get_sample_imgs()[0])
-        self.app.convert()
-
-        converted = self.data.get_tmp_folder_content()[0]
-        assert Path(converted).suffix == ".avif", "AVIF file not found"
-
-        self.data.cleanup()
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("avif"), "AVIF")
+        assert Path(self.data.get_tmp_folder_content()[0]).suffix == ".avif", "AVIF file not found"
     
     def test_webp(self): 
-        self.app.reset_to_default()
-        self.app.clear_list()
-
-        self.app.set_format("WEBP")
-        self.app.set_custom_output(self.data.make_tmp_subfolder("webp"))
-        self.app.add_item(self.data.get_sample_imgs()[0])
-        self.app.convert()
-
-        converted = self.data.get_tmp_folder_content()[0]
-        assert Path(converted).suffix == ".webp", "WEBP file not found"
-
-        self.data.cleanup()
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("webp"), "WEBP")
+        assert Path(self.data.get_tmp_folder_content()[0]).suffix == ".webp", "WEBP file not found"
     
-    def test_jpg(self): 
-        self.app.reset_to_default()
-        self.app.clear_list()
+    def test_jpg(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("jpg"), "JPG")
+        assert Path(self.data.get_tmp_folder_content()[0]).suffix == ".jpg", "JPG file not found"
 
-        self.app.set_format("JPG")
-        self.app.set_custom_output(self.data.make_tmp_subfolder("jpg"))
-        self.app.add_item(self.data.get_sample_imgs()[0])
-        self.app.convert()
+    def test_jpeg_xl_decode(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("jxl"), "JPEG XL")
+        self.app.convert_preset(self.data.get_tmp_folder_content("jxl")[0], self.data.make_tmp_subfolder("jxl_decoded"), "PNG")
+        assert len(self.data.get_tmp_folder_content("jxl_decoded")) > 0, "Decoded JPEG XL file not found"
 
-        converted = self.data.get_tmp_folder_content()[0]
-        assert Path(converted).suffix == ".jpg", "JPG file not found"
+    def test_avif_decode(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("avif"), "AVIF")
+        self.app.convert_preset(self.data.get_tmp_folder_content("avif")[0], self.data.make_tmp_subfolder("avif_decoded"), "PNG")
+        assert len(self.data.get_tmp_folder_content("avif_decoded")) > 0, "Decoded AVIF file not found"
 
-        self.data.cleanup()
-    # def test_proxy(self):
-    #     # convert file to jpg -> webp -> jxl -> avif to test proxy
+    def test_webp_decode(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("webp"), "WEBP")
+        self.app.convert_preset(self.data.get_tmp_folder_content("webp")[0], self.data.make_tmp_subfolder("webp_decoded"), "PNG")
+        assert len(self.data.get_tmp_folder_content("webp_decoded")) > 0, "Decoded WEBP file not found"
+
+    def test_decode_jpg(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("jpg"), "JPG")
+        self.app.convert_preset(self.data.get_tmp_folder_content("jpg")[0], self.data.make_tmp_subfolder("jpg_decoded"), "PNG")
+        assert len(self.data.get_tmp_folder_content("jpg_decoded")) > 0, "Decoded JPG file not found"
+    
+    def test_proxy(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("jpg"), "JPG")
+        assert Path(self.data.get_tmp_folder_content("jpg")[0]).suffix == ".jpg", "JPG file not found"
+
+        self.app.convert_preset(self.data.get_tmp_folder_content("jpg")[0], self.data.make_tmp_subfolder("webp"), "WEBP")
+        assert Path(self.data.get_tmp_folder_content("webp")[0]).suffix == ".webp", "WEBP file not found"
+
+        self.app.convert_preset(self.data.get_tmp_folder_content("webp")[0], self.data.make_tmp_subfolder("jxl"), "JPEG XL")
+        assert Path(self.data.get_tmp_folder_content("jxl")[0]).suffix == ".jxl", "JPEG XL file not found"
+
+        self.app.convert_preset(self.data.get_tmp_folder_content("jxl")[0], self.data.make_tmp_subfolder("avif"), "AVIF")
+        assert Path(self.data.get_tmp_folder_content("avif")[0]).suffix == ".avif", "AVIF file not found"
+
+    # def test_smallest_lossless(self):
     #     pass
-
+    
     # def test_rename(self):
     #     pass
 
@@ -325,6 +290,7 @@ class TestMainWindow(unittest.TestCase):
 
     # def test_skip(self):
     #     pass
+
 
 if __name__ == "__main__":
     unittest.main()
