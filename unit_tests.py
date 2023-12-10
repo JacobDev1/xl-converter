@@ -1,4 +1,4 @@
-import unittest, sys, os, shutil, binascii
+import unittest, sys, shutil, binascii
 from pathlib import Path
 
 from PySide6.QtGui import (
@@ -27,8 +27,8 @@ from PySide6.QtCore import (
 from main import MainWindow
 
 # CONFIG
-SAMPLE_IMG_FOLDER = os.path.abspath(os.path.join(".", "test_img"))
-TMP_IMG_FOLDER = os.path.abspath(os.path.join(".", "unit_tests_tmp"))
+SAMPLE_IMG_FOLDER = Path(".").resolve() / "test_img"
+TMP_IMG_FOLDER = Path(".").resolve() / "unit_tests_tmp"
 app = QApplication(sys.argv)    # It needs to be declared here
 
 # ---------------------------------------------------------------
@@ -38,21 +38,14 @@ app = QApplication(sys.argv)    # It needs to be declared here
 def scan_dir(path):
     items = set()   # No duplicates
     for i in Path(path).rglob("*"):
-        if os.path.isfile(i):
-            items.add(os.path.abspath(i))
+        if i.is_file():
+            items.add(i.resolve())
     return list(items)  # So it can be access by an index
 
 def rmtree(path):
-    path = os.path.normpath(path)
-    if os.path.isdir(path):
+    path = Path(path).resolve()
+    if path.is_dir():
         shutil.rmtree(path)
-
-def mkdirs(path):
-    path = os.path.normpath(path)
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        print(f"[mkdirs] {e}")
 
 def CRC32(path):
     crc32_val = 0
@@ -84,17 +77,17 @@ class Data:
         if path == None:
             return self.tmp_img_folder
         else:
-            return os.path.join(self.tmp_img_folder, path)
+            return Path(self.tmp_img_folder) / path
 
     def get_tmp_folder_content(self, subfolder=None):
         if subfolder:
-            return scan_dir(os.path.join(self.tmp_img_folder, subfolder))
+            return scan_dir(Path(self.tmp_img_folder) / subfolder)
         else:
             return scan_dir(self.tmp_img_folder)
 
     def make_tmp_subfolder(self, name):
-        path = os.path.join(self.tmp_img_folder, name)
-        mkdirs(path)
+        path = Path(self.tmp_img_folder) / name
+        path.mkdir(parents=True)
         return path
 
     # Samples Directory
@@ -132,6 +125,7 @@ class Interact:
 
     def set_custom_output(self, path):
         self.main_window.output_tab.wm.getWidget("choose_output_ct_rb").setChecked(True)
+        path = str(path.resolve())
         self.main_window.output_tab.wm.getWidget("choose_output_ct_le").setText(path)
     
     def set_lossless(self, checked):
