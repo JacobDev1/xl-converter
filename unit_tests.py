@@ -163,6 +163,10 @@ class Interact:
     def set_effort(self, effort):
         self.main_window.output_tab.wm.getWidget("effort_sb").setValue(effort)
     
+    def set_duplicate_handling(self, mode):
+        idx = self.main_window.output_tab.wm.getWidget("duplicates_cmb").findText(mode)
+        self.main_window.output_tab.wm.getWidget("duplicates_cmb").setCurrentIndex(idx)
+    
     def drag_and_drop(self, urls):
         mime_data = QMimeData()
         mime_data.setUrls([QUrl.fromLocalFile(url) for url in urls])
@@ -279,18 +283,27 @@ class TestMainWindow(unittest.TestCase):
         self.app.convert_preset(self.data.get_tmp_folder_content("jxl")[0], self.data.make_tmp_subfolder("avif"), "AVIF")
         assert Path(self.data.get_tmp_folder_content("avif")[0]).suffix == ".avif", "AVIF file not found"
 
-    # def test_smallest_lossless(self):
-    #     pass
+    def test_smallest_lossless(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "Smallest Lossless")
+        assert len(self.data.get_tmp_folder_content()) > 0, "Smallest Lossless did not generate any files"
     
-    # def test_rename(self):
-    #     pass
+    def test_rename(self):
+        self.app.set_duplicate_handling("Rename")
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        assert len(self.data.get_tmp_folder_content()) == 2, "File amount mismatch"
 
-    # def test_replace(self):
-    #     pass
+    def test_replace(self):
+        self.app.set_duplicate_handling("Replace")
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        assert len(self.data.get_tmp_folder_content()) == 1, "File amount mismatch"
 
-    # def test_skip(self):
-    #     pass
-
+    def test_skip(self):
+        self.app.set_duplicate_handling("Skip")
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        assert len(self.data.get_tmp_folder_content()) == 1, "File amount mismatch"
 
 if __name__ == "__main__":
     unittest.main()
