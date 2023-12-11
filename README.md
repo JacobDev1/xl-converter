@@ -3,7 +3,7 @@
 </p>
 <h3 align="center">XL Converter</h3>
 
-Powerful image converter for the latest formats with support for multithreading, dynamic downscaling, drag 'n drop, and intelligent features.
+Powerful image converter for the latest formats with support for multithreading, drag 'n drop, and downscaling.
 
 Available for both Windows and Linux.
 
@@ -28,25 +28,6 @@ Encode to **JPEG XL, AVIF, WEBP, and JPG**.
 More details are in the [documentation](https://xl-converter-docs.codepoems.eu/supported-formats).
 
 ## Features
-### General
-#### Dynamic Downscaling
-
-Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you.
-
-![](misc/screenshots/screenshot_1.png)
-
-Manual downscaling methods are also available.
-
-#### Lossless (Only If Smaller)
-
-Picks the smallest out of two.
-
-#### Smallest Lossless
-
-Utilize multiple formats to get the smallest file size.
-
-![](misc/screenshots/screenshot_2.png)
-
 ### JPEG XL
 
 #### Intelligent Effort
@@ -69,6 +50,21 @@ This speeds up conversion by a lot, especially for JPEG XL.
 Avoid picky encoders. A proxy is generated when an encoder doesn't support a format.
 
 For example, this enables HEIF -> JPEG XL conversion.
+
+### General
+#### Downscaling
+
+Scale down your images to resolution, percent, shortest (and longest) side or file size.
+
+#### Lossless (Only If Smaller)
+
+Picks the smallest out of two.
+
+#### Smallest Lossless
+
+Utilize multiple formats to get the smallest file size.
+
+![](misc/screenshots/screenshot_2.png)
 
 ## Running and Building
 
