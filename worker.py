@@ -21,7 +21,8 @@ from PySide6.QtCore import (
     QRunnable,
     QObject,
     Signal,
-    Slot
+    Slot,
+    QMutexLocker
 )
 
 class Signals(QObject):
@@ -31,7 +32,7 @@ class Signals(QObject):
     exception = Signal(str)
 
 class Worker(QRunnable):
-    def __init__(self, n, item, params, available_threads = 1):
+    def __init__(self, n, item, params, available_threads, mutex):
         super().__init__()
         self.signals = Signals()
         self.params = copy.deepcopy(params)
@@ -43,6 +44,7 @@ class Worker(QRunnable):
         # Threading
         self.n = n  # Thread number
         self.available_threads = available_threads
+        self.mutex = mutex
         
         # Original Item info
         self.item = item    # Original file
@@ -388,23 +390,24 @@ class Worker(QRunnable):
             self.item_abs_path = self.item[3]
         
         # Check for existing files
-        if self.item_ext == "gif" and self.params["format"] == "PNG":
-            pass    # Already handled
-        elif os.path.isfile(output):    # Checking if conversion was successful
-            match self.params["if_file_exists"]:
-                case "Replace":
+        with QMutexLocker(self.mutex):
+            if self.item_ext == "gif" and self.params["format"] == "PNG":
+                pass    # Already handled
+            elif os.path.isfile(output):    # Checking if conversion was successful
+                mode = self.params["if_file_exists"]
+                if mode == "Skip" and self.params["format"] == "Smallest Lossless": # Only for "Smallest Lossless", other cases were handled before
                     if os.path.isfile(final_output):
-                        delete(final_output)
-                    os.rename(output, final_output)
-                case "Rename":
-                    final_output = getUniqueFilePath(output_dir, self.item_name, output_ext, False)
-                    os.rename(output, final_output)
-                case "Skip":    # Only for "Smallest Lossless", other cases were handled before
-                    if self.params["format"] == "Smallest Lossless":
+                        delete(output)
+                    else:
+                        os.rename(output, final_output)
+                else:
+                    if mode == "Replace":
                         if os.path.isfile(final_output):
-                            delete(output)
-                        else:
-                            os.rename(output, final_output)
+                            delete(final_output)
+                    elif mode == "Rename" or mode == "Skip":
+                        final_output = getUniqueFilePath(output_dir, self.item_name, output_ext, False)
+                    
+                    os.rename(output, final_output)
 
         # Post conversion routines
         if os.path.isfile(final_output):    # Checking if renaming was successful

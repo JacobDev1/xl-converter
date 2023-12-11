@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     QThreadPool,
+    QMutex
 )
 
 from PySide6.QtGui import (
@@ -185,9 +186,10 @@ class MainWindow(QMainWindow):
         # Start workers
         task_status.reset()
         self.setUIEnabled(False)
+        mutex = QMutex()
 
-        for i in range(0,self.data.getItemCount()):
-            worker = Worker(i, self.data.getItem(i), params, threads_per_worker)
+        for i in range(0, self.data.getItemCount()):
+            worker = Worker(i, self.data.getItem(i), params, threads_per_worker, mutex)
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
