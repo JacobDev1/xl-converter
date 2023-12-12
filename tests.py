@@ -27,9 +27,10 @@ from PySide6.QtCore import (
 from main import MainWindow
 
 # CONFIG
-SAMPLE_IMG_FOLDER = Path(".").resolve() / "test_img"
+SAMPLE_IMG_FOLDER = Path(".").resolve() / "test_img"    # Put some images in there
+
 TMP_IMG_FOLDER = Path(".").resolve() / "unit_tests_tmp"
-app = QApplication(sys.argv)    # It needs to be declared here
+app = QApplication(sys.argv)
 
 # ---------------------------------------------------------------
 #                           Tools

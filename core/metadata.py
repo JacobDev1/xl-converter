@@ -9,7 +9,7 @@ from variables import (
     AVIFDEC_PATH,
     OXIPNG_PATH
 )
-from process import runProcess, runProcessFromPath
+from core.process import runProcess, runProcessFromPath
 
 def copyAttributes(src, dst):
     """Copy all attributes from one file onto another."""

@@ -1,6 +1,6 @@
 import shutil, os
 
-import task_status
+import data.task_status as task_status
 from variables import (
     CJXL_PATH,
     IMAGE_MAGICK_PATH,
@@ -8,10 +8,10 @@ from variables import (
     ALLOWED_INPUT_IMAGE_MAGICK,
     DOWNSCALE_LOGS
 )
-from utils import delete, clip
-from pathing import getUniqueFilePath
-import metadata
-from convert import convert, getDecoder
+from core.utils import delete, clip
+from core.pathing import getUniqueFilePath
+import core.metadata as metadata
+from core.convert import convert, getDecoder
 
 # ------------------------------------------------------------
 #                           Helper

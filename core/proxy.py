@@ -1,7 +1,7 @@
 from variables import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
-from utils import delete
-from pathing import getUniqueFilePath
-from convert import convert, getDecoder
+from core.utils import delete
+from core.pathing import getUniqueFilePath
+from core.convert import convert, getDecoder
 
 import os
 

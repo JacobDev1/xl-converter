@@ -1,5 +1,5 @@
 from variables import ALLOWED_RESAMPLING
-from widget_manager import WidgetManager
+from .widget_manager import WidgetManager
 
 from PySide6.QtWidgets import(
     QWidget,

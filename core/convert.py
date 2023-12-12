@@ -7,8 +7,8 @@ from variables import (
     JXLINFO_PATH,
     CONVERT_LOGS
 )
-import task_status
-from process import runProcess, runProcessOutput
+import data.task_status as task_status
+from core.process import runProcess, runProcessOutput
 
 def convert(encoder_path, src, dst, args = [], n = None):
     """Universal method for all encoders."""

@@ -1,4 +1,4 @@
-from widget_manager import WidgetManager
+from .widget_manager import WidgetManager
 import os
 
 from PySide6.QtWidgets import(

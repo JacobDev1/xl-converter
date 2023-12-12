@@ -1,4 +1,4 @@
-from utils import removeDuplicates
+from core.utils import removeDuplicates
 import os, platform
 
 VERSION = "0.9.5"

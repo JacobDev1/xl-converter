@@ -6,14 +6,14 @@ from variables import (
     OXIPNG_PATH
 )
 
-from proxy import Proxy
-from utils import delete
-from pathing import getUniqueFilePath, getPathGIF, getExtension
-from conflicts import Conflicts
-import task_status
-import metadata
-from convert import convert, getDecoder, getExtensionJxl, optimize, leaveOnlySmallestFile
-from downscale import downscale, decodeAndDownscale
+from core.proxy import Proxy
+from core.utils import delete
+from core.pathing import getUniqueFilePath, getPathGIF, getExtension
+from core.conflicts import Conflicts
+import data.task_status as task_status
+import core.metadata as metadata
+from core.convert import convert, getDecoder, getExtensionJxl, optimize, leaveOnlySmallestFile
+from core.downscale import downscale, decodeAndDownscale
 
 import os, subprocess, shutil, copy
 

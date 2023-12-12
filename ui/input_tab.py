@@ -1,8 +1,8 @@
-from file_view import *
+from .file_view import FileView
 from variables import ALLOWED_INPUT
-from utils import scanDir, listToFilter
-from pathing import stripPathToFilename
-from notifications import Notifications
+from core.utils import scanDir, listToFilter
+from core.pathing import stripPathToFilename
+from .notifications import Notifications
 
 from PySide6.QtWidgets import(
     QWidget,

@@ -30,7 +30,7 @@ src-min: clean
 
 test:
 ifdef n
-	python3 -m unittest unit_tests.TestMainWindow.$(n)
+	python3 -m unittest tests.TestMainWindow.$(n)
 else
-	python3 unit_tests.py
+	python3 tests.py
 endif
