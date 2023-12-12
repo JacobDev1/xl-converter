@@ -29,6 +29,8 @@ class WidgetManager():
 
         for tag in tags:
             self.addTag(tag, _id)
+        
+        return widget
     
     def getWidget(self, _id: str):
         if _id in self.widgets:
