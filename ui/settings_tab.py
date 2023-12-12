@@ -46,6 +46,9 @@ class SettingsTab(QWidget):
 
         self.wm.addWidget("disable_downscaling_startup_cb", QCheckBox("Disable Downscaling on Startup"))
         gen_grp_lt.addWidget(self.wm.getWidget("disable_downscaling_startup_cb"))
+        
+        self.wm.addWidget("disable_delete_startup_cb", QCheckBox("Disable Delete Original on Startup"))
+        gen_grp_lt.addWidget(self.wm.getWidget("disable_delete_startup_cb"))
 
         self.wm.addWidget("no_exceptions_cb", QCheckBox("Disable Exception Popups"))
         gen_grp_lt.addWidget(self.wm.getWidget("no_exceptions_cb"))
@@ -117,6 +120,7 @@ class SettingsTab(QWidget):
             "custom_resampling": self.wm.getWidget("custom_resampling_cb").isChecked(),
             "sorting_disabled": self.wm.getWidget("no_sorting_cb").isChecked(),
             "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked(),
+            "disable_delete_startup": self.wm.getWidget("disable_delete_startup_cb").isChecked(),
             "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked(),
         }
     
@@ -127,3 +131,4 @@ class SettingsTab(QWidget):
         
         self.wm.getWidget("custom_resampling_cb").setChecked(False)
         self.wm.getWidget("disable_downscaling_startup_cb").setChecked(True)
+        self.wm.getWidget("disable_delete_startup_cb").setChecked(True)

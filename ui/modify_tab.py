@@ -238,6 +238,7 @@ class ModifyTab(QWidget):
         self.onModeChanged()
         self.toggleFastMode()
 
+        # Apply Settings
         if settings["disable_downscaling_startup"]:
             self.disableDownscaling()
         self.toggleCustomResampling(settings["custom_resampling"])

@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         self.settings_tab.signals.load_file_list.connect(self.input_tab.loadFileList)
         self.input_tab.convert.connect(self.convert)
 
-        self.output_tab = OutputTab(self.threadpool.maxThreadCount())
+        self.output_tab = OutputTab(self.threadpool.maxThreadCount(), settings)
         self.output_tab.convert.connect(self.convert)
 
         self.modify_tab = ModifyTab(settings)

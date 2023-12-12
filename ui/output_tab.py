@@ -27,7 +27,7 @@ from PySide6.QtCore import(
 class OutputTab(QWidget):
     convert = Signal()
     
-    def __init__(self, max_threads):
+    def __init__(self, max_threads, settings):
         super(OutputTab, self).__init__()
 
         self.wm = WidgetManager("OutputTab")
@@ -207,6 +207,10 @@ class OutputTab(QWidget):
         # Misc
         self.resetToDefault()
         self.wm.loadState()
+
+        # Apply Settings
+        if settings["disable_delete_startup"]:
+            self.wm.getWidget("delete_original_cb").setChecked(False)
 
         # Setup widgets' states
         self.onFormatChange()
