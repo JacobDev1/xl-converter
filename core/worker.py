@@ -109,8 +109,11 @@ class Worker(QRunnable):
         output_ext = getExtension(self.params["format"])
         if self.params["format"] == "PNG" and self.item_ext == "jxl" and self.params["reconstruct_jpg"]:
             output_ext = getExtensionJxl(self.item_abs_path)  # Reverse JPG reconstruction
-        output = getUniqueFilePath(output_dir, self.item_name, output_ext, True)   # Initial (temporary) destination
-        final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")               # Final destination. File from "output" will be renamed to it after conversion to prevent naming collisions
+        
+        output = None
+        with QMutexLocker(self.mutex):
+            output = getUniqueFilePath(output_dir, self.item_name, output_ext, True)        # Initial output
+        final_output = os.path.join(output_dir, f"{self.item_name}.{output_ext}")           # After conversion: output -> final_output 
 
         # If file exists - for decoding GIF only
         if self.item_ext == "gif" and self.params["format"] == "PNG":
@@ -311,9 +314,10 @@ class Worker(QRunnable):
 
             # Populate path pool
             path_pool = {}
-            for key in self.params["smallest_format_pool"]:     # Iterate through formats ("png", "webp", "jxl")
-                if self.params["smallest_format_pool"][key]:    # If format enabled
-                    path_pool[key] = getUniqueFilePath(output_dir, self.item_name, key, True) # Add format
+            with QMutexLocker(self.mutex):
+                for key in self.params["smallest_format_pool"]:     # Iterate through formats ("png", "webp", "jxl")
+                    if self.params["smallest_format_pool"][key]:    # If format enabled
+                        path_pool[key] = getUniqueFilePath(output_dir, self.item_name, key, True) # Add format
 
             # Check if no formats selected
             if len(path_pool) == 0:
@@ -360,8 +364,15 @@ class Worker(QRunnable):
 
             # Get file sizes
             file_sizes = {}
-            for key in path_pool:
-                file_sizes[key] = os.path.getsize(path_pool[key])
+            try:
+                for key in path_pool:
+                    file_sizes[key] = os.path.getsize(path_pool[key])
+            except OSError as err:
+                # Clean-up and exit
+                for key in path_pool:
+                    delete(path_pool[key])
+                self.exception("Generating formats failed")
+                self.signals.completed.emit(self.n)
 
             # Get smallest item
             sm_f_key = None # Smallest format key
