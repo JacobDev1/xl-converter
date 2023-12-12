@@ -58,7 +58,10 @@ def leaveOnlySmallestFile(paths: [], new_path):
     # Clean-up and rename
     for i in range(item_count):
         if i != smallest_format_index:
-            os.remove(paths[i])
+            try:
+                os.remove(paths[i])
+            except OSError as e:
+                self.log("[Convert - leaveOnlySmallestFile()] Deleting file failed")
         else:
             if paths[i] != new_path:
                 os.rename(paths[i], new_path)
