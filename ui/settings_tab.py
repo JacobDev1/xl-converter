@@ -40,42 +40,44 @@ class SettingsTab(QWidget):
         gen_grp_lt = QVBoxLayout()
         gen_grp.setLayout(gen_grp_lt)
 
-        self.wm.addWidget("dark_theme_cb", QCheckBox("Dark Theme"))
-        self.wm.getWidget("dark_theme_cb").toggled.connect(self.toggleTheme)
-        gen_grp_lt.addWidget(self.wm.getWidget("dark_theme_cb"))
+        self.dark_theme_cb = self.wm.addWidget("dark_theme_cb", QCheckBox("Dark Theme"))
+        self.dark_theme_cb.toggled.connect(self.setDarkModeEnabled)
+        gen_grp_lt.addWidget(self.dark_theme_cb)
 
-        self.wm.addWidget("disable_downscaling_startup_cb", QCheckBox("Disable Downscaling on Startup"))
-        gen_grp_lt.addWidget(self.wm.getWidget("disable_downscaling_startup_cb"))
+        self.disable_downscaling_startup_cb = self.wm.addWidget("disable_downscaling_startup_cb", QCheckBox("Disable Downscaling on Startup"))
+        gen_grp_lt.addWidget(self.disable_downscaling_startup_cb)
         
-        self.wm.addWidget("disable_delete_startup_cb", QCheckBox("Disable Delete Original on Startup"))
-        gen_grp_lt.addWidget(self.wm.getWidget("disable_delete_startup_cb"))
+        self.disable_delete_startup_cb = self.wm.addWidget("disable_delete_startup_cb", QCheckBox("Disable Delete Original on Startup"))
+        gen_grp_lt.addWidget(self.disable_delete_startup_cb)
 
-        self.wm.addWidget("no_exceptions_cb", QCheckBox("Disable Exception Popups"))
-        gen_grp_lt.addWidget(self.wm.getWidget("no_exceptions_cb"))
+        self.no_exceptions_cb = self.wm.addWidget("no_exceptions_cb", QCheckBox("Disable Exception Popups"))
+        gen_grp_lt.addWidget(self.no_exceptions_cb)
 
-        self.wm.addWidget("no_sorting_cb", QCheckBox("Input - Disable Sorting"))
-        self.wm.getWidget("no_sorting_cb").toggled.connect(self.signals.disable_sorting)
-        gen_grp_lt.addWidget(self.wm.getWidget("no_sorting_cb"))
+        self.no_sorting_cb = self.wm.addWidget("no_sorting_cb", QCheckBox("Input - Disable Sorting"))
+        self.no_sorting_cb.toggled.connect(self.signals.disable_sorting)
+        gen_grp_lt.addWidget(self.no_sorting_cb)
 
         # Conversion group
         conv_grp = QGroupBox("Conversion")
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
-        self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
-        self.wm.getWidget("custom_resampling_cb").toggled.connect(self.signals.custom_resampling.emit)
-        conv_grp_lt.addWidget(self.wm.getWidget("custom_resampling_cb"))
+        self.custom_resampling_cb = self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
+        self.custom_resampling_cb.toggled.connect(self.signals.custom_resampling.emit)
+        conv_grp_lt.addWidget(self.custom_resampling_cb)
 
         # File List
         file_list_hbox = QHBoxLayout()
-        self.wm.addWidget("file_list_l", QLabel("File List"))
-        self.wm.addWidget("file_list_save_btn", QPushButton("Save"))
-        self.wm.getWidget("file_list_save_btn").clicked.connect(self.signals.save_file_list)
-        self.wm.addWidget("file_list_load_btn", QPushButton("Load"))
-        self.wm.getWidget("file_list_load_btn").clicked.connect(self.signals.load_file_list)
-        file_list_hbox.addWidget(self.wm.getWidget("file_list_l"))
-        file_list_hbox.addWidget(self.wm.getWidget("file_list_save_btn"))
-        file_list_hbox.addWidget(self.wm.getWidget("file_list_load_btn"))
+        self.file_list_l = QLabel("File List")
+        self.file_list_save_btn = QPushButton("Save")
+        self.file_list_load_btn = QPushButton("Load")
+
+        self.file_list_save_btn.clicked.connect(self.signals.save_file_list)
+        self.file_list_load_btn.clicked.connect(self.signals.load_file_list)
+
+        file_list_hbox.addWidget(self.file_list_l)
+        file_list_hbox.addWidget(self.file_list_save_btn)
+        file_list_hbox.addWidget(self.file_list_load_btn)
         conv_grp_lt.addLayout(file_list_hbox)
 
         # logs_hbox = QHBoxLayout()
@@ -88,9 +90,10 @@ class SettingsTab(QWidget):
         # gen_grp_lt.addLayout(logs_hbox)
 
         # Bottom
-        self.wm.addWidget("restore_defaults_btn", QPushButton("Reset to Default"))
-        self.wm.getWidget("restore_defaults_btn").clicked.connect(self.resetToDefault)
-        tab_lt.addWidget(self.wm.getWidget("restore_defaults_btn"),1,0,1,0)
+        self.restore_defaults_btn = QPushButton("Reset to Default")
+        # self.wm.addWidget("restore_defaults_btn", QPushButton("Reset to Default"))
+        self.restore_defaults_btn.clicked.connect(self.resetToDefault)
+        tab_lt.addWidget(self.restore_defaults_btn,1,0,1,0)
 
         # Size Policy
         tab_lt.setAlignment(Qt.AlignTop)
@@ -108,8 +111,11 @@ class SettingsTab(QWidget):
         # Misc.
         self.resetToDefault()
         self.wm.loadState()
+
+        # Apply Settings
+        self.setDarkModeEnabled(self.dark_theme_cb.isChecked())
     
-    def toggleTheme(self, enabled):
+    def setDarkModeEnabled(self, enabled):
         if enabled:
             setTheme("dark")
         else:
@@ -117,18 +123,19 @@ class SettingsTab(QWidget):
 
     def getSettings(self):
         return {
-            "custom_resampling": self.wm.getWidget("custom_resampling_cb").isChecked(),
-            "sorting_disabled": self.wm.getWidget("no_sorting_cb").isChecked(),
-            "disable_downscaling_startup": self.wm.getWidget("disable_downscaling_startup_cb").isChecked(),
-            "disable_delete_startup": self.wm.getWidget("disable_delete_startup_cb").isChecked(),
-            "no_exceptions": self.wm.getWidget("no_exceptions_cb").isChecked(),
+            "custom_resampling": self.custom_resampling_cb.isChecked(),
+            "sorting_disabled": self.no_sorting_cb.isChecked(),
+            "disable_downscaling_startup": self.disable_downscaling_startup_cb.isChecked(),
+            "disable_delete_startup": self.disable_delete_startup_cb.isChecked(),
+            "no_exceptions": self.no_exceptions_cb.isChecked(),
         }
     
     def resetToDefault(self):
-        self.wm.getWidget("dark_theme_cb").setChecked(True)
+        self.dark_theme_cb.setChecked(True)
         # self.wm.getWidget("logs_cb").setChecked(False)
-        self.wm.getWidget("no_sorting_cb").setChecked(False)
+        self.no_sorting_cb.setChecked(False)
         
-        self.wm.getWidget("custom_resampling_cb").setChecked(False)
-        self.wm.getWidget("disable_downscaling_startup_cb").setChecked(True)
-        self.wm.getWidget("disable_delete_startup_cb").setChecked(True)
+        self.custom_resampling_cb.setChecked(False)
+        self.disable_downscaling_startup_cb.setChecked(True)
+        self.disable_delete_startup_cb.setChecked(True)
+        self.no_exceptions_cb.setChecked(False)
