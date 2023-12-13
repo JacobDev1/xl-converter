@@ -185,12 +185,9 @@ class Interact:
 # ---------------------------------------------------------------
 
 class TestMainWindow(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(TestMainWindow, self).__init__(*args, **kwargs)
+    def setUp(self):
         self.app = Interact(MainWindow())
         self.data = Data(SAMPLE_IMG_FOLDER, TMP_IMG_FOLDER)
-
-    def setUp(self):
         self.app.reset_to_default()
         self.app.clear_list()
     
