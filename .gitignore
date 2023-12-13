@@ -1,4 +1,4 @@
-private_files/
+private_files
 build
 dist
 .vscode
@@ -6,3 +6,4 @@ __pycache__
 tmp.py
 env
 test_img
+unit_tests_tmp
