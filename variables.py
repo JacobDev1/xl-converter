@@ -44,28 +44,34 @@ ALLOWED_RESAMPLING = ("Lanczos", "Point", "Box", "Cubic", "Hermite", "Gaussian",
 
 
 if platform.system() == "Windows":
-    CJXL_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "cjxl.exe")
-    DJXL_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "djxl.exe")
-    JXLINFO_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "jxlinfo.exe")
-    IMAGE_MAGICK_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "magick.exe")
-    AVIFENC_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "avifenc.exe")
-    AVIFDEC_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "avifdec.exe")
-    OXIPNG_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "oxipng.exe")
-    EXIFTOOL_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win", "exiftool.exe")
-    EXIFTOOL_FOLDER_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win")
+    BASE_PATH = os.path.join(PROGRAM_FOLDER, "bin", "win")
+
+    CJXL_PATH = os.path.join(BASE_PATH, "cjxl.exe")
+    DJXL_PATH = os.path.join(BASE_PATH, "djxl.exe")
+    JXLINFO_PATH = os.path.join(BASE_PATH, "jxlinfo.exe")
+    IMAGE_MAGICK_PATH = os.path.join(BASE_PATH, "magick.exe")
+    AVIFENC_PATH = os.path.join(BASE_PATH, "avifenc.exe")
+    AVIFDEC_PATH = os.path.join(BASE_PATH, "avifdec.exe")
+    OXIPNG_PATH = os.path.join(BASE_PATH, "oxipng.exe")
+
+    EXIFTOOL_PATH = os.path.join(BASE_PATH, "exiftool.exe")
+    EXIFTOOL_FOLDER_PATH = BASE_PATH
     EXIFTOOL_BIN_NAME = "exiftool.exe"
 
     CONFIG_LOCATION = os.path.normpath(os.path.expanduser("~/AppData/Local/xl-converter"))
 elif platform.system() == "Linux":
-    CJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/cjxl"
-    DJXL_PATH = f"{PROGRAM_FOLDER}/bin/linux/djxl"
-    JXLINFO_PATH = f"{PROGRAM_FOLDER}/bin/linux/jxlinfo"
-    IMAGE_MAGICK_PATH = f"{PROGRAM_FOLDER}/bin/linux/magick"
-    AVIFENC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifenc"
-    AVIFDEC_PATH = f"{PROGRAM_FOLDER}/bin/linux/avifdec"
-    OXIPNG_PATH = f"{PROGRAM_FOLDER}/bin/linux/oxipng"
-    EXIFTOOL_PATH = f"{PROGRAM_FOLDER}/bin/linux/exiftool/exiftool"
-    EXIFTOOL_FOLDER_PATH = f"{PROGRAM_FOLDER}/bin/linux/exiftool"
+    BASE_PATH = f"{PROGRAM_FOLDER}/bin/linux"
+
+    CJXL_PATH = f"{BASE_PATH}/cjxl"
+    DJXL_PATH = f"{BASE_PATH}/djxl"
+    JXLINFO_PATH = f"{BASE_PATH}/jxlinfo"
+    IMAGE_MAGICK_PATH = f"{BASE_PATH}/magick"
+    AVIFENC_PATH = f"{BASE_PATH}/avifenc"
+    AVIFDEC_PATH = f"{BASE_PATH}/avifdec"
+    OXIPNG_PATH = f"{BASE_PATH}/oxipng"
+
+    EXIFTOOL_PATH = f"{BASE_PATH}/exiftool/exiftool"
+    EXIFTOOL_FOLDER_PATH = f"{BASE_PATH}/exiftool"
     EXIFTOOL_BIN_NAME = "exiftool"
 
     CONFIG_LOCATION = os.path.expanduser('~/.config/xl-converter')
