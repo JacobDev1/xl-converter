@@ -25,6 +25,7 @@ from PySide6.QtCore import (
 )
 
 from main import MainWindow
+from variables import *
 
 # CONFIG
 SAMPLE_IMG_FOLDER = Path(".").resolve() / "test_img"    # Put some images in there
@@ -195,6 +196,32 @@ class TestMainWindow(unittest.TestCase):
     
     def tearDown(self):
         self.data.cleanup()
+
+    def test_dependencies(self):
+        FILES = (
+            ICON_SVG,
+            LICENSE_PATH,
+            LICENSE_3RD_PARTY_PATH,
+            CJXL_PATH,
+            DJXL_PATH,
+            JXLINFO_PATH,
+            IMAGE_MAGICK_PATH,
+            AVIFENC_PATH,
+            AVIFDEC_PATH,
+            OXIPNG_PATH,
+            EXIFTOOL_PATH,
+            Path(EXIFTOOL_FOLDER_PATH) / EXIFTOOL_BIN_NAME,
+        )
+
+        DIRS = (
+            EXIFTOOL_FOLDER_PATH,   # Trailing comma is very important here
+        )
+
+        for i in FILES:
+            assert Path(i).is_file(), f"File not found ({i})"
+
+        for i in DIRS:
+            assert Path(i).is_dir(), f"Dir not found ({i})"
 
     def test_clear_list(self):
         self.app.add_items(self.data.get_sample_imgs())
