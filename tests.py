@@ -62,6 +62,18 @@ def CRC32(path):
 def sleep(ms):
     QTest.qWait(ms)
 
+def test_dict(data):
+    """Recursively verify dictionary's integrity"""
+    for key, value in data.items():
+        if isinstance(value, dict):
+            if test_dict(value) is None:
+                return False
+        else:
+            if value is None:
+                return False
+    
+    return True
+
 class Data:
     """Sample data and tmp folder management system."""
     
@@ -330,5 +342,13 @@ class TestMainWindow(unittest.TestCase):
         self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
         assert len(self.data.get_tmp_folder_content()) == 1, "File amount mismatch"
 
+    def test_get_settings(self):
+        settings = self.app.main_window.settings_tab.getSettings()
+        output = self.app.main_window.output_tab.getSettings()
+        modify = self.app.main_window.modify_tab.getSettings()
+
+        assert test_dict(output), "output_tab.getSettings contains None"
+        assert test_dict(modify), "modify_tab.getSettings contains None"
+        assert test_dict(settings), "settings.getSettings contains None"
 if __name__ == "__main__":
     unittest.main()
