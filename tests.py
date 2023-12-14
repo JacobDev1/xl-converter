@@ -1,5 +1,6 @@
 import unittest, sys, shutil, binascii
 from pathlib import Path
+import requests
 
 from PySide6.QtGui import (
     QDragEnterEvent,
@@ -28,7 +29,7 @@ from main import MainWindow
 from variables import *
 
 # CONFIG
-SAMPLE_IMG_FOLDER = Path(".").resolve() / "test_img"    # Put some images in there
+SAMPLE_IMG_FOLDER = Path(".").resolve() / "test_img"    # Put some images in there, cannot have 1:1 aspect ratio
 
 TMP_IMG_FOLDER = Path(".").resolve() / "unit_tests_tmp"
 app = QApplication(sys.argv)
@@ -62,6 +63,13 @@ def CRC32(path):
 def sleep(ms):
     QTest.qWait(ms)
 
+def cmb_set_text(cmb, text):
+    idx = cmb.findText(text)
+    if idx != -1:
+        cmb.setCurrentIndex(idx)
+    else:
+        print(f"[Error - cmb_set_text()] Could not find \"{text}\"")
+    
 def test_dict(data):
     """Recursively verify dictionary's integrity"""
     for key, value in data.items():
@@ -137,10 +145,6 @@ class Interact:
     def clear_list(self):
         self.main_window.input_tab.clearInput()
 
-    def set_format(self, _format):
-        idx = self.main_window.output_tab.wm.getWidget("format_cmb").findText(_format)
-        self.main_window.output_tab.wm.getWidget("format_cmb").setCurrentIndex(idx)
-
     def set_custom_output(self, path):
         self.main_window.output_tab.wm.getWidget("choose_output_ct_rb").setChecked(True)
         path = str(path.resolve())
@@ -175,12 +179,14 @@ class Interact:
                 break
 
     def set_effort(self, effort):
-        self.main_window.output_tab.wm.getWidget("effort_sb").setValue(effort)
+        self.main_window.output_tab.effort_sb.setValue(effort)
     
     def set_duplicate_handling(self, mode):
-        idx = self.main_window.output_tab.wm.getWidget("duplicates_cmb").findText(mode)
-        self.main_window.output_tab.wm.getWidget("duplicates_cmb").setCurrentIndex(idx)
+        cmb_set_text(self.main_window.output_tab.duplicates_cmb, mode)
     
+    def set_format(self, _format):
+        cmb_set_text(self.main_window.output_tab.format_cmb, _format)
+
     def set_preserve_attributes(self, enabled):
         self.main_window.modify_tab.date_time_cb.setChecked(enabled)
     
@@ -205,13 +211,36 @@ class Interact:
                 return self.main_window.settings_tab.getSettings()
     
     def set_metadata_mode(self, mode):
-        idx = self.main_window.modify_tab.metadata_cmb.findText(mode)
-        self.main_window.modify_tab.metadata_cmb.setCurrentIndex(idx)
+        cmb_set_text(self.main_window.modify_tab.metadata_cmb, mode)
     
-    def set_downscaling_mode(self, mode):
-        idx = self.main_window.modify_tab.mode_cmb.findText(mode)
-        self.main_window.modify_tab.mode_cmb.setCurrentIndex(idx)
+    def set_downscaling_mode(self,
+            mode,
+            width=None,
+            height=None,
+            percent=None,
+            shortest=None,
+            longest=None,
+            file_size=None,
+            file_size_step_auto=None
+        ):
 
+        self.main_window.modify_tab.downscale_cb.setChecked(True)
+        cmb_set_text(self.main_window.modify_tab.mode_cmb, mode)
+
+        def set_value(widget, value):
+            if value is not None:
+                widget.setValue(value)
+        
+        set_value(self.main_window.modify_tab.pixel_w_sb, width)
+        set_value(self.main_window.modify_tab.pixel_h_sb, height)
+        set_value(self.main_window.modify_tab.percent_sb, percent)
+        set_value(self.main_window.modify_tab.shortest_sb, shortest)
+        set_value(self.main_window.modify_tab.longest_sb, longest)
+        set_value(self.main_window.modify_tab.file_size_sb, file_size)
+
+        if file_size_step_auto != None:
+            self.main_window.modify_tab.file_size_step_fast_cb.setChecked(file_size_step_auto)
+        
 # ---------------------------------------------------------------
 #                         Unit Tests
 # ---------------------------------------------------------------
@@ -385,6 +414,75 @@ class TestMainWindow(unittest.TestCase):
 
         files = self.data.get_tmp_folder_content()
         assert files[0].stat().st_size != files[1].stat().st_size, "No change detected"
+
+    def test_downscaling_resolution(self):
+        self.app.set_downscaling_mode("Resolution", width = 100, height = 2000)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.set_downscaling_mode("Resolution", width = 2000, height = 100)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+
+        converted = self.data.get_tmp_folder_content()
+        assert converted[0].stat().st_size != converted[1].stat().st_size, "No change detected"
+
+    def test_downscaling_percent(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.set_downscaling_mode("Percent", percent=50)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+
+        converted = self.data.get_tmp_folder_content()
+        assert converted[0].stat().st_size != converted[1].stat().st_size, "No change detected"
+    
+    def test_downscaling_shortest(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.set_downscaling_mode("Shortest Side", shortest=1)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+
+        converted = self.data.get_tmp_folder_content()
+        assert converted[0].stat().st_size != converted[1].stat().st_size, "No change detected"
+
+    def test_downscaling_longest(self):
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.set_downscaling_mode("Longest Side", longest=1)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+
+        converted = self.data.get_tmp_folder_content()
+        assert converted[0].stat().st_size != converted[1].stat().st_size, "No change detected"
+
+    def test_downscaling_file_size_auto(self):
+        self.app.set_downscaling_mode("File Size", file_size_step_auto=True, file_size=50)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+
+        downscaled = self.data.get_tmp_folder_content()[0]
+
+        assert 45 * 1024 < downscaled.stat().st_size < 55 * 1024, "File size outside of expected range"   # Fault tolerance of 10% is baked in the auto method
+    
+    def test_downscaling_file_size(self):
+        self.app.set_downscaling_mode("File Size", file_size_step_auto=False, file_size=50)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+
+        downscaled = self.data.get_tmp_folder_content()[0]
+
+        assert downscaled.stat().st_size < 50 * 1024, "File size is larger than expected"
+
+    def test_update_file(self):
+        try:
+            response = requests.get(VERSION_FILE_URL)
+        except requests.ConnectionError as err:
+            assert True, "Couldn't connect to the server"
+
+        assert response.status_code == 200, f"Retrieving file failed ({response.status_code})"
+        assert response.status_code != 404, "Update file not found on the server"
+
+        parsed_json = None
+        try:
+            parsed_json = response.json()
+        except:
+            assert False, "Failed to parse JSON"
+
+        assert "latest_version" in parsed_json 
+        assert "download_url" in parsed_json 
+        assert "message" in parsed_json 
+        assert "message_url" in parsed_json 
 
 if __name__ == "__main__":
     unittest.main()
