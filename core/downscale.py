@@ -231,7 +231,7 @@ def _downscaleManualModes(params):
     match params["mode"]:
         case "Percent":
             args.append(f"-resize {params['percent']}%")
-        case "Max Resolution":
+        case "Resolution":
             args.append(f"-resize {params['width']}x{params['height']}")
         case "Shortest Side":
             args.append(f"-resize \"{params['shortest_side']}x{params['shortest_side']}^>\"")
@@ -307,7 +307,7 @@ def downscale(params):
         "name" - item name
         "args" - encoder arguments
 
-        Max File Size
+        File Size
         "step" - takes % (e.g. 10%). Keep between 5% - 20%
         "max_size" - desired size - takes KiB (e.g. 500 KiB)
 
@@ -325,12 +325,12 @@ def downscale(params):
     if task_status.wasCanceled():
         return False
     
-    if params["mode"] == "Max File Size":
+    if params["mode"] == "File Size":
         if params["step_fast"]:
             _downscaleToFileSizeStepAuto(params)
         else:
             _downscaleToMaxFileSize(params)
-    elif params["mode"] in ("Percent", "Max Resolution", "Shortest Side", "Longest Side"):
+    elif params["mode"] in ("Percent", "Resolution", "Shortest Side", "Longest Side"):
         _downscaleManualModes(params)
     else:
         log(f"[Error] Downscaling mode not recognized ({params['mode']})", params["n"])

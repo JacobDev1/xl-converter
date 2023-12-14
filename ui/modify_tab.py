@@ -50,11 +50,11 @@ class ModifyTab(QWidget):
 
         self.mode_cmb = self.wm.addWidget("mode_cmb", QComboBox())
         self.mode_cmb.addItems((
-            "Max Resolution",
+            "Resolution",
             "Percent",
             "Shortest Side",
             "Longest Side",
-            "Max File Size",
+            "File Size",
             ))
         self.mode_cmb.currentIndexChanged.connect(self.onModeChanged)
 
@@ -75,7 +75,7 @@ class ModifyTab(QWidget):
         percent_hb.addWidget(self.percent_sb)
         self.downscaling_lt.addLayout(percent_hb)
 
-        # Max Resolution - Width
+        # Resolution - Width
         pixel_w_hb = QHBoxLayout()
         self.pixel_w_l = self.wm.addWidget("pixel_w_l", QLabel("Max Width"))
         self.pixel_w_sb = self.wm.addWidget("pixel_w_sb", QSpinBox())
@@ -87,7 +87,7 @@ class ModifyTab(QWidget):
         pixel_w_hb.addWidget(self.pixel_w_sb)
         self.downscaling_lt.addLayout(pixel_w_hb)
         
-        # Max Resolution - Height
+        # Resolution - Height
         pixel_h_hb = QHBoxLayout()
         self.pixel_h_l = self.wm.addWidget("pixel_h_l", QLabel("Max Height"))
         self.pixel_h_sb = self.wm.addWidget("pixel_h_sb", QSpinBox())
@@ -101,7 +101,7 @@ class ModifyTab(QWidget):
 
         # File Size
         file_size_hb = QHBoxLayout()
-        self.file_size_l = self.wm.addWidget("file_size_l", QLabel("Max File Size"))
+        self.file_size_l = self.wm.addWidget("file_size_l", QLabel("File Size"))
         self.file_size_sb = self.wm.addWidget("file_size_sb", QSpinBox())
 
         self.file_size_sb.setRange(1, MAX_FILE_SIZE)
@@ -282,8 +282,8 @@ class ModifyTab(QWidget):
     def onModeChanged(self):
         index = self.mode_cmb.currentText()
         self.wm.setVisibleByTag("percent", index == "Percent")
-        self.wm.setVisibleByTag("pixel", index == "Max Resolution")
-        self.wm.setVisibleByTag("file_size", index == "Max File Size")
+        self.wm.setVisibleByTag("pixel", index == "Resolution")
+        self.wm.setVisibleByTag("file_size", index == "File Size")
         self.wm.setVisibleByTag("shortest", index == "Shortest Side")
         self.wm.setVisibleByTag("longest", index == "Longest Side")
     
