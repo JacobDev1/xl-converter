@@ -181,6 +181,9 @@ class Interact:
         idx = self.main_window.output_tab.wm.getWidget("duplicates_cmb").findText(mode)
         self.main_window.output_tab.wm.getWidget("duplicates_cmb").setCurrentIndex(idx)
     
+    def set_preserve_attributes(self, enabled):
+        self.main_window.modify_tab.date_time_cb.setChecked(enabled)
+    
     def drag_and_drop(self, urls):
         mime_data = QMimeData()
         mime_data.setUrls([QUrl.fromLocalFile(url) for url in urls])
@@ -191,6 +194,23 @@ class Interact:
         self.main_window.dropEvent(drop_event)
         QTest.mouseRelease(self.main_window, Qt.LeftButton, pos=QPoint(), delay=100)
         QTest.qWait(100)
+    
+    def get_settings(self, tab):
+        match tab:
+            case "output_tab":
+                return self.main_window.output_tab.getSettings()
+            case "modify_tab":
+                return self.main_window.modify_tab.getSettings()
+            case "settings_tab":
+                return self.main_window.settings_tab.getSettings()
+    
+    def set_metadata_mode(self, mode):
+        idx = self.main_window.modify_tab.metadata_cmb.findText(mode)
+        self.main_window.modify_tab.metadata_cmb.setCurrentIndex(idx)
+    
+    def set_downscaling_mode(self, mode):
+        idx = self.main_window.modify_tab.mode_cmb.findText(mode)
+        self.main_window.modify_tab.mode_cmb.setCurrentIndex(idx)
 
 # ---------------------------------------------------------------
 #                         Unit Tests
@@ -343,12 +363,28 @@ class TestMainWindow(unittest.TestCase):
         assert len(self.data.get_tmp_folder_content()) == 1, "File amount mismatch"
 
     def test_get_settings(self):
-        settings = self.app.main_window.settings_tab.getSettings()
-        output = self.app.main_window.output_tab.getSettings()
-        modify = self.app.main_window.modify_tab.getSettings()
+        assert test_dict(self.app.get_settings("output_tab")), "output_tab.getSettings contains None"
+        assert test_dict(self.app.get_settings("modify_tab")), "modify_tab.getSettings contains None"
+        assert test_dict(self.app.get_settings("settings_tab")), "settings.getSettings contains None"
 
-        assert test_dict(output), "output_tab.getSettings contains None"
-        assert test_dict(modify), "modify_tab.getSettings contains None"
-        assert test_dict(settings), "settings.getSettings contains None"
+    def test_preserve_attributes(self):
+        self.app.set_preserve_attributes(True)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.set_preserve_attributes(False)
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+
+        # If modification times are more than 15 sec apart
+        files = self.data.get_tmp_folder_content()
+        assert abs(files[0].stat().st_mtime - files[1].stat().st_mtime) > 15, "Range too narrow"
+
+    def test_metadata_exiftool(self):
+        self.app.set_metadata_mode("ExifTool - Preserve")
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+        self.app.set_metadata_mode("ExifTool - Safe Wipe")
+        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
+
+        files = self.data.get_tmp_folder_content()
+        assert files[0].stat().st_size != files[1].stat().st_size, "No change detected"
+
 if __name__ == "__main__":
     unittest.main()
