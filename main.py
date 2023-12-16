@@ -7,16 +7,18 @@ from variables import (
     ICON_SVG,
     THREAD_LOGS
 )
-from ui.settings_tab import SettingsTab
-from ui.input_tab import InputTab
-from ui.about_tab import AboutTab
-from ui.output_tab import OutputTab
-from ui.modify_tab import ModifyTab
+from ui import (
+    InputTab,
+    AboutTab,
+    ModifyTab,
+    OutputTab,
+    SettingsTab,
+    Notifications
+)
 from core.worker import Worker
-from data import Items
 from core.utils import setTheme, clip
+from data import Items
 import data.task_status as task_status
-from ui.notifications import Notifications
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -42,7 +44,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(ICON_SVG))
         self.resize(650,300)
 
-        self.tab = QTabWidget(self)
+        self.tabs = QTabWidget(self)
         self.setAcceptDrops(True)
 
         self.threadpool = QThreadPool.globalInstance()
@@ -71,19 +73,19 @@ class MainWindow(QMainWindow):
         self.about_tab = AboutTab()
 
         # Layout
-        self.tab.addTab(self.input_tab, "Input")
-        self.tab.addTab(self.output_tab, "Output")
-        self.tab.addTab(self.modify_tab, "Modify")
-        self.tab.addTab(self.settings_tab, "Settings")
-        self.tab.addTab(self.about_tab, "About")
+        self.tabs.addTab(self.input_tab, "Input")
+        self.tabs.addTab(self.output_tab, "Output")
+        self.tabs.addTab(self.modify_tab, "Modify")
+        self.tabs.addTab(self.settings_tab, "Settings")
+        self.tabs.addTab(self.about_tab, "About")
 
         # Shortcuts
         select_tab_sc = []
-        for i in range(clip(self.tab.count(), 0, 9)):
+        for i in range(clip(self.tabs.count(), 0, 9)):
             select_tab_sc.append(QShortcut(QKeySequence(f"Alt+{i+1}"), self))
-            select_tab_sc[i].activated.connect(lambda i=i: self.tab.setCurrentIndex(i))   # Notice the `i=i`
+            select_tab_sc[i].activated.connect(lambda i=i: self.tabs.setCurrentIndex(i))   # Notice the `i=i`
 
-        self.setCentralWidget(self.tab)
+        self.setCentralWidget(self.tabs)
 
     def start(self, n):
         if THREAD_LOGS:
@@ -198,7 +200,7 @@ class MainWindow(QMainWindow):
         self.exceptions.append(msg)
 
     def setUIEnabled(self, n):
-        self.tab.setEnabled(n)
+        self.tabs.setEnabled(n)
     
     def closeEvent(self, e):
         self.settings_tab.wm.saveState()
@@ -216,7 +218,7 @@ class MainWindow(QMainWindow):
             e.ignore()
     
     def dropEvent(self, e):
-        self.tab.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(0)
         self.input_tab.file_view.dropEvent(e)
 
 if __name__ == "__main__":
