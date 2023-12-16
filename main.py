@@ -14,7 +14,7 @@ from ui.about_tab import AboutTab
 from ui.output_tab import OutputTab
 from ui.modify_tab import ModifyTab
 from core.worker import Worker
-from data import Data
+from data import Items
 from core.utils import setTheme, clip
 import data.task_status as task_status
 from ui.notifications import Notifications
@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
 
         self.threadpool = QThreadPool.globalInstance()
-        self.data = Data()
+        self.Items = Items()
         self.progress_dialog = None
         self.n = Notifications()
         self.exceptions = []
@@ -98,19 +98,19 @@ class MainWindow(QMainWindow):
                 self.setUIEnabled(True)
             return
 
-        self.data.appendCompletedItem(n)
-        self.data.appendCompletionTime(time.time())
+        self.Items.appendCompletedItem(n)
+        self.Items.appendCompletionTime(time.time())
 
-        time_left = self.data.getTimeRemaining()
-        progress_l = f"Converted {self.data.getCompletedItemCount()} out of {self.data.getItemCount()} images"
+        time_left = self.Items.getTimeRemaining()
+        progress_l = f"Converted {self.Items.getCompletedItemCount()} out of {self.Items.getItemCount()} images"
         progress_l += f"\n{time_left}"
         self.progress_dialog.setLabelText(progress_l)
-        self.progress_dialog.setValue(self.data.getCompletedItemCount())
+        self.progress_dialog.setValue(self.Items.getCompletedItemCount())
 
         if THREAD_LOGS:
             print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
-        if self.data.getCompletedItemCount() == self.data.getItemCount():
+        if self.Items.getCompletedItemCount() == self.Items.getItemCount():
             self.setUIEnabled(True)
             if self.progress_dialog != None:
                 self.progress_dialog.close()
@@ -161,13 +161,13 @@ class MainWindow(QMainWindow):
 
         # Reset and Parse data
         self.exceptions = []
-        self.data.clear()
-        self.data.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
-        if self.data.getItemCount() == 0:
+        self.Items.clear()
+        self.Items.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
+        if self.Items.getItemCount() == 0:
             return
         
         # Set progress dialog
-        self.progress_dialog = QProgressDialog("Converting Images...", "Cancel",0,self.data.getItemCount(), self)
+        self.progress_dialog = QProgressDialog("Converting Images...", "Cancel",0,self.Items.getItemCount(), self)
         self.progress_dialog.setWindowTitle("XL Converter")
         self.progress_dialog.setMinimumWidth(350)
         self.progress_dialog.show()
@@ -188,8 +188,8 @@ class MainWindow(QMainWindow):
         self.setUIEnabled(False)
         mutex = QMutex()
 
-        for i in range(0, self.data.getItemCount()):
-            worker = Worker(i, self.data.getItem(i), params, threads_per_worker, mutex)
+        for i in range(0, self.Items.getItemCount()):
+            worker = Worker(i, self.Items.getItem(i), params, threads_per_worker, mutex)
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
