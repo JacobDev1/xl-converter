@@ -1,6 +1,8 @@
-from core.pathing import stripPathToFilename
-from statistics import mean
 import time
+from statistics import mean
+
+from core.pathing import stripPathToFilename
+from variables import ALLOWED_INPUT
 
 EST_TIME_TRAIL_RANGE = 30
 
@@ -13,12 +15,12 @@ class Items():
         self.completion_times = []
         self.prev_completion_time = None
 
-    def parseData(self, root, allowed):
+    def parseData(self, root):
         """Populates the structure with proper data."""
         for i in range(root.childCount()):
             item = root.child(i)
             file_data = stripPathToFilename(item.text(2))
-            if file_data[1].lower() in allowed:
+            if file_data[1].lower() in ALLOWED_INPUT:
                 self.items.append(file_data)
             else:
                 print(f"[Data] File not allowed for current format ({file_data[3]})")
@@ -33,7 +35,7 @@ class Items():
     def getCompletedItemCount(self):
         return len(self.completed_items)
     
-    def getTimeRemaining(self):
+    def getTimeRemainingText(self):
         completed_len = self.getCompletedItemCount()
         if completed_len < 2:
             return "Time left: <calculating>"
@@ -73,3 +75,8 @@ class Items():
         self.items = []
         self.completed_items = []
         self.item_count = 0
+    
+    def getStatusText(self):
+        out = f"Converted {self.getCompletedItemCount()} out of {self.getItemCount()} images\n"
+        out += self.getTimeRemainingText()
+        return out

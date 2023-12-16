@@ -4,7 +4,6 @@ import sys, os, time
 
 from variables import (
     PROGRAM_FOLDER,
-    ALLOWED_INPUT,
     ICON_SVG,
     THREAD_LOGS
 )
@@ -47,19 +46,20 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
 
         self.threadpool = QThreadPool.globalInstance()
-        self.Items = Items()
+        self.items = Items()
         self.progress_dialog = None
         self.n = Notifications()
         self.exceptions = []
 
-        self.settings_tab = SettingsTab()   # Needs to be declared before other tabs
+        # Tabs
+        self.settings_tab = SettingsTab()
         settings = self.settings_tab.getSettings()
 
         self.input_tab = InputTab(settings)
+        self.input_tab.convert.connect(self.convert)
         self.settings_tab.signals.disable_sorting.connect(self.input_tab.disableSorting)
         self.settings_tab.signals.save_file_list.connect(self.input_tab.saveFileList)
         self.settings_tab.signals.load_file_list.connect(self.input_tab.loadFileList)
-        self.input_tab.convert.connect(self.convert)
 
         self.output_tab = OutputTab(self.threadpool.maxThreadCount(), settings)
         self.output_tab.convert.connect(self.convert)
@@ -94,28 +94,22 @@ class MainWindow(QMainWindow):
             print(f"[Worker #{n}] Finished")
 
         if self.progress_dialog.wasCanceled():
-            if self.tab.isEnabled() == False:
-                self.setUIEnabled(True)
+            self.setUIEnabled(True)
             return
 
-        self.Items.appendCompletedItem(n)
-        self.Items.appendCompletionTime(time.time())
-
-        time_left = self.Items.getTimeRemaining()
-        progress_l = f"Converted {self.Items.getCompletedItemCount()} out of {self.Items.getItemCount()} images"
-        progress_l += f"\n{time_left}"
-        self.progress_dialog.setLabelText(progress_l)
-        self.progress_dialog.setValue(self.Items.getCompletedItemCount())
+        self.items.appendCompletedItem(n)
+        self.items.appendCompletionTime(time.time())
+        self.progress_dialog.setLabelText(self.items.getStatusText())
+        self.progress_dialog.setValue(self.items.getCompletedItemCount())
 
         if THREAD_LOGS:
             print(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
-        if self.Items.getCompletedItemCount() == self.Items.getItemCount():
+        if self.items.getCompletedItemCount() == self.items.getItemCount():
             self.setUIEnabled(True)
-            if self.progress_dialog != None:
-                self.progress_dialog.close()
+            self.progress_dialog.close()
 
-            # Exceptions
+            # Post conversion routines
             if self.exceptions and not self.settings_tab.getSettings()["no_exceptions"]:
                 self.n.notifyDetailed("Exceptions Occured", "Exceptions occured during conversion.", '\n'.join(self.exceptions))
             
@@ -126,18 +120,12 @@ class MainWindow(QMainWindow):
         if THREAD_LOGS:
             print(f"[Worker #{n}] Canceled")
     
-        if self.tab.isEnabled() == False:
-            self.setUIEnabled(True)
+        self.setUIEnabled(True)
 
-    def convert(self):
+    def _safetyChecks(self, params):
         if self.input_tab.file_view.topLevelItemCount() == 0:
             self.n.notify("Empty List", "You haven't added any files.\nDrag and drop images (or folders) onto the program to add them.")
-            return
-        
-        # Fill in the parameters
-        params = self.output_tab.getSettings()
-        params.update(self.modify_tab.getSettings())
-        # params["settings"] = self.settings_tab.getSettings()
+            return False
 
         # Check Permissions
         if params["custom_output_dir"]:
@@ -146,28 +134,38 @@ class MainWindow(QMainWindow):
                     os.makedirs(params["custom_output_dir_path"], exist_ok=True)
                 except OSError as err:
                     self.n.notifyDetailed("Access Error", f"Make sure the path is accessible\nand that you have write permissions.", str(err))
-                    return
+                    return False
 
         # Check If Format Pool Empty
         if params["format"] == "Smallest Lossless" and self.output_tab.smIsFormatPoolEmpty():
             self.n.notify("Format Error", "Select at least one format.")
-            return
+            return False
 
         # Check If Downscaling Allowed
         if params["downscaling"]["enabled"] and params["format"] == "Smallest Lossless":
             self.n.notify("Downscaling Disabled", "Downscaling was set to disabled,\nbecause it's not available for Smallest Lossless")
             params["downscaling"]["enabled"] = False
             self.modify_tab.disableDownscaling()
+        
+        return True
+
+    def convert(self):
+        params = self.output_tab.getSettings()
+        params.update(self.modify_tab.getSettings())
+        # params["settings"] = self.settings_tab.getSettings()
+
+        if not self._safetyChecks(params):
+            return
 
         # Reset and Parse data
         self.exceptions = []
-        self.Items.clear()
-        self.Items.parseData(self.input_tab.file_view.invisibleRootItem(), ALLOWED_INPUT)
-        if self.Items.getItemCount() == 0:
+        self.items.clear()
+        self.items.parseData(self.input_tab.file_view.invisibleRootItem())
+        if self.items.getItemCount() == 0:
             return
         
         # Set progress dialog
-        self.progress_dialog = QProgressDialog("Converting Images...", "Cancel",0,self.Items.getItemCount(), self)
+        self.progress_dialog = QProgressDialog("Converting Images...", "Cancel", 0, self.items.getItemCount(), self)
         self.progress_dialog.setWindowTitle("XL Converter")
         self.progress_dialog.setMinimumWidth(350)
         self.progress_dialog.show()
@@ -188,8 +186,8 @@ class MainWindow(QMainWindow):
         self.setUIEnabled(False)
         mutex = QMutex()
 
-        for i in range(0, self.Items.getItemCount()):
-            worker = Worker(i, self.Items.getItem(i), params, threads_per_worker, mutex)
+        for i in range(0, self.items.getItemCount()):
+            worker = Worker(i, self.items.getItem(i), params, threads_per_worker, mutex)
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
