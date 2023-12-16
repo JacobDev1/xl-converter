@@ -29,7 +29,7 @@ from main import MainWindow
 from variables import *
 
 # CONFIG
-SAMPLE_IMG_FOLDER = Path(".").resolve() / "test_img"    # Put some images in there, cannot have 1:1 aspect ratio
+SAMPLE_IMG_FOLDER = Path(".").resolve() / "sample_img"    # Put some images in there, cannot have 1:1 aspect ratio
 
 TMP_IMG_FOLDER = Path(".").resolve() / "unit_tests_tmp"
 app = QApplication(sys.argv)
@@ -122,6 +122,19 @@ class Data:
     
     def get_sample_img_folder(self):
         return self.sample_img_folder
+    
+    def is_data_integral(self):
+        is_integral = False
+        if not self.sample_img_folder.is_dir():
+            print(f"[Data] Create a \"{SAMPLE_IMG_FOLDER}\" folder with at least one image (aspect ratio cannot be 1:1)")
+        elif len(self.sample_img_folder_content_cached) == 0:
+            print(f"[Data] Put at least one image (with varying aspect ratio) into \"{SAMPLE_IMG_FOLDER}\"")
+        elif self.sample_img_folder_content_cached[0].suffix[1:] not in ALLOWED_INPUT:
+            print(f"[Data] All images in the sample image folder need to be in allowed formats")
+        else:
+            is_integral = True
+        
+        return is_integral
 
 
 class Interact:
@@ -175,7 +188,7 @@ class Interact:
     def wait_for_done(self):
         while True:
             sleep(100)
-            if self.main_window.data.getCompletedItemCount() == self.main_window.data.getItemCount():
+            if self.main_window.items.getCompletedItemCount() == self.main_window.items.getItemCount():
                 break
 
     def set_effort(self, effort):
@@ -249,6 +262,8 @@ class TestMainWindow(unittest.TestCase):
     def setUp(self):
         self.app = Interact(MainWindow())
         self.data = Data(SAMPLE_IMG_FOLDER, TMP_IMG_FOLDER)
+        if not self.data.is_data_integral():
+            sys.exit(1)
         self.app.reset_to_default()
         self.app.clear_list()
     

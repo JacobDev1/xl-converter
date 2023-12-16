@@ -5,5 +5,5 @@ dist
 __pycache__
 tmp.py
 env
-test_img
+sample_img
 unit_tests_tmp
