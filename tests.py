@@ -262,13 +262,14 @@ class TestMainWindow(unittest.TestCase):
     def setUp(self):
         self.app = Interact(MainWindow())
         self.data = Data(SAMPLE_IMG_FOLDER, TMP_IMG_FOLDER)
-        if not self.data.is_data_integral():
-            sys.exit(1)
         self.app.reset_to_default()
         self.app.clear_list()
     
     def tearDown(self):
         self.data.cleanup()
+
+    def test_sample_img_integrity(self):
+        assert self.data.is_data_integral()
 
     def test_dependencies(self):
         FILES = (
@@ -500,4 +501,4 @@ class TestMainWindow(unittest.TestCase):
         assert "message_url" in parsed_json 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(failfast=True)
