@@ -1,4 +1,4 @@
-from variables import ICON_SVG
+from data.constants import ICON_SVG
 
 from PySide6.QtWidgets import(
     QMessageBox

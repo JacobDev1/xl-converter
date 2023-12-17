@@ -1,4 +1,4 @@
-from variables import ALLOWED_RESAMPLING
+from data.constants import ALLOWED_RESAMPLING
 from .widget_manager import WidgetManager
 
 from PySide6.QtWidgets import(

@@ -1,7 +1,7 @@
 import shutil, os
 
 import data.task_status as task_status
-from variables import (
+from data.constants import (
     CJXL_PATH,
     IMAGE_MAGICK_PATH,
     ALLOWED_RESAMPLING,

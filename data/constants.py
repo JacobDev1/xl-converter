@@ -1,5 +1,5 @@
 from core.utils import removeDuplicates
-import os, platform
+import os, platform, sys
 
 VERSION = "0.9.5 (pre-release)"
 VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
@@ -14,9 +14,8 @@ FILEVIEW_LOGS = False
 
 # Filled below
 CONFIG_LOCATION = ""
-PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
+PROGRAM_FOLDER = sys._MEIPASS if getattr(sys, "frozen", False) else os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 ICON_SVG = os.path.join(PROGRAM_FOLDER, "icons/logo.svg")
-
 LICENSE_PATH = os.path.join(PROGRAM_FOLDER, "LICENSE.txt")
 LICENSE_3RD_PARTY_PATH = os.path.join(PROGRAM_FOLDER, "LICENSE_3RD_PARTY.txt")
 

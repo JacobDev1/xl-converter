@@ -1,4 +1,4 @@
-from variables import VERSION, VERSION_FILE_URL, ICON_SVG
+from data.constants import VERSION, VERSION_FILE_URL, ICON_SVG
 import requests
 
 from PySide6.QtWidgets import(

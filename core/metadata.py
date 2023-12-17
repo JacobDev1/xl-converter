@@ -1,5 +1,5 @@
 import shutil, platform
-from variables import (
+from data.constants import (
     EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME,
     IMAGE_MAGICK_PATH,
     CJXL_PATH,

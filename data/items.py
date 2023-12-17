@@ -1,8 +1,7 @@
-import time
 from statistics import mean
 
 from core.pathing import stripPathToFilename
-from variables import ALLOWED_INPUT
+from data.constants import ALLOWED_INPUT
 
 EST_TIME_TRAIL_RANGE = 30
 

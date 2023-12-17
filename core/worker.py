@@ -1,4 +1,4 @@
-from variables import (
+from data.constants import (
     CJXL_PATH,
     JPEG_ALIASES,
     AVIFENC_PATH,
@@ -10,12 +10,12 @@ from core.proxy import Proxy
 from core.utils import delete
 from core.pathing import getUniqueFilePath, getPathGIF, getExtension
 from core.conflicts import Conflicts
-import data.task_status as task_status
-import core.metadata as metadata
 from core.convert import convert, getDecoder, getExtensionJxl, optimize, leaveOnlySmallestFile
 from core.downscale import downscale, decodeAndDownscale
+import core.metadata as metadata
+import data.task_status as task_status
 
-import os, subprocess, shutil, copy
+import os, shutil, copy
 
 from PySide6.QtCore import (
     QRunnable,

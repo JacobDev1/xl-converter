@@ -2,7 +2,7 @@
 
 import sys, os, time
 
-from variables import (
+from data.constants import (
     PROGRAM_FOLDER,
     ICON_SVG,
     THREAD_LOGS

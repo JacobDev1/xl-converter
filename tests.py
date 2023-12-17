@@ -26,7 +26,7 @@ from PySide6.QtCore import (
 )
 
 from main import MainWindow
-from variables import *
+from data.constants import *
 
 # CONFIG
 SAMPLE_IMG_FOLDER = Path(".").resolve() / "sample_img"    # Put some images in there, cannot have 1:1 aspect ratio

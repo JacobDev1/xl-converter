@@ -1,4 +1,4 @@
-from variables import CONFIG_LOCATION, VERSION
+from data.constants import CONFIG_LOCATION, VERSION
 import os, json
 
 class WidgetManager():
