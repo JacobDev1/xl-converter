@@ -1,7 +1,7 @@
 from core.utils import removeDuplicates
 import os, platform, sys
 
-VERSION = "0.9.5 (pre-release)"
+VERSION = "0.9.5"
 VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
 
 # Logs
