@@ -5,7 +5,7 @@
 
 Powerful image converter for the latest formats with support for multithreading, drag 'n drop, and downscaling.
 
-Available for both Windows and Linux.
+Available for Windows and Linux.
 
 ![](misc/screenshots/screenshot_0.png)
 
@@ -17,44 +17,38 @@ Available for both Windows and Linux.
 
 ## Knowledge-base
 
-Hosted [here](https://xl-converter-docs.codepoems.eu)
-
-Easy to digest documentation with tutorials.
+Easy to digest documentation [here](https://xl-converter-docs.codepoems.eu)
 
 ## Supported Formats
 
-Encode to **JPEG XL, AVIF, WEBP, and JPG**.
-
-More details are in the [documentation](https://xl-converter-docs.codepoems.eu/supported-formats).
+Encode to **JPEG XL, AVIF, WEBP, and JPG**. [read more](https://xl-converter-docs.codepoems.eu/supported-formats)
 
 ## Features
 ### JPEG XL
 
 #### Intelligent Effort
 
-Optimizes `Effort` for smallest size.
+Optimizes `Effort` for smaller size.
 
 #### JPG Reconstruction
 
-Save space by converting JPG to JPEG XL losslessly. You can always reconstruct the original JPG.
+Reconstructs the original JPG from a JPEG XL file.
 
 ### Technical
 #### Multithreading
 
-XL Converter can fully utilize your CPU regardless If an encoder does multithreading well.
-
-This speeds up conversion by a lot, especially for JPEG XL.
+Speeds up JPEG XL encoding significantly.
 
 #### Image Proxy
 
-Avoid picky encoders. A proxy is generated when an encoder doesn't support a format.
+Avoid picky encoders. A proxy is generated when an encoder doesn't support a specific format.
 
 For example, this enables HEIF -> JPEG XL conversion.
 
 ### General
 #### Downscaling
 
-Scale down your images to resolution, percent, shortest (and longest) side or file size.
+Scale down images to resolution, percent, shortest (and longest) side, or file size.
 
 #### Lossless (Only If Smaller)
 
@@ -62,11 +56,11 @@ Picks the smallest out of two.
 
 #### Smallest Lossless
 
-Utilize multiple formats to get the smallest file size.
+Utilize multiple formats to achieve the smallest size.
 
 ![](misc/screenshots/screenshot_2.png)
 
-## Running and Building
+## Building from Source
 
 ### Windows 10
 
@@ -116,7 +110,7 @@ sudo apt install python3 python3-pip python3-venv git
 sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 ```
 
-Clone and set up repo.
+Clone and set up the repo.
 
 ```bash
 git clone https://github.com/JacobDev1/xl-converter.git
