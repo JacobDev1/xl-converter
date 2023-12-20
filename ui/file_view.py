@@ -4,15 +4,15 @@ from PySide6.QtWidgets import(
     QTreeWidget,
     QAbstractItemView,
     QTreeWidgetItem,
-    QWidget,
 )
 
 from PySide6.QtCore import(
     Qt
 )
 
-from utils import stripPathToFilename, scanDir
-from VARIABLES import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, FILEVIEW_LOGS
+from core.pathing import stripPathToFilename
+from core.utils import scanDir
+from data.constants import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, FILEVIEW_LOGS
 
 class FileView(QTreeWidget):
     def __init__(self, parent):
@@ -26,6 +26,11 @@ class FileView(QTreeWidget):
         self.setAcceptDrops(True)
         self.setDragDropMode(QAbstractItemView.InternalMove)    # Required for dropEvent to fire
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setStyleSheet("""QTreeView::item:focus {
+                border: none;
+                outline: none;
+            }""")   # Disables the dark outline after deselecting an item
         self.sortByColumn(1, Qt.SortOrder.DescendingOrder)
 
     # Adding items

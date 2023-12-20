@@ -1,15 +1,13 @@
-from Files import Files
-from Convert import Convert
-from Pathing import Pathing
-from VARIABLES import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
+from data.constants import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
+from core.utils import delete
+from core.pathing import getUniqueFilePath
+from core.convert import convert, getDecoder
+
 import os
 
 class Proxy():
     def __init__(self):
         self.proxy_path = None
-        self.f = Files()
-        self.c = Convert()
-        self.path = Pathing()
 
     def isProxyNeeded(self, _format, src_ext, downscaling_enabled=False):
         if _format == "PNG":
@@ -43,8 +41,8 @@ class Proxy():
 
     def generate(self, src, src_ext, dst_dir, file_name, n):
         """Generate a proxy image."""
-        self.proxy_path = self.path.getUniqueFilePath(dst_dir, file_name, "png", True)
-        self.c.convert(self.c.getDecoder(src_ext), src, self.proxy_path, [], n)
+        self.proxy_path = getUniqueFilePath(dst_dir, file_name, "png", True)
+        convert(getDecoder(src_ext), src, self.proxy_path, [], n)
 
         if not os.path.isfile(self.proxy_path):
             return False
@@ -63,5 +61,5 @@ class Proxy():
     def cleanup(self):
         """Deletes a proxy If one was generated"""
         if self.proxy_path != None:
-            self.f.delete(self.proxy_path)
+            delete(self.proxy_path)
             self.proxy_path = None

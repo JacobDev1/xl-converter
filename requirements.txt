@@ -2,5 +2,4 @@ pyside6==6.6.0
 pyinstaller==6.1.0
 pyqtdarktheme==2.1.0
 send2trash==1.8.2
-psutil==5.9.6
 requests==2.31.0

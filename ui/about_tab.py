@@ -1,10 +1,9 @@
-from VARIABLES import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
-from UpdateChecker import UpdateChecker
+from data.constants import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
+from .update_checker import UpdateChecker
 
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
-    QHBoxLayout,
     QLabel,
     QPushButton,
     QSizePolicy,

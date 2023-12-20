@@ -1,4 +1,4 @@
-from VARIABLES import CONFIG_LOCATION, VERSION
+from data.constants import CONFIG_LOCATION, VERSION
 import os, json
 
 class WidgetManager():
@@ -29,6 +29,8 @@ class WidgetManager():
 
         for tag in tags:
             self.addTag(tag, _id)
+        
+        return widget
     
     def getWidget(self, _id: str):
         if _id in self.widgets:
