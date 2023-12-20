@@ -3,9 +3,9 @@
 </p>
 <h3 align="center">XL Converter</h3>
 
-Powerful image converter for the latest formats with support for multithreading, dynamic downscaling, drag 'n drop, and intelligent features.
+Powerful image converter for the latest formats with support for multithreading, drag 'n drop, and downscaling.
 
-Available for both Windows and Linux.
+Available for Windows and Linux.
 
 ![](misc/screenshots/screenshot_0.png)
 
@@ -17,25 +17,38 @@ Available for both Windows and Linux.
 
 ## Knowledge-base
 
-Hosted [here](https://xl-converter-docs.codepoems.eu)
-
-Easy to digest documentation with tutorials.
+Easy to digest documentation [here](https://xl-converter-docs.codepoems.eu)
 
 ## Supported Formats
 
-Encode to **JPEG XL, AVIF, WEBP, and JPG**.
-
-More details in the [documentation](https://xl-converter-docs.codepoems.eu/supported-formats).
+Encode to **JPEG XL, AVIF, WEBP, and JPG**. [read more](https://xl-converter-docs.codepoems.eu/supported-formats)
 
 ## Features
+### JPEG XL
+
+#### Intelligent Effort
+
+Optimizes `Effort` for smaller size.
+
+#### JPG Reconstruction
+
+Reconstructs the original JPG from a JPEG XL file.
+
+### Technical
+#### Multithreading
+
+Speeds up JPEG XL encoding significantly.
+
+#### Image Proxy
+
+Avoid picky encoders. A proxy is generated when an encoder doesn't support a specific format.
+
+For example, this enables HEIF -> JPEG XL conversion.
+
 ### General
-#### Dynamic Downscaling
+#### Downscaling
 
-Shrink your images to fit under a **desired file size**. XL Converter can dynamically **adjust the resolution** for you.
-
-![](misc/screenshots/screenshot_1.png)
-
-Manual downscaling methods are also available.
+Scale down images to resolution, percent, shortest (and longest) side, or file size.
 
 #### Lossless (Only If Smaller)
 
@@ -43,34 +56,11 @@ Picks the smallest out of two.
 
 #### Smallest Lossless
 
-Utilize multiple formats to get the smallest file size.
+Utilize multiple formats to achieve the smallest size.
 
 ![](misc/screenshots/screenshot_2.png)
 
-### JPEG XL
-
-#### Intelligent Effort
-
-Always get smaller file size and quite possibly better quality.
-
-#### JPG Reconstruction
-
-Save space by converting JPG to JPEG XL losslessly. You can always reconstruct the original JPG.
-
-### Technical
-#### Multithreading
-
-XL Converter can fully utilize your CPU regardless If an encoder does multitreading well.
-
-This speeds up conversion by a lot, especially for JPEG XL.
-
-#### Image Proxy
-
-Avoid picky encoders. A proxy is generated when an encoder doesn't support a format.
-
-For example, this enables HEIF -> JPEG XL conversion.
-
-## Running and Building
+## Building from Source
 
 ### Windows 10
 
@@ -120,7 +110,7 @@ sudo apt install python3 python3-pip python3-venv git
 sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 ```
 
-Clone and setup repo.
+Clone and set up the repo.
 
 ```bash
 git clone https://github.com/JacobDev1/xl-converter.git
@@ -186,9 +176,14 @@ make build
 
 The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
 
-## Development
+## Bug Reports
 
-- `unstable` - all changes are committed here first
-- `stable` - current stable release
+You can submit a bug report in 2 ways
+- \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
+- \[private\] Email me at contact@codepoems.eu
 
-Contributions are not accepted to avoid legal issues. Forward your code and feature suggestions to [my email](https://codepoems.eu/about/).
+## Contributions
+
+Pull requests are ignored to avoid potential legal complications when reusing the code.
+
+Forward your code and feature suggestions to my email at contact@codepoems.eu
