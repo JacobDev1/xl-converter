@@ -45,9 +45,18 @@ def leaveOnlySmallestFile(paths: [], new_path):
     
     # Probe files
     sizes = []
-    for i in paths:
-        sizes.append(os.path.getsize(i))
-    
+    try:
+        for i in paths:
+            sizes.append(os.path.getsize(i))
+    except OSError as err:
+        log("[Convert - leaveOnlySmallestFile()] Getting file size failed")
+        for i in paths:
+            try:
+                os.remove(i)
+            except OSError as err:
+                log("[Convert - leaveOnlySmallestFile()] Deleting file failed")
+        return
+
     # Detect smallest
     smallest_format_index = 0
     item_count = len(paths)
@@ -61,7 +70,7 @@ def leaveOnlySmallestFile(paths: [], new_path):
             try:
                 os.remove(paths[i])
             except OSError as e:
-                self.log("[Convert - leaveOnlySmallestFile()] Deleting file failed")
+                log("[Convert - leaveOnlySmallestFile()] Deleting file failed")
         else:
             if paths[i] != new_path:
                 os.rename(paths[i], new_path)

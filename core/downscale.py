@@ -117,12 +117,19 @@ def _downscaleToMaxFileSize(params):
             return False
 
         # If bigger - resize
-        if (os.path.getsize(params["dst"]) / 1024) > params["max_size"]:
+        try:
+            size = os.path.getsize(params["dst"])
+        except OSError as err:
+            delete(proxy_src)
+            delete(params["dst"])
+            return False
+
+        if (size / 1024) > params["max_size"]:
             amount -= params["step"]
             if amount < 1:
                 delete(proxy_src)
-                return False
                 log("[Error] Cannot downscale to less than 1%", params["n"])
+                return False
             
             if task_status.wasCanceled():
                 delete(proxy_src)
@@ -139,7 +146,15 @@ def _downscaleToMaxFileSize(params):
 
                 convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
 
-                if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
+                try:
+                    e7_size = os.path.getsize(params["dst"])
+                    e9_size = os.path.getsize(e9_tmp)
+                except OSError as err:
+                    delete(proxy_src)
+                    delete(params["dst"])
+                    return False
+
+                if e9_size < e7_size:
                     delete(params["dst"])
                     os.rename(e9_tmp, params["dst"])
                 else:
@@ -161,8 +176,13 @@ def _downscaleToFileSizeStepAuto(params):
     # Sample 2 data points (evenly)
     _downscaleToPercent(params["src"], proxy_src, 66, params["resample"], params["n"])
     convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-    size_samples.append([os.path.getsize(params["dst"]), 66])
-    
+    try:
+        size_samples.append([os.path.getsize(params["dst"]), 66])
+    except OSError as err:
+        delete(proxy_src)
+        delete(params["dst"])
+        return False
+
     if not os.path.isfile(params["dst"]) or task_status.wasCanceled():  # Failed conversion check (in case of corrupt images)
         delete(proxy_src)
         delete(params["dst"])
@@ -170,7 +190,12 @@ def _downscaleToFileSizeStepAuto(params):
 
     _downscaleToPercent(params["src"], proxy_src, 33, params["resample"], params["n"])
     convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-    size_samples.append([os.path.getsize(params["dst"]), 33])
+    try:
+        size_samples.append([os.path.getsize(params["dst"]), 33])
+    except OSError as err:
+        delete(proxy_src)
+        delete(params["dst"])
+        return False
 
     delete(params["dst"])
 
@@ -196,8 +221,13 @@ def _downscaleToFileSizeStepAuto(params):
 
             extrapolated_scale -= 10
             
-            if _isInRangeOrSmaller(os.path.getsize(params["dst"]), params["max_size"]  * 1024, 10):
-                break
+            try:
+                if _isInRangeOrSmaller(os.path.getsize(params["dst"]), params["max_size"]  * 1024, 10):
+                    break
+            except OSError as err:
+                delete(proxy_src)
+                delete(params["dst"])
+                return False
 
             if task_status.wasCanceled():
                 delete(proxy_src)
@@ -211,7 +241,15 @@ def _downscaleToFileSizeStepAuto(params):
 
             convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
 
-            if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
+            try:
+                e7_size = os.path.getsize(params["dst"])
+                e9_size = os.path.getsize(e9_tmp)
+            except OSError as err:
+                delete(proxy_src)
+                delete(params["dst"])
+                return False
+            
+            if e9_size < e7_size:
                 delete(params["dst"])
                 os.rename(e9_tmp, params["dst"])
             else:
@@ -262,7 +300,15 @@ def _downscaleManualModes(params):
             e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
             convert(params["enc"], downscaled_path, e9_tmp, params["args"], params["n"])
 
-            if os.path.getsize(e9_tmp) < os.path.getsize(params["dst"]):
+            try:
+                e7_size = os.path.getsize(params["dst"])
+                e9_size = os.path.getsize(e9_tmp)
+            except OSError as err:
+                delete(params["dst"])
+                delete(e9_tmp)
+                return False
+
+            if e9_size < e7_size:
                 delete(params["dst"])
                 os.rename(e9_tmp, params["dst"])
             else:
