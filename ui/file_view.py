@@ -154,6 +154,7 @@ class FileView(QTreeWidget):
         if not selected_indexes:
             return
 
+        self.setUpdatesEnabled(False)
         selected_rows = sorted(set(idx.row() for idx in selected_indexes), reverse=True)
         next_row = -1
 
@@ -166,11 +167,12 @@ class FileView(QTreeWidget):
 
         for row in selected_rows:
             self.takeTopLevelItem(row)
-            self.log(f"Removed item from list (index {row})")
         
         if root.childCount() > 0:
             self.setCurrentIndex(self.model().index(next_row, 0))
-    
+        
+        self.setUpdatesEnabled(True)
+
     # Misc.
     def log(self, msg):
         if FILEVIEW_LOGS:
