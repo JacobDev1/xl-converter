@@ -18,24 +18,24 @@ def copyAttributes(src, dst):
     except OSError as e:
         print(f"[Error] copystat failed ({e})")
 
-def _runExifTool(args):
+def _runExifTool(*args):
     """For internal use only."""
     if platform.system() == "Windows":
-        runProcess(f'\"{EXIFTOOL_PATH}\" {args}')
+        runProcess(EXIFTOOL_PATH, *args)
     elif platform.system() == "Linux":  # Relative path needed for Brotli dependency to work on Linux
-        runProcessFromPath(f'./{EXIFTOOL_BIN_NAME} {args}', EXIFTOOL_FOLDER_PATH)
+        runProcessFromPath(EXIFTOOL_BIN_NAME, *args, path=EXIFTOOL_FOLDER_PATH)
 
 def copyMetadata(src, dst):
     """Copy all metadata from one file onto another."""
-    _runExifTool(f'-tagsfromfile \"{src}\" -overwrite_original \"{dst}\"')
+    _runExifTool('-tagsfromfile', src, '-overwrite_original', dst)
 
 def deleteMetadata(dst):
     """Delete all metadata except color profile from a file."""
-    _runExifTool(f'-all= --icc_profile:all -tagsFromFile @ -ColorSpace -overwrite_original \"{dst}\"')
+    _runExifTool("-all=", "--icc_profile:all", "-tagsFromFile", "@", "-ColorSpace", "-overwrite_original", dst)
 
 def deleteMetadataUnsafe(dst):
     """Deletes every last bit of metadata, even color profile. May mess up an image. Potentially desctructive."""
-    _runExifTool(f'-all= -overwrite_original \"{dst}\"')
+    _runExifTool("-all=", "-overwrite_original", dst)
 
 def runExifTool(src, dst, mode):
     """ExifTool wrapper."""

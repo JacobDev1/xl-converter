@@ -1,20 +1,36 @@
-import os, shutil
+import os
 from data.constants import (
-    ALLOWED_RESAMPLING, ALLOWED_INPUT_IMAGE_MAGICK,
+    ALLOWED_INPUT_IMAGE_MAGICK,
     IMAGE_MAGICK_PATH,
     AVIFDEC_PATH,
     DJXL_PATH,
     JXLINFO_PATH,
     CONVERT_LOGS
 )
-import data.task_status as task_status
 from core.process import runProcess, runProcessOutput
 
 def convert(encoder_path, src, dst, args = [], n = None):
     """Universal method for all encoders."""
-    command = f'\"{encoder_path}\" \"{src}\" {" ".join(args) + " " if args else ""}\"{dst}\"'
-    runProcess(command)
-    if n != None:   log(command, n)
+    runProcess(encoder_path, src, *parseArgs(args), dst)
+    if n != None:   log((encoder_path, src, *parseArgs(args), dst), n)
+
+def optimize(bin_path, src, args = [], n = None):
+    """Run a binary targeting a source."""
+    runProcess(bin_path, *parseArgs(args), src)
+    if n != None:   log((bin_path, *parseArgs(args), src), n)
+
+def getExtensionJxl(src_path):
+    """Assigns extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
+    if b"JPEG bitstream reconstruction data available" in runProcessOutput(JXLINFO_PATH, src_path):
+        return "jpg"
+    else:
+        return "png"
+
+def parseArgs(args):
+    tmp = []
+    for arg in args:
+        tmp.extend(arg.split())
+    return tmp
 
 def getDecoder(ext):
     """Return appropriate decoder path for the specified extension."""
@@ -33,12 +49,6 @@ def getDecoder(ext):
             else:
                 print(f"[Convert - getDecoder()] Decoder for {ext} was not found")
                 return None
-
-def optimize(bin_path, src, args = [], n = None):
-    """Run a binary while targeting a single file."""
-    command = f'\"{bin_path}\" {" ".join(args) + " " if args else ""}\"{src}\"'
-    runProcess(command)
-    if n != None:   log(command, n)
 
 def leaveOnlySmallestFile(paths: [], new_path):
     """Delete all except the smallest file."""
@@ -74,15 +84,6 @@ def leaveOnlySmallestFile(paths: [], new_path):
         else:
             if paths[i] != new_path:
                 os.rename(paths[i], new_path)
-
-def getExtensionJxl(src_path):
-    """Assigns extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
-    out = runProcessOutput(f"\"{JXLINFO_PATH}\" \"{src_path}\"")
-
-    if b"JPEG bitstream reconstruction data available" in out:
-        return "jpg"
-    else:
-        return "png"
 
 def log(msg, n = None):
     if not CONVERT_LOGS:
