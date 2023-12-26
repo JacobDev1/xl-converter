@@ -2,10 +2,8 @@ import shutil, os
 
 import data.task_status as task_status
 from data.constants import (
-    CJXL_PATH,
     IMAGE_MAGICK_PATH,
     ALLOWED_RESAMPLING,
-    ALLOWED_INPUT_IMAGE_MAGICK,
     DOWNSCALE_LOGS
 )
 from core.utils import delete, clip

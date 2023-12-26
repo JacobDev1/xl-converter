@@ -4,7 +4,6 @@ from data.constants import (
     IMAGE_MAGICK_PATH,
     CJXL_PATH,
     DJXL_PATH,
-    JXLINFO_PATH,
     AVIFENC_PATH,
     AVIFDEC_PATH,
     OXIPNG_PATH

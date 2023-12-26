@@ -3,19 +3,15 @@ from pathlib import Path
 import requests
 
 from PySide6.QtGui import (
-    QDragEnterEvent,
     QDropEvent,
-    QKeySequence
 )
 
 from PySide6.QtWidgets import (
     QApplication,
-    QFileDialog
 )
 
 from PySide6.QtTest import (
     QTest,
-    QSignalSpy
 )
 
 from PySide6.QtCore import (

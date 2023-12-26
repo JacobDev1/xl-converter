@@ -3,7 +3,6 @@
 import sys, os, time
 
 from data.constants import (
-    PROGRAM_FOLDER,
     ICON_SVG,
     THREAD_LOGS
 )

@@ -1,4 +1,4 @@
-import platform, os, shutil, glob, subprocess, PyInstaller.__main__, argparse, shutil, stat
+import platform, os, shutil, subprocess, PyInstaller.__main__, argparse, shutil, stat
 from data.constants import VERSION
 
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
