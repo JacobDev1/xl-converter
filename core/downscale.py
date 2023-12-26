@@ -270,9 +270,9 @@ def _downscaleManualModes(params):
         case "Resolution":
             args.append(f"-resize {params['width']}x{params['height']}")
         case "Shortest Side":
-            args.append(f"-resize \"{params['shortest_side']}x{params['shortest_side']}^>\"")
+            args.append(f"-resize {params['shortest_side']}x{params['shortest_side']}^>")
         case "Longest Side":
-            args.append(f"-resize \"{params['longest_side']}x{params['longest_side']}>\"")
+            args.append(f"-resize {params['longest_side']}x{params['longest_side']}>")
     
     # Downscale
     if params["enc"] == IMAGE_MAGICK_PATH:  # We can just add arguments If the encoder is ImageMagick, since it also handles downscaling
