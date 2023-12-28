@@ -68,22 +68,6 @@ def _extrapolateScale(sample_points, desired_size) -> int:
 
     return int(y_new)
 
-def _isInRangeOrSmaller(value, range_center, fault_tolerance) -> bool:
-    """Returns True If value is in range or smaller.
-
-    parameters:
-        value: number
-        range_center: number
-        fault_tolerance: percent
-    """
-    upper_ceil = range_center + range_center * (fault_tolerance / 100)
-    # bottom_ceil = range_center - range_center * (fault_tolerance / 100)
-
-    if upper_ceil > value:
-        return True
-    else:
-        return False
-
 # ------------------------------------------------------------
 #                           Scaling
 # ------------------------------------------------------------
@@ -220,7 +204,9 @@ def _downscaleToFileSizeStepAuto(params):
             extrapolated_scale -= 10
             
             try:
-                if _isInRangeOrSmaller(os.path.getsize(params["dst"]), params["max_size"]  * 1024, 10):
+                size = os.path.getsize(params["dst"])
+                threshold = params["max_size"] * 1024 * 1.1   # 10% fault tolerance
+                if size < threshold:
                     break
             except OSError as err:
                 delete(proxy_src)
