@@ -35,7 +35,7 @@ class Proxy():
             case "Smallest Lossless":
                 return True
             case _:
-                print(f"[Proxy - isProxyNeeded()] Uncredognized format ({src_ext})")
+                print(f"[Proxy - isProxyNeeded()] Unrecognized format ({src_ext})")
         
         return True
 
@@ -59,7 +59,7 @@ class Proxy():
             return True
 
     def cleanup(self):
-        """Deletes a proxy If one was generated"""
+        """Delete a proxy If one exists."""
         if self.proxy_path != None:
             delete(self.proxy_path)
             self.proxy_path = None

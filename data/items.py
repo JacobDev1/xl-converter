@@ -15,7 +15,7 @@ class Items():
         self.prev_completion_time = None
 
     def parseData(self, root):
-        """Populates the structure with proper data."""
+        """Populate the structure with proper data."""
         for i in range(root.childCount()):
             item = root.child(i)
             file_data = stripPathToFilename(item.text(2))

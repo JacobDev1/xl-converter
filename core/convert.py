@@ -20,7 +20,7 @@ def optimize(bin_path, src, args = [], n = None):
     if n != None:   log((bin_path, *parseArgs(args), src), n)
 
 def getExtensionJxl(src_path):
-    """Assigns extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
+    """Assign extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
     if b"JPEG bitstream reconstruction data available" in runProcessOutput(JXLINFO_PATH, src_path):
         return "jpg"
     else:
@@ -74,7 +74,7 @@ def leaveOnlySmallestFile(paths: [], new_path):
         if sizes[i] < sizes[smallest_format_index]:
             smallest_format_index = i
     
-    # Clean-up and rename
+    # Clean up and rename
     for i in range(item_count):
         if i != smallest_format_index:
             try:

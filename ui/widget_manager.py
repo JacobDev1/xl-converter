@@ -10,7 +10,7 @@ class WidgetManager():
         variables - for saving multi-purpose widgets.
     """
     def __init__(self, name):
-        self.name = name         # Unique indentifier for saving and loading states
+        self.name = name         # Unique identifier for saving and loading states
         self.widgets = {}        # id: widget
         self.tags = {}           # tag: [id]
         self.variables = {}      # var: value

@@ -75,13 +75,13 @@ class Worker(QRunnable):
         # Check for conflicts - GIFs and APNGs
         self.conflicts.checkForConflicts(self.item_ext, self.params["format"], self.params["intelligent_effort"], self.params["effort"], self.params["downscaling"]["enabled"])
         
-        if self.conflicts.conflictOccured():
+        if self.conflicts.conflictOccurred():
             for i in self.conflicts.getConflictsMsg():
                 self.exception(i)
             self.signals.completed.emit(self.n)
             return
         
-        if self.conflicts.jxlConflictOccured():
+        if self.conflicts.jxlConflictOccurred():
             # Normalize values
             self.params["effort"] = self.conflicts.jxlGetNormEffort(self.params["effort"])
             self.params["intelligent_effort"] = self.conflicts.jxlGetNormIntEffort(self.params["intelligent_effort"])
@@ -374,7 +374,7 @@ class Worker(QRunnable):
                 self.exception("Generating formats failed")
                 self.signals.completed.emit(self.n)
 
-            # Get smallest item
+            # Get the smallest item
             sm_f_key = None # Smallest format key
             for key in path_pool:
                 if sm_f_key == None:

@@ -39,7 +39,7 @@ def scan_dir(path):
     for i in Path(path).rglob("*"):
         if i.is_file():
             items.add(i.resolve())
-    return list(items)  # So it can be access by an index
+    return list(items)  # So it can be accessed by an index
 
 def rmtree(path):
     path = Path(path).resolve()

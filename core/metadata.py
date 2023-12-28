@@ -33,7 +33,7 @@ def deleteMetadata(dst):
     _runExifTool("-all=", "--icc_profile:all", "-tagsFromFile", "@", "-ColorSpace", "-overwrite_original", dst)
 
 def deleteMetadataUnsafe(dst):
-    """Deletes every last bit of metadata, even color profile. May mess up an image. Potentially desctructive."""
+    """Delete every last bit of metadata, even color profile. May mess up an image. Potentially destructive."""
     _runExifTool("-all=", "-overwrite_original", dst)
 
 def runExifTool(src, dst, mode):
@@ -57,7 +57,6 @@ def getArgs(encoder, mode) -> []:
         case "Up to Encoder - Wipe":
             if encoder == CJXL_PATH:
                 return []
-                # The following is supposed to work, but doesn't. Encoder's source: https://github.com/libjxl/libjxl/blob/6f85806063394d0f32e6a112a37a259214bed4f1/tools/cjxl_main.cc
                 # return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
                 # return ["-x exif=", "-x xmp=", "-x jumbf="]
             elif encoder in (DJXL_PATH, AVIFDEC_PATH):

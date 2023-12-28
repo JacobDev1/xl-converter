@@ -276,7 +276,7 @@ class OutputTab(QWidget):
         cur_format = self.format_cmb.currentText()
         self.prev_format = cur_format
         
-        self.wm.setCheckedByTag("lossless", False)  # Widgets reenable themselves when you use setChecked() on a disabled widget, so this needs to stay in the beginning
+        self.wm.setCheckedByTag("lossless", False)  # Widgets re-enable themselves when you use setChecked() on a disabled widget, so this needs to stay in the beginning
 
         # Enable Lossless Mode
         self.wm.setEnabledByTag("lossless", cur_format in ("JPEG XL", "WEBP"))
