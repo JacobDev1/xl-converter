@@ -54,7 +54,7 @@ def getArgs(encoder, mode) -> []:
         args.extend(getArgs(encoder, mode))
     """
     match mode:
-        case "Up to Encoder - Wipe":
+        case "Encoder - Wipe":
             if encoder == CJXL_PATH:
                 return []
                 # return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
@@ -69,7 +69,7 @@ def getArgs(encoder, mode) -> []:
                 return ["--strip safe"]
             else:
                 print(f"[Metadata - getArgs()] Unrecognized encoder ({encoder})")
-        case "Up to Encoder - Preserve":
+        case "Encoder - Preserve":
             return []   # Encoders preserve metadata by default
         case _:
             return []
