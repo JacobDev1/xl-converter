@@ -34,7 +34,7 @@ def deleteMetadata(dst):
     _runExifTool(f'-all= --icc_profile:all -tagsFromFile @ -ColorSpace -overwrite_original \"{dst}\"')
 
 def deleteMetadataUnsafe(dst):
-    """Deletes every last bit of metadata, even color profile. May mess up an image. Potentially desctructive."""
+    """Deletes every last bit of metadata, even color profile. May mess up an image. Potentially destructive."""
     _runExifTool(f'-all= -overwrite_original \"{dst}\"')
 
 def runExifTool(src, dst, mode):

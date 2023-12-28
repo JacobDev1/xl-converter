@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
 
             # Post conversion routines
             if self.exceptions and not self.settings_tab.getSettings()["no_exceptions"]:
-                self.n.notifyDetailed("Exceptions Occured", "Exceptions occured during conversion.", '\n'.join(self.exceptions))
+                self.n.notifyDetailed("Exceptions Occurred", "Exceptions occurred during conversion.", '\n'.join(self.exceptions))
             
             if self.output_tab.isClearAfterConvChecked():
                 self.input_tab.clearInput()
