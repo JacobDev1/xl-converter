@@ -136,7 +136,7 @@ class Builder():
         self._appendInstaller()
         self._appendDesktopEntry()
         self._appendMisc()
-        self._appendRedistributables()
+        self._appendRedistributable()
         self._appendUpdateFile()
         self._finish()
 
@@ -209,12 +209,12 @@ class Builder():
         makedirs(f"{self.internal_dir}/icons")
         copy(self.icon_svg_path, f"{self.internal_dir}/icons/{os.path.basename(self.icon_svg_path)}")
 
-    def _appendRedistributables(self):
+    def _appendRedistributable(self):
         if platform.system() != "Windows":
             return
 
-        print("[Building] Appending redistributables")
-        redist_dst = f"{self.dst_dir}/{self.project_name}/redistributables"
+        print("[Building] Appending redistributable")
+        redist_dst = f"{self.dst_dir}/{self.project_name}/redist"
         makedirs(redist_dst)
         copy(self.redist_path, redist_dst)
     

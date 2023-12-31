@@ -82,7 +82,7 @@ env\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-Install redistributables
+Install redistributable
 
 ```cmd
 misc\VC_redist.x64.exe
