@@ -9,19 +9,11 @@ Available for Windows and Linux.
 
 ![](misc/screenshots/screenshot_0.png)
 
-## Support This Project
-
-- [Patreon](https://patreon.com/codepoems) - get rewards
-- [Ko-Fi](https://ko-fi.com/codepoems) - one-time donation
-- [Libera](https://liberapay.com/CodePoems/donate)
-
-## Knowledge-base
-
-Easy to digest documentation [here](https://xl-converter-docs.codepoems.eu)
+The [documentation](https://xl-converter-docs.codepoems.eu)
 
 ## Supported Formats
 
-Encode to **JPEG XL, AVIF, WEBP, and JPG**. [read more](https://xl-converter-docs.codepoems.eu/supported-formats)
+Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](https://xl-converter-docs.codepoems.eu/supported-formats)
 
 ## Features
 ### JPEG XL
@@ -59,6 +51,12 @@ Picks the smallest out of two.
 Utilize multiple formats to achieve the smallest size.
 
 ![](misc/screenshots/screenshot_2.png)
+
+## Bug Reports
+
+You can submit a bug report in 2 ways
+- \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
+- \[private\] Email me at contact@codepoems.eu
 
 ## Building from Source
 
@@ -175,12 +173,6 @@ make build
 #### Python Version on Linux
 
 The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
-
-## Bug Reports
-
-You can submit a bug report in 2 ways
-- \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
-- \[private\] Email me at contact@codepoems.eu
 
 ## Contributions
 
