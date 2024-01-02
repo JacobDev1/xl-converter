@@ -1,4 +1,5 @@
 import platform, os, shutil, subprocess, PyInstaller.__main__, argparse, shutil, stat
+from pathlib import Path
 from data.constants import VERSION
 
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
@@ -170,7 +171,7 @@ class Builder():
         print("[Building] Generating binaries")
         makedirs(self.dst_dir)
         PyInstaller.__main__.run([
-            'main.spec'
+            str(Path("misc/main.spec"))
         ])
     
     def _copyDependencies(self):
