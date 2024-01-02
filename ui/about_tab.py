@@ -4,6 +4,8 @@ from .update_checker import UpdateChecker
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
+    QVBoxLayout,
+    QHBoxLayout,
     QLabel,
     QPushButton,
     QSizePolicy,
@@ -14,15 +16,15 @@ from PySide6.QtCore import(
     QUrl,
 )
 
-from PySide6.QtGui import (
-    QDesktopServices
+from PySide6.QtGui import(
+    QDesktopServices,
 )
 
 class AboutTab(QWidget):
     def __init__(self):
         super(AboutTab, self).__init__()
 
-        tab_lt = QGridLayout()
+        tab_lt = QHBoxLayout()
         self.setLayout(tab_lt)
         self.update_checker = UpdateChecker()
 
@@ -38,19 +40,23 @@ class AboutTab(QWidget):
         credits_l.setOpenExternalLinks(True)
 
         # Buttons
+        buttons_vb = QVBoxLayout()
+
         self.update_btn = QPushButton("Check for Updates", clicked=self.checkForUpdate)
         self.update_checker.finished.connect(lambda: self.update_btn.setEnabled(True))
+        self.manual_btn = QPushButton("Manual", clicked=lambda: QDesktopServices.openUrl(QUrl("https://xl-converter-docs.codepoems.eu/")))
 
-        # Positions
-        tab_lt.addWidget(credits_l,0,0,1,0)
-        tab_lt.addWidget(self.update_btn, 2, 0, 1, 0)
+        buttons_vb.addWidget(self.update_btn)
+        buttons_vb.addWidget(self.manual_btn)
 
-        # Size Policy
-        tab_lt.setVerticalSpacing(10)
-        tab_lt.setAlignment(Qt.AlignCenter)
+        # Layout
+        tab_lt.addWidget(credits_l)
+        tab_lt.addLayout(buttons_vb)
+
+        buttons_vb.setAlignment(Qt.AlignVCenter)
 
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.setMaximumSize(900, 300)
+        self.setMaximumSize(700, 300)
     
     def checkForUpdate(self):
         self.update_checker.run()
