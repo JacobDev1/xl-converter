@@ -62,13 +62,14 @@ You can submit a bug report in 2 ways
 
 ### Windows 10
 
-Install Python `3.11.6` from [here](https://www.python.org/downloads).
+Prerequisites:
+- Python `3.11.6` (with `pip`)
+- `git`
 
-Check `Add Python to environment variables` and `pip` as option features.
-
-Download and enter the repo.
+Clone the repo.
 
 ```cmd
+git clone -b v0.9.5 --depth 1 https://github.com/JacobDev1/xl-converter.git
 cd xl-converter
 ```
 
@@ -111,8 +112,8 @@ sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev 
 Clone and set up the repo.
 
 ```bash
-git clone https://github.com/JacobDev1/xl-converter.git
-chmod -R 755 xl-converter
+git clone -b v0.9.5 --depth 1 https://github.com/JacobDev1/xl-converter.git
+chmod -R +x xl-converter
 cd xl-converter
 ```
 
