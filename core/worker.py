@@ -280,10 +280,7 @@ class Worker(QRunnable):
 
         elif self.params["format"] == "AVIF":
             args = [
-                "--min 0",
-                "--max 63",
-                "-a end-usage=q",
-                f"-a cq-level={self.params['quality']}",
+                f"-q {self.params['quality']}",
                 f"-s {self.params['effort']}",
                 f"-j {self.available_threads}"
             ]

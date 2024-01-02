@@ -5,14 +5,23 @@ from data.constants import (
     AVIFDEC_PATH,
     DJXL_PATH,
     JXLINFO_PATH,
-    CONVERT_LOGS
+    CONVERT_LOGS,
+    AVIFENC_PATH
 )
 from core.process import runProcess, runProcessOutput
 
 def convert(encoder_path, src, dst, args = [], n = None):
     """Universal method for all encoders."""
-    runProcess(encoder_path, src, *parseArgs(args), dst)
-    if n != None:   log((encoder_path, src, *parseArgs(args), dst), n)
+    cmd = []
+    if encoder_path == AVIFENC_PATH:
+        cmd = (encoder_path, *parseArgs(args), src, dst)
+    else:
+        cmd = (encoder_path, src, *parseArgs(args), dst)
+    
+    runProcess(*cmd)
+    
+    if n != None:
+        log(cmd, n)
 
 def optimize(bin_path, src, args = [], n = None):
     """Run a binary targeting a source."""
