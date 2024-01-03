@@ -10,7 +10,7 @@ from core.proxy import Proxy
 from core.utils import delete
 from core.pathing import getUniqueFilePath, getPathGIF, getExtension
 from core.conflicts import Conflicts
-from core.convert import convert, getDecoder, getExtensionJxl, optimize, leaveOnlySmallestFile
+from core.convert import convert, getDecoder, getExtensionJxl, optimize
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
@@ -162,14 +162,26 @@ class Worker(QRunnable):
                 convert(encoder, self.item_abs_path, path_e7, args, self.n)
 
                 if task_status.wasCanceled():
-                    delete(path_e7)
+                    try:
+                        os.remove(path_e7)
+                    except OSError as err:
+                        self.log(f"Failed to delete tmp file ({err})")
                     self.signals.canceled.emit(self.n)
                     return
 
                 args[1] = "-e 9"
                 convert(encoder, self.item_abs_path, path_e9, args, self.n)
 
-                leaveOnlySmallestFile((path_e7, path_e9), self.output)
+                try:
+                    if os.path.getsize(path_e9) < os.path.getsize(path_e7):
+                        os.remove(path_e7)
+                        os.rename(path_e9, self.output)
+                    else:
+                        os.remove(path_e9)
+                        os.rename(path_e7, self.output)
+                except OSError as err:
+                    self.exception(f"File access error ({err})")
+                    self.log(err)
             else:   # Regular conversion
                 convert(encoder, self.item_abs_path, self.output, args, self.n)
         
@@ -187,7 +199,16 @@ class Worker(QRunnable):
                 lossless_path = getUniqueFilePath(self.item_dir, self.item_name, self.output_ext, True)
             
             convert(encoder, self.item_abs_path, lossless_path, args, self.n)
-            leaveOnlySmallestFile((self.output, lossless_path), self.output)
+
+            try:
+                if os.path.getsize(lossless_path) < os.path.getsize(self.output):
+                    os.remove(self.output)
+                    os.rename(lossless_path, self.output)
+                else:
+                    os.remove(lossless_path)
+            except OSError as err:
+                self.exception(f"File access error ({err})")
+                self.log(err)
 
     def setupConversion(self):
         # Choose Output Dir           
@@ -417,3 +438,6 @@ class Worker(QRunnable):
         self.output = path_pool[sm_f_key]
         self.final_output = os.path.join(self.output_dir, f"{self.item_name}.{sm_f_key}")
         self.output_ext = sm_f_key
+    
+    def log(self, msg):
+        print(f"[Worker #{self.n}] {msg} ({self.item_name}.{self.item_ext})")

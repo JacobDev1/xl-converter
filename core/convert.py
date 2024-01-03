@@ -59,41 +59,6 @@ def getDecoder(ext):
                 print(f"[Convert - getDecoder()] Decoder for {ext} was not found")
                 return None
 
-def leaveOnlySmallestFile(paths: [], new_path):
-    """Delete all except the smallest file."""
-    
-    # Probe files
-    sizes = []
-    try:
-        for i in paths:
-            sizes.append(os.path.getsize(i))
-    except OSError as err:
-        log("[Convert - leaveOnlySmallestFile()] Getting file size failed")
-        for i in paths:
-            try:
-                os.remove(i)
-            except OSError as err:
-                log("[Convert - leaveOnlySmallestFile()] Deleting file failed")
-        return
-
-    # Detect smallest
-    smallest_format_index = 0
-    item_count = len(paths)
-    for i in range(1, item_count):
-        if sizes[i] < sizes[smallest_format_index]:
-            smallest_format_index = i
-    
-    # Clean up and rename
-    for i in range(item_count):
-        if i != smallest_format_index:
-            try:
-                os.remove(paths[i])
-            except OSError as e:
-                log("[Convert - leaveOnlySmallestFile()] Deleting file failed")
-        else:
-            if paths[i] != new_path:
-                os.rename(paths[i], new_path)
-
 def log(msg, n = None):
     if not CONVERT_LOGS:
         return
