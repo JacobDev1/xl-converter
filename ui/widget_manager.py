@@ -1,5 +1,7 @@
+import os
+import json
+
 from data.constants import CONFIG_LOCATION, VERSION
-import os, json
 
 class WidgetManager():
     """A powerful widget manager.

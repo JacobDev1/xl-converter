@@ -1,6 +1,3 @@
-from data.constants import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
-from .update_checker import UpdateChecker
-
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -10,15 +7,16 @@ from PySide6.QtWidgets import(
     QPushButton,
     QSizePolicy,
 )
-
 from PySide6.QtCore import(
     Qt,
     QUrl,
 )
-
 from PySide6.QtGui import(
     QDesktopServices,
 )
+
+from data.constants import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
+from .update_checker import UpdateChecker
 
 class AboutTab(QWidget):
     def __init__(self):

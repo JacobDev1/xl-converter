@@ -1,7 +1,24 @@
 #!/usr/bin/python3
 
-import sys, os, time
+import sys
+import os
+import time
 
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QTabWidget,
+    QProgressDialog,
+)
+from PySide6.QtCore import (
+    QThreadPool,
+    QMutex
+)
+from PySide6.QtGui import (
+    QIcon,
+    QShortcut,
+    QKeySequence
+)
 from data.constants import (
     ICON_SVG,
     THREAD_LOGS
@@ -14,27 +31,12 @@ from ui import (
     SettingsTab,
     Notifications
 )
+
 from core.worker import Worker
 from core.utils import setTheme, clip
 from data import Items
 import data.task_status as task_status
 
-from PySide6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QTabWidget,
-    QProgressDialog,
-)
-from PySide6.QtCore import (
-    QThreadPool,
-    QMutex
-)
-
-from PySide6.QtGui import (
-    QIcon,
-    QShortcut,
-    QKeySequence
-)
 
 class MainWindow(QMainWindow):
     def __init__(self):

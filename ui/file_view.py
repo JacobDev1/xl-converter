@@ -5,7 +5,6 @@ from PySide6.QtWidgets import(
     QAbstractItemView,
     QTreeWidgetItem,
 )
-
 from PySide6.QtCore import(
     Qt
 )

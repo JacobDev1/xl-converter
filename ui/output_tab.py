@@ -1,6 +1,3 @@
-from .widget_manager import WidgetManager
-import os
-
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -18,11 +15,12 @@ from PySide6.QtWidgets import(
     QSpinBox,
     QSizePolicy,
 )
-
 from PySide6.QtCore import(
     Qt,
     Signal
 )
+
+from .widget_manager import WidgetManager
 
 class OutputTab(QWidget):
     convert = Signal()

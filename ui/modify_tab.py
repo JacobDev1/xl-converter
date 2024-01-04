@@ -1,6 +1,3 @@
-from data.constants import ALLOWED_RESAMPLING
-from .widget_manager import WidgetManager
-
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -15,11 +12,13 @@ from PySide6.QtWidgets import(
     QGroupBox,
     QSizePolicy,
 )
-
 from PySide6.QtCore import(
     Qt,
     Signal
 )
+
+from data.constants import ALLOWED_RESAMPLING
+from .widget_manager import WidgetManager
 
 MAX_RES_PX = 999999999
 MAX_FILE_SIZE = 1024**2   # KiB

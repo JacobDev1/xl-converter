@@ -1,8 +1,8 @@
+import os
+
 from data.constants import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
 from core.pathing import getUniqueFilePath
 from core.convert import convert, getDecoder
-
-import os
 
 class Proxy():
     def __init__(self):

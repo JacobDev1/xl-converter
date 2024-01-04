@@ -1,4 +1,6 @@
-import re, random, os
+import re
+import random
+import os
 from pathlib import Path
 
 def stripPathToFilename(path):

@@ -1,25 +1,23 @@
-from .file_view import FileView
-from data.constants import ALLOWED_INPUT
-from core.utils import scanDir, listToFilter
-from core.pathing import stripPathToFilename
-from .notifications import Notifications
-
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
     QPushButton,
     QFileDialog
 )
-
 from PySide6.QtCore import(
     Signal,
     QUrl
 )
-
 from PySide6.QtGui import(
     QShortcut,
     QKeySequence,
 )
+
+from .file_view import FileView
+from data.constants import ALLOWED_INPUT
+from core.utils import scanDir, listToFilter
+from core.pathing import stripPathToFilename
+from .notifications import Notifications
 
 class InputTab(QWidget):
     convert = Signal()

@@ -1,4 +1,3 @@
-import os
 from data.constants import (
     ALLOWED_INPUT_IMAGE_MAGICK,
     IMAGE_MAGICK_PATH,

@@ -1,13 +1,11 @@
-from data.constants import ICON_SVG
-
 from PySide6.QtWidgets import(
     QMessageBox
 )
-
 from PySide6.QtGui import(
     QIcon
 )
 
+from data.constants import ICON_SVG
 
 class Notifications():
     def __init__(self):

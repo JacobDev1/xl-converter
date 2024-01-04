@@ -1,4 +1,5 @@
-import shutil, os
+import shutil
+import os
 
 import data.task_status as task_status
 from data.constants import (

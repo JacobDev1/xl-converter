@@ -1,3 +1,16 @@
+import os
+import shutil
+import copy
+
+from PySide6.QtCore import (
+    QRunnable,
+    QObject,
+    Signal,
+    Slot,
+    QMutexLocker
+)
+from send2trash import send2trash
+
 from data.constants import (
     CJXL_PATH,
     JPEG_ALIASES,
@@ -13,18 +26,6 @@ from core.convert import convert, getDecoder, getExtensionJxl, optimize
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
-
-import os, shutil, copy
-
-from PySide6.QtCore import (
-    QRunnable,
-    QObject,
-    Signal,
-    Slot,
-    QMutexLocker
-)
-
-from send2trash import send2trash
 
 class Signals(QObject):
     started = Signal(int)

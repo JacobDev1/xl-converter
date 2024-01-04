@@ -1,6 +1,4 @@
-from data.constants import VERSION, VERSION_FILE_URL, ICON_SVG
 import requests
-
 from PySide6.QtWidgets import(
     QDialog,
     QPushButton,
@@ -9,9 +7,6 @@ from PySide6.QtWidgets import(
     QLabel,
     QSizePolicy,
 )
-
-from PySide6 import QtWidgets
-
 from PySide6.QtCore import(
     Qt,
     QUrl,
@@ -19,12 +14,13 @@ from PySide6.QtCore import(
     Signal,
     QThread,
 )
-
 from PySide6.QtGui import(
     QDesktopServices,
     QGuiApplication,
     QIcon,
 )
+
+from data.constants import VERSION, VERSION_FILE_URL, ICON_SVG
 
 SIMULATE_SERVER = False     # For debugging
 

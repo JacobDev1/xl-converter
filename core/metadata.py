@@ -1,4 +1,5 @@
-import shutil, platform
+import platform
+
 from data.constants import (
     EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME,
     IMAGE_MAGICK_PATH,

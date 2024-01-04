@@ -1,6 +1,3 @@
-from core.utils import setTheme
-from .widget_manager import WidgetManager
-
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -12,12 +9,14 @@ from PySide6.QtWidgets import(
     QLabel,
     QSizePolicy,
 )
-
 from PySide6.QtCore import(
     Signal,
     QObject,
     Qt,
 )
+
+from core.utils import setTheme
+from .widget_manager import WidgetManager
 
 class Signals(QObject):
     custom_resampling = Signal(bool)

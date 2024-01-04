@@ -1,19 +1,19 @@
-import unittest, sys, shutil, binascii
+import unittest
+import sys
+import shutil
+import binascii
 from pathlib import Path
-import requests
 
+import requests
 from PySide6.QtGui import (
     QDropEvent,
 )
-
 from PySide6.QtWidgets import (
     QApplication,
 )
-
 from PySide6.QtTest import (
     QTest,
 )
-
 from PySide6.QtCore import (
     Qt,
     QMimeData,
