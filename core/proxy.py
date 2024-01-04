@@ -1,5 +1,4 @@
 from data.constants import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
-from core.utils import delete
 from core.pathing import getUniqueFilePath
 from core.convert import convert, getDecoder
 
@@ -61,5 +60,8 @@ class Proxy():
     def cleanup(self):
         """Delete a proxy If one exists."""
         if self.proxy_path != None:
-            delete(self.proxy_path)
+            try:
+                os.remove(self.proxy_path)
+            except OSError:
+                print(f"[Proxy - cleanup()] Failed to delete proxy ({self.proxy_path})")
             self.proxy_path = None
