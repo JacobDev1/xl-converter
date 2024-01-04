@@ -10,13 +10,6 @@ from data.constants import (
 )
 from core.process import runProcess, runProcessFromPath
 
-def copyAttributes(src, dst):
-    """Copy all attributes from one file onto another."""
-    try:
-        shutil.copystat(src, dst)
-    except OSError as e:
-        print(f"[Error] copystat failed ({e})")
-
 def _runExifTool(*args):
     """For internal use only."""
     if platform.system() == "Windows":

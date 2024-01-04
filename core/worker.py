@@ -7,7 +7,6 @@ from data.constants import (
 )
 
 from core.proxy import Proxy
-from core.utils import delete
 from core.pathing import getUniqueFilePath, getPathGIF, getExtension
 from core.conflicts import Conflicts
 from core.convert import convert, getDecoder, getExtensionJxl, optimize
@@ -24,6 +23,8 @@ from PySide6.QtCore import (
     Slot,
     QMutexLocker
 )
+
+from send2trash import send2trash
 
 class Signals(QObject):
     started = Signal(int)
@@ -293,43 +294,52 @@ class Worker(QRunnable):
             self.item_abs_path = self.item[3]   # Redirect the source back to original file
         
         # Check for existing files
-        with QMutexLocker(self.mutex):
-            if self.item_ext == "gif" and self.params["format"] == "PNG":
-                pass    # Already handled
-            elif os.path.isfile(self.output):    # Checking if conversion was successful
-                mode = self.params["if_file_exists"]
-                if mode == "Skip" and self.params["format"] == "Smallest Lossless": # Only for "Smallest Lossless", other cases were handled before
-                    if os.path.isfile(self.final_output):
-                        delete(self.output)
-                    else:
-                        os.rename(self.output, self.final_output)
-                else:
-                    if mode == "Replace":
+        try:
+            with QMutexLocker(self.mutex):
+                if self.item_ext == "gif" and self.params["format"] == "PNG":
+                    pass    # Already handled
+                elif os.path.isfile(self.output):    # Checking if conversion was successful
+                    mode = self.params["if_file_exists"]
+                    if mode == "Skip" and self.params["format"] == "Smallest Lossless": # Only for "Smallest Lossless", other cases were handled before
                         if os.path.isfile(self.final_output):
-                            delete(self.final_output)
-                    elif mode == "Rename" or mode == "Skip":
-                        self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, False)
-                    
-                    os.rename(self.output, self.final_output)
+                            os.remove(self.output)
+                        else:
+                            os.rename(self.output, self.final_output)
+                    else:
+                        if mode == "Replace":
+                            if os.path.isfile(self.final_output):
+                                os.remove(self.final_output)
+                        elif mode == "Rename" or mode == "Skip":
+                            self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, False)
+                        
+                        os.rename(self.output, self.final_output)
+        except OSError as err:
+            self.exception(err)
+            self.log(err)
 
     def postConversionRoutines(self):
-        if os.path.isfile(self.final_output):    # Checking if renaming was successful
-            # Apply metadata
-            metadata.runExifTool(self.item[3], self.final_output, self.params["misc"]["keep_metadata"])
+        try:
+            if os.path.isfile(self.final_output):    # Checking if renaming was successful
+                
+                # Apply metadata
+                metadata.runExifTool(self.item[3], self.final_output, self.params["misc"]["keep_metadata"])
 
-            # Apply attributes
-            if self.params["misc"]["attributes"]:
-                metadata.copyAttributes(self.item[3], self.final_output)
+                # Apply attributes
+                if self.params["misc"]["attributes"]:
+                    shutil.copystat(self.item[3], self.final_output)
 
-            # After Conversion
-            if self.params["delete_original"]:
-                if self.params["delete_original_mode"] == "To Trash":
-                    delete(self.item[3], True)
-                elif self.params["delete_original_mode"] == "Permanently":
-                    delete(self.item[3])
-        elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently)
-            self.exception("Conversion failed")
-    
+                # After Conversion
+                if self.params["delete_original"]:
+                    if self.params["delete_original_mode"] == "To Trash":
+                        send2trash(self.item[3])
+                    elif self.params["delete_original_mode"] == "Permanently":
+                        os.remove(self.item[3])
+            elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently)
+                self.exception("Conversion failed")
+        except OSError as err:
+            self.exception(err)
+            self.log(err)
+
     def runChecks(self):
         if task_status.wasCanceled():
             self.signals.canceled.emit(self.n)
@@ -398,7 +408,12 @@ class Worker(QRunnable):
         # Generate files
         for key in path_pool:
             if key == "png":
-                shutil.copy(self.item_abs_path, path_pool["png"])
+                try:
+                    shutil.copy(self.item_abs_path, path_pool["png"])
+                except OSError as err:
+                    self.exception(f"Failed to copy the file ({err})")
+                    self.signals.completed.emit(self.n)
+                    return
                 optimize(OXIPNG_PATH, path_pool["png"], args["png"], self.n)
             elif key == "webp":
                 convert(IMAGE_MAGICK_PATH, self.item_abs_path, path_pool["webp"], args["webp"], self.n)
@@ -415,9 +430,12 @@ class Worker(QRunnable):
                 file_sizes[key] = os.path.getsize(path_pool[key])
         except OSError as err:
             # Clean-up and exit
-            for key in path_pool:
-                delete(path_pool[key])
-            self.exception("Generating formats failed")
+            try:
+                for key in path_pool:
+                    os.remove(path_pool[key])
+            except OSError as err:
+                self.exception(f"Failed to delete tmp files ({err})")
+            self.exception("Generating file info failed")
             self.signals.completed.emit(self.n)
 
         # Get the smallest item
@@ -432,8 +450,13 @@ class Worker(QRunnable):
         # Remove bigger files
         for key in path_pool:
             if key != sm_f_key:
-                delete(path_pool[key])
-        
+                try:
+                    os.remove(path_pool[key])
+                except OSError as err:
+                    self.exception(f"Failed to delete tmp files ({err})")
+                    self.signals.completed.emit(self.n)
+                    return
+
         # Handle the smallest file
         self.output = path_pool[sm_f_key]
         self.final_output = os.path.join(self.output_dir, f"{self.item_name}.{sm_f_key}")
