@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
 
     def _safetyChecks(self, params):
         if self.input_tab.file_view.topLevelItemCount() == 0:
-            self.n.notify("Empty List", "You haven't added any files.\nDrag and drop images (or folders) onto the program to add them.")
+            self.n.notify("Empty List", "File list is empty.\nDrag and drop images (or folders) onto the program to add them.")
             return False
 
         # Check Permissions
