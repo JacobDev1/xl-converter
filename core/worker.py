@@ -278,8 +278,6 @@ class Worker(QRunnable):
                 "name": self.item_name,
                 "args": None,
                 "max_size": self.params["downscaling"]["file_size"],
-                "step": self.params["downscaling"]["file_size_step"],
-                "step_fast": self.params["downscaling"]["file_size_step_fast"],
                 "percent": self.params["downscaling"]["percent"],
                 "width": self.params["downscaling"]["width"],
                 "height": self.params["downscaling"]["height"],

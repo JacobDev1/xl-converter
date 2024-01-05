@@ -84,76 +84,6 @@ def cancelCheck(*tmp_files):
 #                           Scaling
 # ------------------------------------------------------------
 
-def _downscaleToMaxFileSize(params):
-    """Downscale image to fit under a certain file size."""
-    # Prepare data
-    amount = 100
-    proxy_src = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
-    shutil.copy(params["src"], proxy_src)
-
-    # Int. Effort
-    if params["format"] == "JPEG XL" and params["jxl_int_e"]:
-        params["args"][1] = "-e 7"
-
-    # Downscale until it's small enough
-    while True:
-        if cancelCheck(proxy_src, params["dst"]):
-            return False
-
-        # Normal conversion
-        convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-
-        # Failed conversion check (in case of corrupt images)
-        if not os.path.isfile(params["dst"]):
-            os.remove(proxy_src)
-            return False
-
-        # If bigger - resize
-        try:
-            size = os.path.getsize(params["dst"])
-        except OSError as err:
-            os.remove(proxy_src)
-            os.remove(params["dst"])
-            return False
-
-        if (size / 1024) > params["max_size"]:
-            amount -= params["step"]
-            if amount < 1:
-                os.remove(proxy_src)
-                log("[Error] Cannot downscale to less than 1%", params["n"])
-                return False
-            
-            if cancelCheck(proxy_src, params["dst"]):
-                return False
-
-            _downscaleToPercent(params["src"], proxy_src, amount, params["resample"], params["n"])
-
-        else:
-            # JPEG XL - intelligent effort
-            if params["format"] == "JPEG XL" and params["jxl_int_e"]:
-                params["args"][1] = "-e 9"
-                e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
-
-                convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
-
-                try:
-                    e7_size = os.path.getsize(params["dst"])
-                    e9_size = os.path.getsize(e9_tmp)
-                except OSError as err:
-                    os.remove(proxy_src)
-                    os.remove(params["dst"])
-                    return False
-
-                if e9_size < e7_size:
-                    os.remove(params["dst"])
-                    os.rename(e9_tmp, params["dst"])
-                else:
-                    os.remove(e9_tmp)
-
-            # Clean-up
-            os.remove(proxy_src)
-            return True
-
 def _downscaleToFileSizeStepAuto(params):
     # Prepare data
     size_samples = []
@@ -386,10 +316,7 @@ def downscale(params):
         return False
     
     if params["mode"] == "File Size":
-        if params["step_fast"]:
-            _downscaleToFileSizeStepAuto(params)
-        else:
-            _downscaleToMaxFileSize(params)
+        _downscaleToFileSizeStepAuto(params)
     elif params["mode"] in ("Percent", "Resolution", "Shortest Side", "Longest Side"):
         _downscaleManualModes(params)
     else:

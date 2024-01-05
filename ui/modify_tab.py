@@ -110,22 +110,6 @@ class ModifyTab(QWidget):
         file_size_hb.addWidget(self.file_size_sb)
         self.downscaling_lt.addLayout(file_size_hb)
 
-        # File Size - Step
-        file_size_hb = QHBoxLayout()
-        self.file_size_step_l = self.wm.addWidget("file_size_step_l", QLabel("Step"))
-        self.file_size_step_sb = self.wm.addWidget("file_size_step_sb", QSpinBox())
-
-        self.file_size_step_sb.setRange(1, 99)
-        self.file_size_step_sb.setSuffix(" %")
-
-        self.file_size_step_fast_cb = self.wm.addWidget("file_size_step_fast_cb", QCheckBox("Auto (Linear Regression)"))
-        self.file_size_step_fast_cb.toggled.connect(self.toggleFastMode)
-
-        file_size_hb.addWidget(self.file_size_step_l)
-        file_size_hb.addWidget(self.file_size_step_fast_cb)
-        file_size_hb.addWidget(self.file_size_step_sb)
-        self.downscaling_lt.addLayout(file_size_hb)
-
         # Longest Side
         longest_hb = QHBoxLayout()
         self.longest_l = self.wm.addWidget("longest_l", QLabel("Max Size"))
@@ -223,9 +207,6 @@ class ModifyTab(QWidget):
 
         self.wm.addTags("file_size_l", "downscale_ui", "file_size")
         self.wm.addTags("file_size_sb", "downscale_ui", "file_size")
-        self.wm.addTags("file_size_step_l", "downscale_ui", "file_size")
-        self.wm.addTags("file_size_step_fast_cb", "downscale_ui", "file_size")
-        self.wm.addTags("file_size_step_sb", "downscale_ui", "file_size")
         
         self.wm.addTags("shortest_l", "downscale_ui", "shortest")
         self.wm.addTags("shortest_sb", "downscale_ui", "shortest")
@@ -241,7 +222,6 @@ class ModifyTab(QWidget):
         self.toggleDownscaleUI(False)
         self.wm.loadState()
         self.onModeChanged()
-        self.toggleFastMode()
 
         # Apply Settings
         if settings["disable_downscaling_startup"]:
@@ -254,15 +234,10 @@ class ModifyTab(QWidget):
     
     def toggleDownscaleUI(self, n):
         self.wm.setEnabledByTag("downscale_ui", n)
-        self.toggleFastMode()
     
     def disableDownscaling(self):
         self.downscale_cb.setChecked(False)
     
-    def toggleFastMode(self):
-        if self.downscale_cb.isChecked():
-            self.file_size_step_sb.setEnabled(not self.file_size_step_fast_cb.isChecked())
-
     def resetToDefault(self):
         self.disableDownscaling()
         self.metadata_cmb.setCurrentIndex(0)
@@ -270,8 +245,6 @@ class ModifyTab(QWidget):
         self.mode_cmb.setCurrentIndex(0)
         self.resample_cmb.setCurrentIndex(0)
         self.file_size_sb.setValue(300)
-        self.file_size_step_sb.setValue(10)
-        self.file_size_step_fast_cb.setChecked(True)
         self.percent_sb.setValue(80)
         self.pixel_w_sb.setValue(2000)
         self.pixel_h_sb.setValue(2000)
@@ -292,8 +265,6 @@ class ModifyTab(QWidget):
                 "enabled": self.downscale_cb.isChecked(),
                 "mode": self.mode_cmb.currentText(),
                 "percent": self.percent_sb.value(),
-                "file_size_step": self.file_size_step_sb.value(),
-                "file_size_step_fast": self.file_size_step_fast_cb.isChecked(),
                 "width": self.pixel_w_sb.value(),
                 "height": self.pixel_h_sb.value(),
                 "file_size": self.file_size_sb.value(),
