@@ -33,10 +33,10 @@ from ui import (
 )
 
 from core.worker import Worker
-from core.utils import setTheme, clip
+from core.utils import clip
 from data import Items
 import data.task_status as task_status
-
+from ui import ProgressDialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -50,7 +50,8 @@ class MainWindow(QMainWindow):
 
         self.threadpool = QThreadPool.globalInstance()
         self.items = Items()
-        self.progress_dialog = None
+        self.progress_dialog = ProgressDialog(parent=self, title="Converting...", default_text="Starting the conversion...\n", cancelable=True)
+        self.progress_dialog.canceled.connect(task_status.cancel)
         self.n = Notifications()
         self.exceptions = []
 
@@ -98,6 +99,7 @@ class MainWindow(QMainWindow):
 
         if self.progress_dialog.wasCanceled():
             self.setUIEnabled(True)
+            self.progress_dialog.finished()
             return
 
         self.items.appendCompletedItem(n)
@@ -110,7 +112,7 @@ class MainWindow(QMainWindow):
 
         if self.items.getCompletedItemCount() == self.items.getItemCount():
             self.setUIEnabled(True)
-            self.progress_dialog.close()
+            self.progress_dialog.finished()
 
             # Post conversion routines
             if self.exceptions and not self.settings_tab.getSettings()["no_exceptions"]:
@@ -168,11 +170,8 @@ class MainWindow(QMainWindow):
             return
         
         # Set progress dialog
-        self.progress_dialog = QProgressDialog("Converting Images...", "Cancel", 0, self.items.getItemCount(), self)
-        self.progress_dialog.setWindowTitle("XL Converter")
-        self.progress_dialog.setMinimumWidth(350)
+        self.progress_dialog.setRange(0, self.items.getItemCount())
         self.progress_dialog.show()
-        self.progress_dialog.canceled.connect(task_status.cancel)
 
         # Configure Multithreading
         threads_per_worker = 1
