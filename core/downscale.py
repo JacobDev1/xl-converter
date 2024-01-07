@@ -11,6 +11,7 @@ from core.utils import clip
 from core.pathing import getUniqueFilePath
 import core.metadata as metadata
 from core.convert import convert, getDecoder
+from core.exceptions import CancellationException
 
 # ------------------------------------------------------------
 #                           Helper
@@ -76,9 +77,8 @@ def cancelCheck(*tmp_files):
             try:
                 os.remove(file)
             except OSError as err:
-                log(f"[Downscaling - cancelCheck()] {err} ({file})")
-        return True
-    return False
+                raise OSError(f"[Downscaling - cancelCheck] {err}")
+        raise CancellationException()
 
 # ------------------------------------------------------------
 #                           Scaling
@@ -100,20 +100,22 @@ def _downscaleToFileSizeStepAuto(params):
     try:
         size_samples.append([os.path.getsize(params["dst"]), 66])
     except OSError as err:
-        os.remove(proxy_src)
-        os.remove(params["dst"])
-        return False
+        try:
+            os.remove(proxy_src)
+            os.remove(params["dst"])
+        except OSError as err:
+            raise OSError(f"[Downscaling #0] Failed to delete tmp files {err}")
+        raise OSError(f"[Downscaling #1] Failed to get size. {err}")
 
-    if cancelCheck(proxy_src, params["dst"]):
-        return False
+    cancelCheck(proxy_src, params["dst"])
 
     if not os.path.isfile(params["dst"]):  # Failed conversion check (in case of corrupt images)
         try:
             os.remove(proxy_src)
             os.remove(params["dst"])
         except OSError as err:
-            log(f"[Downscaling - Failed Conversion Check] {err} ({params['dst']})", params["n"])
-        return False
+            raise OSError(f"[Downscaling #2] Failed conversion check. {err}")
+        raise Exception("[Downscaling #3] Failed conversion check.")
 
     _downscaleToPercent(params["src"], proxy_src, 33, params["resample"], params["n"])
     convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
@@ -121,15 +123,18 @@ def _downscaleToFileSizeStepAuto(params):
     try:
         size_samples.append([os.path.getsize(params["dst"]), 33])
     except OSError as err:
-        log(f"[Downscaling] Getting file sizes failed {err} ({params['dst']})", params["n"])
-        os.remove(proxy_src)
+        try:
+            os.remove(proxy_src)
+        except OSError as err:
+            raise OSError(f"[Downscaling #4] Failed to delete tmp files {err}")
+        raise OSError(f"[Downscaling #5] Getting file sizes failed. {err}")
+
+    try:
         os.remove(params["dst"])
-        return False
+    except OSError as err:
+        raise OSError(f"[Downscaling #6] {err}")
 
-    os.remove(params["dst"])
-
-    if cancelCheck(proxy_src):
-        return False
+    cancelCheck(proxy_src)
 
     # Use gathered data
     extrapolated_scale = _extrapolateScale(size_samples, params["max_size"] * 1024)
@@ -138,16 +143,15 @@ def _downscaleToFileSizeStepAuto(params):
         try:
             os.remove(proxy_src)
         except OSError as err:
-            log(f"[Downscaling - extrapolated_size < 0] Failed to delete tmp file {err} ({proxy_src})", params["n"])
-        return False
+            raise OSError(f"[Downscaling #7] Failed to delete tmp file {err}")
+        raise Exception(f"[Downscaling #8] Extrapolated scale cannot be negative ({extrapolated_scale})")
     elif extrapolated_scale >= 100:
         # Non-downscaled conversion
         convert(params["enc"], params["src"], params["dst"], params["args"], params["n"])
         try:
             os.remove(proxy_src)
         except OSError as err:
-            log(f"[Downscaling] Failed to delete tmp file {err} ({proxy_src})", params["n"])
-            return False
+            raise OSError(f"[Downscaling #9] Failed to delete tmp file {err}")
         return True
     else:
         while True:
@@ -162,12 +166,14 @@ def _downscaleToFileSizeStepAuto(params):
                 if size < threshold:
                     break
             except OSError as err:
-                os.remove(proxy_src)
-                os.remove(params["dst"])
-                return False
+                try:
+                    os.remove(proxy_src)
+                    os.remove(params["dst"])
+                except OSError as err:
+                    raise OSError(f"[Downscaling #10] Failed to delete tmp files {err}")
+                raise OSError(f"[Downscaling #11] Getting file size failed {err}")
 
-            if cancelCheck(proxy_src, params["dst"]):
-                return False
+            cancelCheck(proxy_src, params["dst"])
         
         # JPEG XL - intelligent effort
         if params["format"] == "JPEG XL" and params["jxl_int_e"]:
@@ -185,15 +191,14 @@ def _downscaleToFileSizeStepAuto(params):
                 else:
                     os.remove(e9_tmp)
             except OSError as err:
-                log(f"[Downscaling - Intelligent Effort] {err} ({params['dst']})", params["n"])
-                return False
+                raise OSError(f"[Downscaling #12] {err}")
             
         # Cleanup
         try:
             os.remove(proxy_src)
         except OSError as err:
-            log(f"[Downscaling - Clean-up] {err} ({proxy_src})", params["n"])
-            return False
+            raise OSError(f"[Downscaling #13] {err}")
+
         return True
 
 def _downscaleManualModes(params):
@@ -248,15 +253,13 @@ def _downscaleManualModes(params):
                     os.remove(e9_tmp)
 
             except OSError as err:
-                log(f"[Downscaling - Intelligent Effort] {err} ({params['dst']})", params["n"])
-                return False
+                raise OSError(f"[Downscaling #13] {err}")
 
         # Clean-up
         try:
             os.remove(downscaled_path)
         except OSError as err:
-            log(f"[Downscaling - Clean-up] {err} ({downscaled_path})", params["n"])
-            return False
+            raise OSError(f"[Downscaling #14] {err}")
 
 # ------------------------------------------------------------
 #                           Public
@@ -283,7 +286,7 @@ def decodeAndDownscale(params, ext, metadata_mode):
         try:
             os.remove(proxy_path)
         except OSError as err:
-            log(f"Failed to delete tmp file ({proxy_path})", params["n"])
+            raise OSError(f"[Downscaling #15] {err}")
 
 def downscale(params):
     """A wrapper for all downscaling methods. Keeps the same aspect ratio.
@@ -313,11 +316,11 @@ def downscale(params):
         "n" - worker number
     """
     if task_status.wasCanceled():
-        return False
+        raise CancellationException()
     
     if params["mode"] == "File Size":
         _downscaleToFileSizeStepAuto(params)
     elif params["mode"] in ("Percent", "Resolution", "Shortest Side", "Longest Side"):
         _downscaleManualModes(params)
     else:
-        log(f"[Error] Downscaling mode not recognized ({params['mode']})", params["n"])
+        raise Exception(f"Downscaling mode not recognized ({params['mode']})")
