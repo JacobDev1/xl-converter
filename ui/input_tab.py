@@ -115,7 +115,7 @@ class InputTab(QWidget):
             return
 
         try:
-            with open(dlg.toLocalFile(), "w") as file:
+            with open(dlg.toLocalFile(), "w", encoding="utf-8") as file:
                 for row in range(item_count):
                     path = self.file_view.topLevelItem(row).text(2)
                     if path is not None:
@@ -132,7 +132,7 @@ class InputTab(QWidget):
             
         try:
             paths = []
-            with open(dlg.toLocalFile(), "r") as file:
+            with open(dlg.toLocalFile(), "r", encoding="utf-8") as file:
                 paths = [line.replace('\n', '') for line in file.readlines()]
             self._addItems(paths)
         except Exception as err:
