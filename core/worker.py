@@ -69,7 +69,7 @@ class Worker(QRunnable):
         self.skip = False
     
     def logException(self, id, msg):
-        self.signals.exception.emit(id, msg, self.item_abs_path)
+        self.signals.exception.emit(id, msg, self.item[3])
 
     @Slot()
     def run(self):
