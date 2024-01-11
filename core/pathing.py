@@ -2,6 +2,7 @@ import re
 import random
 import os
 from pathlib import Path
+import logging
 
 def stripPathToFilename(path):
     """Dissect path into its parts.
@@ -69,4 +70,4 @@ def getExtension(_format):
         case "Smallest Lossless":   # Handled in Worker
             return None
         case _:
-            print(f"[Pathing - getExtension()] No extension declared for {_format}")
+            logging.error(f"[Pathing - getExtension()] No extension declared for {_format}")

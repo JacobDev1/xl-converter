@@ -1,4 +1,5 @@
 from statistics import mean
+import logging
 
 from core.pathing import stripPathToFilename
 from data.constants import ALLOWED_INPUT
@@ -22,7 +23,7 @@ class Items():
             if file_data[1].lower() in ALLOWED_INPUT:
                 self.items.append(file_data)
             else:
-                print(f"[Data] File not allowed for current format ({file_data[3]})")
+                logging.error(f"[Data] File not allowed for current format ({file_data[3]})")
         self.item_count = len(self.items)
 
     def getItem(self, n):

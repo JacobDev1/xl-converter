@@ -1,4 +1,5 @@
 import os
+import logging
 
 from data.constants import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
 from core.pathing import getUniqueFilePath
@@ -34,7 +35,7 @@ class Proxy():
             case "Smallest Lossless":
                 return True
             case _:
-                print(f"[Proxy - isProxyNeeded()] Unrecognized format ({src_ext})")
+                logging.error(f"[Proxy - isProxyNeeded()] Unrecognized format ({src_ext})")
         
         return True
 

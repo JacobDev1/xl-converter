@@ -1,19 +1,19 @@
 import os
 import platform
 import sys
+import logging
 
 from core.utils import removeDuplicates
 
 VERSION = "0.9.5"
 VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
 
-# Logs
-PROCESS_LOGS = False
-PROCESS_LOGS_VERBOSE = False
-THREAD_LOGS = False
-CONVERT_LOGS = False
-DOWNSCALE_LOGS = False
-FILEVIEW_LOGS = False
+logging.basicConfig(
+    level=logging.WARNING,    # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    stream=sys.stderr,
+    encoding="utf-8",
+    format="[%(levelname)s] %(message)s",
+)
 
 # Filled below
 CONFIG_LOCATION = ""

@@ -10,6 +10,7 @@ from data.constants import (
     OXIPNG_PATH
 )
 from core.process import runProcess, runProcessFromPath
+from core.exceptions import GenericException
 
 def _runExifTool(*args):
     """For internal use only."""
@@ -62,7 +63,7 @@ def getArgs(encoder, mode) -> []:
             elif encoder == OXIPNG_PATH:
                 return ["--strip safe"]
             else:
-                print(f"[Metadata - getArgs()] Unrecognized encoder ({encoder})")
+                raise GenericException("M0", f"[Metadata - getArgs()] Unrecognized encoder ({encoder})")
         case "Encoder - Preserve":
             return []   # Encoders preserve metadata by default
         case _:

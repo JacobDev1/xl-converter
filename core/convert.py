@@ -1,13 +1,15 @@
+import logging
+
 from data.constants import (
     ALLOWED_INPUT_IMAGE_MAGICK,
     IMAGE_MAGICK_PATH,
     AVIFDEC_PATH,
     DJXL_PATH,
     JXLINFO_PATH,
-    CONVERT_LOGS,
     AVIFENC_PATH
 )
 from core.process import runProcess, runProcessOutput
+from core.exceptions import GenericException
 
 def convert(encoder_path, src, dst, args = [], n = None):
     """Universal method for all encoders."""
@@ -25,7 +27,8 @@ def convert(encoder_path, src, dst, args = [], n = None):
 def optimize(bin_path, src, args = [], n = None):
     """Run a binary targeting a source."""
     runProcess(bin_path, *parseArgs(args), src)
-    if n != None:   log((bin_path, *parseArgs(args), src), n)
+    if n != None:
+        log((bin_path, *parseArgs(args), src), n)
 
 def getExtensionJxl(src_path):
     """Assign extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
@@ -55,14 +58,11 @@ def getDecoder(ext):
             if ext in ALLOWED_INPUT_IMAGE_MAGICK:
                 return IMAGE_MAGICK_PATH
             else:
-                print(f"[Convert - getDecoder()] Decoder for {ext} was not found")
+                raise GenericException("C4", f"Decoder for {ext} was not found")
                 return None
 
 def log(msg, n = None):
-    if not CONVERT_LOGS:
-        return
-    
     if n == None:
-        print(msg)
+        logging.info(f"[Convert] {msg}")
     else:
-        print(f"[Worker #{n}] {msg}")
+        logging.info(f"[Worker #{n} - Convert] {msg}")

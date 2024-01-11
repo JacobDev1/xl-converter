@@ -3,6 +3,7 @@
 import sys
 import os
 import time
+import logging
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -18,9 +19,9 @@ from PySide6.QtGui import (
     QShortcut,
     QKeySequence
 )
+
 from data.constants import (
     ICON_SVG,
-    THREAD_LOGS
 )
 from ui import (
     InputTab,
@@ -28,14 +29,14 @@ from ui import (
     ModifyTab,
     OutputTab,
     SettingsTab,
-    Notifications
+    Notifications,
+    ProgressDialog,
+    ExceptionView,
 )
-
 from core.worker import Worker
 from core.utils import clip
 from data import Items
 import data.task_status as task_status
-from ui import ProgressDialog, ExceptionView
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -93,12 +94,10 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
 
     def start(self, n):
-        if THREAD_LOGS:
-            print(f"[Worker #{n}] Started")
+        logging.debug(f"[Worker #{n}] Started")
     
     def complete(self, n):
-        if THREAD_LOGS:
-            print(f"[Worker #{n}] Finished")
+        logging.debug(f"[Worker #{n}] Finished")
 
         if self.progress_dialog.wasCanceled():
             self.setUIEnabled(True)
@@ -110,8 +109,7 @@ class MainWindow(QMainWindow):
         self.progress_dialog.setLabelText(self.items.getStatusText())
         self.progress_dialog.setValue(self.items.getCompletedItemCount())
 
-        if THREAD_LOGS:
-            print(f"Active Threads: {self.threadpool.activeThreadCount()}")
+        logging.debug(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
         if self.items.getCompletedItemCount() == self.items.getItemCount():
             self.setUIEnabled(True)
@@ -126,9 +124,7 @@ class MainWindow(QMainWindow):
                 self.input_tab.clearInput()
 
     def cancel(self, n):
-        if THREAD_LOGS:
-            print(f"[Worker #{n}] Canceled")
-    
+        logging.debug(f"[Worker #{n}] Canceled")
         self.setUIEnabled(True)
 
     def _safetyChecks(self, params):
