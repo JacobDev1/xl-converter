@@ -1,11 +1,9 @@
-import shutil
 import os
 
 import data.task_status as task_status
 from data.constants import (
     IMAGE_MAGICK_PATH,
     ALLOWED_RESAMPLING,
-    DOWNSCALE_LOGS
 )
 from core.utils import clip
 from core.pathing import getUniqueFilePath
@@ -26,15 +24,6 @@ def _downscaleToPercent(src, dst, amount=90, resample="Default", n=None):
     args.extend([f"-resize {amount}%"])
 
     convert(IMAGE_MAGICK_PATH, src, dst, args, n)
-
-def log(msg, n = None):
-    if not DOWNSCALE_LOGS:
-        return
-
-    if n == None:
-        print(msg)
-    else:
-        print(f"[Worker #{n}] {msg}")
 
 # ------------------------------------------------------------
 #                           Math
