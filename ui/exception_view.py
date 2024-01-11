@@ -27,12 +27,7 @@ class ExceptionView(QDialog):
 
     def __init__(self, settings, parent=None):
         super(ExceptionView, self).__init__(parent)
-
         self.notifications = Notifications()
-
-        self.setWindowTitle("Exceptions Occured")
-        self.main_lt = QVBoxLayout()
-        self.setWindowIcon(QIcon(ICON_SVG))
 
         # Table
         headers = [
@@ -49,8 +44,6 @@ class ExceptionView(QDialog):
         self.table.setSortingEnabled(False)
         self.table.setShowGrid(False)
 
-        self.main_lt.addWidget(self.table)
-
         # Bottom
         btm_lt = QHBoxLayout()
         self.close_btn = QPushButton("Close")
@@ -64,11 +57,16 @@ class ExceptionView(QDialog):
         btm_lt.addWidget(self.save_to_file_btn)
         btm_lt.addWidget(self.close_btn)
 
-        self.main_lt.addLayout(btm_lt)
-
         # Layout
-        self.resize(650,300)
+        self.main_lt = QVBoxLayout()
+        self.main_lt.addWidget(self.table)
+        self.main_lt.addLayout(btm_lt)
         self.setLayout(self.main_lt)
+
+        self.setWindowTitle("Exceptions Occured")
+        self.setWindowIcon(QIcon(ICON_SVG))
+        self.resize(650,300)
+
         self.table.setStyleSheet("""
             QTableWidget, QHeaderView { background-color: #202124; }
             """)
