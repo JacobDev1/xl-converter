@@ -11,7 +11,7 @@ from core.utils import clip
 from core.pathing import getUniqueFilePath
 import core.metadata as metadata
 from core.convert import convert, getDecoder
-from core.exceptions import CancellationException
+from core.exceptions import CancellationException, GenericException, FileException
 
 # ------------------------------------------------------------
 #                           Helper
@@ -77,7 +77,7 @@ def cancelCheck(*tmp_files):
             try:
                 os.remove(file)
             except OSError as err:
-                raise OSError(f"[Downscaling - cancelCheck] {err}")
+                raise FileException("D5", err)
         raise CancellationException()
 
 # ------------------------------------------------------------
@@ -104,8 +104,8 @@ def _downscaleToFileSizeStepAuto(params):
             os.remove(proxy_src)
             os.remove(params["dst"])
         except OSError as err:
-            raise OSError(f"[Downscaling #0] Failed to delete tmp files {err}")
-        raise OSError(f"[Downscaling #1] Failed to get size. {err}")
+            raise FileException("D7", err)
+        raise FileException("D6", err)
 
     cancelCheck(proxy_src, params["dst"])
 
@@ -114,8 +114,8 @@ def _downscaleToFileSizeStepAuto(params):
             os.remove(proxy_src)
             os.remove(params["dst"])
         except OSError as err:
-            raise OSError(f"[Downscaling #2] Failed conversion check. {err}")
-        raise Exception("[Downscaling #3] Failed conversion check.")
+            raise FileException("D8", err)
+        raise FileException("D9", f"Failed conversion check. {err}")
 
     _downscaleToPercent(params["src"], proxy_src, 33, params["resample"], params["n"])
     convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
@@ -126,13 +126,13 @@ def _downscaleToFileSizeStepAuto(params):
         try:
             os.remove(proxy_src)
         except OSError as err:
-            raise OSError(f"[Downscaling #4] Failed to delete tmp files {err}")
-        raise OSError(f"[Downscaling #5] Getting file sizes failed. {err}")
+            raise FileException("D10", err)
+        raise FileException("D11", f"Getting file sizes failed. {err}")
 
     try:
         os.remove(params["dst"])
     except OSError as err:
-        raise OSError(f"[Downscaling #6] {err}")
+        raise FileException("D12", err)
 
     cancelCheck(proxy_src)
 
@@ -143,15 +143,15 @@ def _downscaleToFileSizeStepAuto(params):
         try:
             os.remove(proxy_src)
         except OSError as err:
-            raise OSError(f"[Downscaling #7] Failed to delete tmp file {err}")
-        raise Exception(f"[Downscaling #8] Extrapolated scale cannot be negative ({extrapolated_scale})")
+            raise FileException("D13", err)
+        raise GenericException("D14", f"Extrapolated scale cannot be negative ({extrapolated_scale})")
     elif extrapolated_scale >= 100:
         # Non-downscaled conversion
         convert(params["enc"], params["src"], params["dst"], params["args"], params["n"])
         try:
             os.remove(proxy_src)
         except OSError as err:
-            raise OSError(f"[Downscaling #9] Failed to delete tmp file {err}")
+            raise FileException("D15", err)
         return True
     else:
         while True:
@@ -170,8 +170,8 @@ def _downscaleToFileSizeStepAuto(params):
                     os.remove(proxy_src)
                     os.remove(params["dst"])
                 except OSError as err:
-                    raise OSError(f"[Downscaling #10] Failed to delete tmp files {err}")
-                raise OSError(f"[Downscaling #11] Getting file size failed {err}")
+                    raise FileException("D17", err)
+                raise FileException("D16", err)
 
             cancelCheck(proxy_src, params["dst"])
         
@@ -191,13 +191,13 @@ def _downscaleToFileSizeStepAuto(params):
                 else:
                     os.remove(e9_tmp)
             except OSError as err:
-                raise OSError(f"[Downscaling #12] {err}")
+                raise FileException("D18", err)
             
         # Cleanup
         try:
             os.remove(proxy_src)
         except OSError as err:
-            raise OSError(f"[Downscaling #13] {err}")
+            raise FileException("D19", err)
 
         return True
 
@@ -217,6 +217,8 @@ def _downscaleManualModes(params):
             args.append(f"-resize {params['shortest_side']}x{params['shortest_side']}^>")
         case "Longest Side":
             args.append(f"-resize {params['longest_side']}x{params['longest_side']}>")
+        case _:
+            raise GenericException("D2", f"Downscaling mode not recognized ({params['mode']})")
     
     # Downscale
     if params["enc"] == IMAGE_MAGICK_PATH:  # We can just add arguments If the encoder is ImageMagick, since it also handles downscaling
@@ -253,13 +255,13 @@ def _downscaleManualModes(params):
                     os.remove(e9_tmp)
 
             except OSError as err:
-                raise OSError(f"[Downscaling #13] {err}")
+                raise FileException("D3", err)
 
         # Clean-up
         try:
             os.remove(downscaled_path)
         except OSError as err:
-            raise OSError(f"[Downscaling #14] {err}")
+            raise FileException("D4", err)
 
 # ------------------------------------------------------------
 #                           Public
@@ -286,7 +288,7 @@ def decodeAndDownscale(params, ext, metadata_mode):
         try:
             os.remove(proxy_path)
         except OSError as err:
-            raise OSError(f"[Downscaling #15] {err}")
+            raise FileException("D1", err)
 
 def downscale(params):
     """A wrapper for all downscaling methods. Keeps the same aspect ratio.
@@ -323,4 +325,4 @@ def downscale(params):
     elif params["mode"] in ("Percent", "Resolution", "Shortest Side", "Longest Side"):
         _downscaleManualModes(params)
     else:
-        raise Exception(f"Downscaling mode not recognized ({params['mode']})")
+        raise GenericException("D0", f"Downscaling mode not recognized ({params['mode']})")

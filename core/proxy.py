@@ -60,8 +60,5 @@ class Proxy():
     def cleanup(self):
         """Delete a proxy If one exists."""
         if self.proxy_path != None:
-            try:
-                os.remove(self.proxy_path)
-            except OSError:
-                print(f"[Proxy - cleanup()] Failed to delete proxy ({self.proxy_path})")
-            self.proxy_path = None
+            os.remove(self.proxy_path)
+        self.proxy_path = None

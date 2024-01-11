@@ -23,6 +23,7 @@ class Signals(QObject):
     disable_sorting = Signal(bool)
     save_file_list = Signal()
     load_file_list = Signal()
+    no_exceptions = Signal(bool)
 
 class SettingsTab(QWidget):
     def __init__(self):
@@ -50,6 +51,7 @@ class SettingsTab(QWidget):
         gen_grp_lt.addWidget(self.disable_delete_startup_cb)
 
         self.no_exceptions_cb = self.wm.addWidget("no_exceptions_cb", QCheckBox("Disable Exception Popups"))
+        self.no_exceptions_cb.toggled.connect(self.signals.no_exceptions)
         gen_grp_lt.addWidget(self.no_exceptions_cb)
 
         self.no_sorting_cb = self.wm.addWidget("no_sorting_cb", QCheckBox("Input - Disable Sorting"))
@@ -119,6 +121,11 @@ class SettingsTab(QWidget):
             setTheme("dark")
         else:
             setTheme("light")        
+
+    def setExceptionsEnabled(self, enabled):
+        self.blockSignals(True)
+        self.no_exceptions_cb.setChecked(enabled)
+        self.blockSignals(False)
 
     def getSettings(self):
         return {

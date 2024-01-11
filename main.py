@@ -8,7 +8,6 @@ from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QTabWidget,
-    QProgressDialog,
 )
 from PySide6.QtCore import (
     QThreadPool,
@@ -36,7 +35,7 @@ from core.worker import Worker
 from core.utils import clip
 from data import Items
 import data.task_status as task_status
-from ui import ProgressDialog
+from ui import ProgressDialog, ExceptionView
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -53,7 +52,6 @@ class MainWindow(QMainWindow):
         self.progress_dialog = ProgressDialog(parent=self, title="Converting...", default_text="Starting the conversion...\n", cancelable=True)
         self.progress_dialog.canceled.connect(task_status.cancel)
         self.n = Notifications()
-        self.exceptions = []
 
         # Tabs
         self.settings_tab = SettingsTab()
@@ -73,6 +71,11 @@ class MainWindow(QMainWindow):
         self.settings_tab.signals.custom_resampling.connect(self.modify_tab.toggleCustomResampling)
 
         self.about_tab = AboutTab()
+
+        # Misc.
+        self.exception_view = ExceptionView(settings, parent=self)
+        self.exception_view.dont_show_again.connect(self.settings_tab.setExceptionsEnabled)
+        self.settings_tab.signals.no_exceptions.connect(self.exception_view.setDontShowAgain)
 
         # Layout
         self.tabs.addTab(self.input_tab, "Input")
@@ -115,8 +118,9 @@ class MainWindow(QMainWindow):
             self.progress_dialog.finished()
 
             # Post conversion routines
-            if self.exceptions and not self.settings_tab.getSettings()["no_exceptions"]:
-                self.n.notifyDetailed("Exceptions Occurred", "Exceptions occurred during conversion.", '\n'.join(self.exceptions))
+            if not self.exception_view.isEmpty() and not self.settings_tab.getSettings()["no_exceptions"]:
+                self.exception_view.resizeToContent()
+                self.exception_view.show()
             
             if self.output_tab.isClearAfterConvChecked():
                 self.input_tab.clearInput()
@@ -163,7 +167,8 @@ class MainWindow(QMainWindow):
             return
 
         # Reset and Parse data
-        self.exceptions = []
+        self.exception_view.close()
+        self.exception_view.clear()
         self.items.clear()
         self.items.parseData(self.input_tab.file_view.invisibleRootItem())
         if self.items.getItemCount() == 0:
@@ -193,11 +198,8 @@ class MainWindow(QMainWindow):
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
-            worker.signals.exception.connect(self.exception)
+            worker.signals.exception.connect(self.exception_view.addException)
             self.threadpool.start(worker)
-
-    def exception(self, msg):
-        self.exceptions.append(msg)
 
     def setUIEnabled(self, n):
         self.tabs.setEnabled(n)
@@ -207,6 +209,7 @@ class MainWindow(QMainWindow):
         self.output_tab.saveState()
         self.modify_tab.wm.saveState()
         self.about_tab.beforeExit()
+        self.exception_view.close()
 
         if self.threadpool.activeThreadCount() > 0:
             return -1

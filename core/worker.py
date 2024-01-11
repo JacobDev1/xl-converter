@@ -26,13 +26,13 @@ from core.convert import convert, getDecoder, getExtensionJxl, optimize
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
-from core.exceptions import CancellationException
+from core.exceptions import CancellationException, GenericException, FileException
 
 class Signals(QObject):
     started = Signal(int)
     completed = Signal(int)
     canceled = Signal(int)
-    exception = Signal(str)
+    exception = Signal(str, str, str)
 
 class Worker(QRunnable):
     def __init__(self, n, item, params, available_threads, mutex):
@@ -68,8 +68,8 @@ class Worker(QRunnable):
         self.scl_params = None
         self.skip = False
     
-    def exception(self, msg):
-        self.signals.exception.emit(f"{msg} ({self.item_name}.{self.item_ext})")
+    def logException(self, id, msg):
+        self.signals.exception.emit(id, msg, self.item_abs_path)
 
     @Slot()
     def run(self):
@@ -97,8 +97,16 @@ class Worker(QRunnable):
         except CancellationException:
             self.signals.canceled.emit(self.n)
             return
-        except (OSError, Exception) as err:
-            self.exception(err)
+        except (GenericException, FileException) as err:
+            self.logException(err.id, err.msg)
+            self.signals.completed.emit(self.n)
+            return
+        except OSError as err:
+            self.logException("OSError", str(err))
+            self.signals.completed.emit(self.n)
+            return
+        except Exception as err:
+            self.logException("Exception", str(err))
             self.signals.completed.emit(self.n)
             return
 
@@ -157,7 +165,7 @@ class Worker(QRunnable):
             case "PNG":
                 encoder = getDecoder(self.item_ext)
             case _:
-                raise Exception(f"Unknown Format ({self.params['format']})")
+                raise GenericException("C0", f"Unknown Format ({self.params['format']})")
 
         # Prepare metadata
         args.extend(metadata.getArgs(encoder, self.params["misc"]["keep_metadata"]))
@@ -185,7 +193,7 @@ class Worker(QRunnable):
                     try:
                         os.remove(path_e7)
                     except OSError as err:
-                        raise OSError(f"[Intelligent Effort] Failed to delete tmp file. {err}")
+                        raise FileException("C1", err)
                     
                     raise CancellationException()
 
@@ -200,7 +208,7 @@ class Worker(QRunnable):
                         os.remove(path_e9)
                         os.rename(path_e7, self.output)
                 except OSError as err:
-                    raise OSError(f"[Intelligent Effort] {err}")
+                    raise FileException("C2", err)
             else:   # Regular conversion
                 convert(encoder, self.item_abs_path, self.output, args, self.n)
         
@@ -226,7 +234,7 @@ class Worker(QRunnable):
                 else:
                     os.remove(lossless_path)
             except OSError as err:
-                raise OSError(f"[lossless_if_smaller] {err}")
+                raise FileException("C3", err)
 
     def setupConversion(self):
         # Choose Output Dir           
@@ -240,7 +248,7 @@ class Worker(QRunnable):
             try:
                 os.makedirs(self.output_dir, exist_ok=True)
             except OSError as err:
-                raise OSError(f"Failed to create output directory. {err}")
+                raise FileException("S0", f"Failed to create output directory. {err}")
         else:
             self.output_dir = self.item[2]
 
@@ -273,7 +281,7 @@ class Worker(QRunnable):
         if self.proxy.isProxyNeeded(self.params["format"], self.item_ext, self.params["downscaling"]["enabled"]):
 
             if not self.proxy.generate(self.item_abs_path, self.item_ext, self.output_dir, self.item_name, self.n):
-                raise OSError(f"Proxy could not be generated to {self.proxy.getPath()}")
+                raise FileException("S1", f"Proxy could not be generated to {self.proxy.getPath()}")
             
             self.item_abs_path = self.proxy.getPath()     # Redirect the source
 
@@ -301,7 +309,10 @@ class Worker(QRunnable):
 
     def finishConversion(self):
         if self.proxy.proxyExists():
-            self.proxy.cleanup()
+            try:
+                self.proxy.cleanup()
+            except OSError as err:
+                raise FileException("F1", f"Failed to delete proxy. {err}")
             self.item_abs_path = self.item[3]   # Redirect the source back to original file
         
         # Check for existing files
@@ -326,7 +337,7 @@ class Worker(QRunnable):
                         
                         os.rename(self.output, self.final_output)
         except OSError as err:
-            raise OSError(f"Could not finish conversion. {err}")
+            raise FileException("F0", f"Could not finish conversion. {err}")
 
     def postConversionRoutines(self):
         if os.path.isfile(self.final_output):    # Checking if renaming was successful
@@ -339,7 +350,7 @@ class Worker(QRunnable):
                 if self.params["misc"]["attributes"]:
                     shutil.copystat(self.item[3], self.final_output)
             except OSError as err:
-                raise OSError(f"Failed to apply attributes. {err}")
+                raise FileException("P0", f"Failed to apply attributes. {err}")
 
             # After Conversion
             try:
@@ -349,14 +360,14 @@ class Worker(QRunnable):
                     elif self.params["delete_original_mode"] == "Permanently":
                         os.remove(self.item[3])
             except OSError as err:
-                raise OSError(f"Failed to delete original file. {err}")
+                raise FileException("P1", f"Failed to delete original file. {err}")
         elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently)
-            raise OSError("Conversion failed.")
+            raise FileException("P2", "Conversion failed, output not found.")
 
     def runChecks(self):
         # Input was moved / deleted
         if os.path.isfile(self.item[3]) == False:
-            raise OSError("File not found")
+            raise FileException("C0", "File not found")
 
         # Check for UTF-8 characters
         if (
@@ -373,22 +384,22 @@ class Worker(QRunnable):
             try:
                 self.item[3].encode("cp437")
             except UnicodeEncodeError:
-                raise Exception("JPEG XL does not support paths with non-ANSI characters on Windows.")
+                raise GenericException("C1", "JPEG XL does not support paths with non-ANSI characters on Windows.")
 
         # Check for conflicts - GIFs and APNGs
         self.conflicts.checkForConflicts(self.item_ext, self.params["format"], self.params["intelligent_effort"], self.params["effort"], self.params["downscaling"]["enabled"])
         
         if self.conflicts.conflictOccurred():
             for i in self.conflicts.getConflictsMsg():
-                self.exception(i)
-            raise Exception("Conflicts occurred")
+                self.logException("cf.", i)
+            raise GenericException("C2", "Conflicts occurred")
         
         if self.conflicts.jxlConflictOccurred():
             # Normalize values
             self.params["effort"] = self.conflicts.jxlGetNormEffort(self.params["effort"])
             self.params["intelligent_effort"] = self.conflicts.jxlGetNormIntEffort(self.params["intelligent_effort"])
             for i in self.conflicts.getConflictsMsg():
-                self.exception(i)
+                self.logException("cf.", i)
     
     def smallestLossless(self):
         # Populate path pool
@@ -400,7 +411,7 @@ class Worker(QRunnable):
 
         # Check if no formats selected
         if len(path_pool) == 0:
-            raise Exception("No formats selected for Smallest Lossless")
+            raise GenericException("SL0", "No formats selected for Smallest Lossless")
 
         # Set arguments
         webp_thread_level = 1 if self.available_threads > 1 else 0
@@ -432,7 +443,7 @@ class Worker(QRunnable):
                 try:
                     shutil.copy(self.item_abs_path, path_pool["png"])
                 except OSError as err:
-                    raise OSError(f"[sm_l #0] Failed to copy a file. {err}")
+                    raise FileException("SL1", err)
                 optimize(OXIPNG_PATH, path_pool["png"], args["png"], self.n)
             elif key == "webp":
                 convert(IMAGE_MAGICK_PATH, self.item_abs_path, path_pool["webp"], args["webp"], self.n)
@@ -453,8 +464,8 @@ class Worker(QRunnable):
                 for key in path_pool:
                     os.remove(path_pool[key])
             except OSError as err:
-                raise OSError(f"[sm_l #1] Failed to delete tmp files. {err}")
-            raise OSError(f"[sm_l #2] Failed to get file sizes. {err}")
+                raise FileException("SL3", f"Failed to delete tmp files. {err}")
+            raise FileException("SL2", f"Failed to get file sizes. {err}")
 
         # Get the smallest item
         sm_f_key = None # Smallest format key
@@ -471,7 +482,7 @@ class Worker(QRunnable):
                 try:
                     os.remove(path_pool[key])
                 except OSError as err:
-                    raise OSError(f"[sm_l #3] Failed to delete tmp files. {err}")
+                    raise FileException("SL4", f"Failed to delete tmp files. {err}")
 
         # Handle the smallest file
         self.output = path_pool[sm_f_key]
