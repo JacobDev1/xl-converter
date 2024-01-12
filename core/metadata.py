@@ -9,7 +9,7 @@ from data.constants import (
     AVIFDEC_PATH,
     OXIPNG_PATH
 )
-from core.process import runProcess, runProcessFromPath
+from core.process import runProcess
 from core.exceptions import GenericException
 
 def _runExifTool(*args):
@@ -17,7 +17,7 @@ def _runExifTool(*args):
     if platform.system() == "Windows":
         runProcess(EXIFTOOL_PATH, *args)
     elif platform.system() == "Linux":  # Relative path needed for Brotli dependency to work on Linux
-        runProcessFromPath(EXIFTOOL_BIN_NAME, *args, path=EXIFTOOL_FOLDER_PATH)
+        runProcess(EXIFTOOL_BIN_NAME, *args, cwd=EXIFTOOL_FOLDER_PATH)
 
 def copyMetadata(src, dst):
     """Copy all metadata from one file onto another."""

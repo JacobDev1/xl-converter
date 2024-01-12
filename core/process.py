@@ -11,20 +11,11 @@ def _getStartupInfo():
         startupinfo.wShowWindow = subprocess.SW_HIDE
     return startupinfo
 
-def runProcess(*cmd):
+def runProcess(*cmd, cwd=None):
     """Run process."""
     logging.info(f"Running command: {cmd}")
 
-    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo())
-    if process.stdout:
-        logging.debug(process.stdout.decode())
-    if process.stderr:
-        logging.debug(process.stderr.decode())
-
-def runProcessFromPath(*cmd, path):
-    """Run process from the specified directory."""
-    logging.info(f"Running command from \"{path}\": {cmd}")
-    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=path, startupinfo=_getStartupInfo())
+    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo(), cwd=cwd)
     if process.stdout:
         logging.debug(process.stdout.decode())
     if process.stderr:
