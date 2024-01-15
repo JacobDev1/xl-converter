@@ -204,7 +204,6 @@ class MainWindow(QMainWindow):
         self.settings_tab.wm.saveState()
         self.output_tab.saveState()
         self.modify_tab.wm.saveState()
-        self.about_tab.beforeExit()
         self.exception_view.close()
 
         if self.threadpool.activeThreadCount() > 0:

@@ -16,7 +16,7 @@ from PySide6.QtGui import(
 )
 
 from data.constants import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
-from .update_checker import UpdateChecker
+from ui.update_checker import UpdateChecker
 
 class AboutTab(QWidget):
     def __init__(self):
@@ -61,7 +61,3 @@ class AboutTab(QWidget):
     def checkForUpdate(self):
         self.update_checker.run()
         self.update_btn.setEnabled(False)
-    
-    def beforeExit(self):
-        """Clean-up before exiting the application."""
-        self.update_checker.beforeExit()
