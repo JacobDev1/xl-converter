@@ -79,9 +79,15 @@ class ExceptionView(QDialog):
         row_pos = self.table.rowCount()
         self.table.insertRow(row_pos)
 
-        self._setItem(row_pos, 0, _id)
+        self._setItem(row_pos, 0, _id, Qt.AlignCenter)
         self._setItem(row_pos, 1, exception)
         self._setItem(row_pos, 2, source)
+
+    def _setItem(self, row, col, value, align = Qt.AlignVCenter | Qt.AlignLeft):
+        item = QTableWidgetItem()
+        item.setTextAlignment(align)
+        item.setData(Qt.DisplayRole, value)
+        self.table.setItem(row, col, item)
 
     def clear(self):
         while self.table.rowCount() > 0:
@@ -120,11 +126,6 @@ class ExceptionView(QDialog):
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-
-    def _setItem(self, row, col, value):
-        item = QTableWidgetItem()
-        item.setData(Qt.DisplayRole, value)
-        self.table.setItem(row, col, item)
 
     def setDontShowAgain(self, checked):
         self.blockSignals(True)
