@@ -16,17 +16,10 @@ The [documentation](https://xl-converter-docs.codepoems.eu)
 Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](https://xl-converter-docs.codepoems.eu/supported-formats)
 
 ## Features
-### JPEG XL
-
-#### Intelligent Effort
-
-Optimizes `Effort` for smaller size.
-
 #### JPG Reconstruction
 
 Reconstructs the original JPG from a JPEG XL file.
 
-### Technical
 #### Multithreading
 
 Speeds up JPEG XL encoding significantly.
@@ -37,20 +30,23 @@ Avoid picky encoders. A proxy is generated when an encoder doesn't support a spe
 
 For example, this enables HEIF -> JPEG XL conversion.
 
-### General
 #### Downscaling
 
 Scale down images to resolution, percent, shortest (and longest) side, or file size.
-
-#### Lossless (Only If Smaller)
-
-Picks the smallest out of two.
 
 #### Smallest Lossless
 
 Utilize multiple formats to achieve the smallest size.
 
 ![](misc/screenshots/screenshot_2.png)
+
+#### Intelligent Effort
+
+Optimizes `Effort` for smaller size.
+
+#### Lossless (Only If Smaller)
+
+Picks the smallest out of two.
 
 ## Bug Reports
 
