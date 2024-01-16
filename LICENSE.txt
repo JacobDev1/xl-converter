@@ -1,6 +1,6 @@
 XL Converter is licensed under GNU General Public License v3 (GPLv3).
 
-Copyright (c) 2023 code poems <contact@codepoems.eu>
+Copyright (c) 2023 - 2024 code poems <contact@codepoems.eu>
 
 -----------------------------------------------------------------------------------
 
