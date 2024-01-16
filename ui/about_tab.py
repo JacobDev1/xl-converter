@@ -27,15 +27,24 @@ class AboutTab(QWidget):
         self.update_checker = UpdateChecker()
 
         # Label
-        credits_l = QLabel(f"""
+        text_vb = QVBoxLayout()
+        headers_l = QLabel(f"""
             <h3><a href=\"https://codepoems.eu/xl-converter\">XL Converter</a></h3>
-            Version {VERSION}<br>
-            <a href=\"mailto:contact@codepoems.eu\">contact@codepoems.eu</a><br>
-            XL Converter is licensed under <a href=\"{QUrl.fromLocalFile(LICENSE_PATH).toString()}\">GPL v3</a>
-            <br><a href=\"{QUrl.fromLocalFile(LICENSE_3RD_PARTY_PATH).toString()}\">3rd party licenses
+            <h4>Version {VERSION}</h4>
         """)
-        credits_l.setAlignment(Qt.AlignCenter)
+        credits_l = QLabel(f"""
+            <a href=\"mailto:contact@codepoems.eu\">contact@codepoems.eu</a><br>
+            XL Converter is licensed under <a href=\"{QUrl.fromLocalFile(LICENSE_PATH).toString()}\">GPL v3</a><br>
+            <a href=\"{QUrl.fromLocalFile(LICENSE_3RD_PARTY_PATH).toString()}\">3rd party licenses
+        """)
+
+        headers_l.setOpenExternalLinks(True)
         credits_l.setOpenExternalLinks(True)
+        headers_l.setAlignment(Qt.AlignCenter)
+        credits_l.setAlignment(Qt.AlignCenter)
+        text_vb.addWidget(headers_l)
+        text_vb.addWidget(credits_l)
+        tab_lt.addLayout(text_vb)
 
         # Buttons
         buttons_vb = QVBoxLayout()
@@ -44,15 +53,17 @@ class AboutTab(QWidget):
         self.update_checker.finished.connect(lambda: self.update_btn.setEnabled(True))
         self.manual_btn = QPushButton("Manual", clicked=lambda: QDesktopServices.openUrl(QUrl("https://xl-converter-docs.codepoems.eu/")))
         self.report_bug_btn = QPushButton("Report Bug", clicked=lambda: QDesktopServices.openUrl(QUrl("https://github.com/JacobDev1/xl-converter/issues")))
+        self.website_btn = QPushButton("Website", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu/xl-converter")))
 
         buttons_vb.addWidget(self.update_btn)
         buttons_vb.addWidget(self.manual_btn)
         buttons_vb.addWidget(self.report_bug_btn)
-
-        # Layout
-        tab_lt.addWidget(credits_l)
+        buttons_vb.addWidget(self.website_btn)
         tab_lt.addLayout(buttons_vb)
 
+        # Layout
+
+        text_vb.setAlignment(Qt.AlignVCenter)
         buttons_vb.setAlignment(Qt.AlignVCenter)
 
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
