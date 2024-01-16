@@ -75,7 +75,7 @@ class ExceptionView(QDialog):
         # Apply settings
         self.dont_show_again_cb.setChecked(settings.get("no_exceptions", False))
 
-    def addException(self, _id, exception, source):
+    def addItem(self, _id, exception, source):
         row_pos = self.table.rowCount()
         self.table.insertRow(row_pos)
 

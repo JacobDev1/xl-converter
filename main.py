@@ -194,7 +194,7 @@ class MainWindow(QMainWindow):
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
-            worker.signals.exception.connect(self.exception_view.addException)
+            worker.signals.exception.connect(self.exception_view.addItem)
             self.threadpool.start(worker)
 
     def setUIEnabled(self, n):
