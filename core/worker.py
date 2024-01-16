@@ -382,7 +382,7 @@ class Worker(QRunnable):
             )
         ):
             try:
-                self.item[3].encode("cp437")
+                self.item[3].encode("cp1252")
             except UnicodeEncodeError:
                 raise GenericException("C1", "JPEG XL does not support paths with non-ANSI characters on Windows.")
 
