@@ -29,7 +29,7 @@ class Worker(QObject):
         try:
             response = requests.get(VERSION_FILE_URL)
         except requests.ConnectionError as err:
-            self.misc_error.emit(f"Couldn't connect to the server.")
+            self.misc_error.emit(f"Couldn't connect to the server.\n{err}")
             self.finished.emit()
             return
 
