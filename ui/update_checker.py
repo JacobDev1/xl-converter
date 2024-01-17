@@ -21,7 +21,7 @@ from PySide6.QtGui import(
 from data.constants import VERSION, ICON_SVG
 from core.update_checker import Runner
 
-class UpdateCheckerDialog(QDialog):
+class Dialog(QDialog):
     closed = Signal()
 
     def __init__(self, parent = None):
@@ -95,10 +95,10 @@ class UpdateChecker(QObject):
         self.msg_url = None
 
         self.runner = Runner(self)
-        self.runner.error.connect(self.notify)
+        self.runner.error.connect(self.showError)
         self.runner.json.connect(self.processJSON)
         self.runner.finished.connect(self.finished)
-        self.dlg = UpdateCheckerDialog()
+        self.dlg = Dialog()
 
     def run(self, silent = False):
         self.silent = silent
@@ -107,8 +107,9 @@ class UpdateChecker(QObject):
         self.msg = None
         self.msg_url = None
     
-    def notify(self, msg):
-        self.dlg.show(msg)
+    def showError(self, msg):
+        if not self.silent:
+            self.dlg.show(msg)
 
     def processJSON(self, json):
         def isKeyEmpty(json, key):
