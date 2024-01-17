@@ -210,6 +210,7 @@ class Builder():
         print("[Building] Generating binaries")
         makedirs(self.dst_dir)
         PyInstaller.__main__.run([
+            "--log-level=ERROR",
             str(Path("misc/main.spec"))
         ])
     
@@ -306,7 +307,6 @@ class Builder():
         move(f"{self.dst_dir}/{os.path.basename(self.installer_path['Linux'])}", dst)
         move(f"{self.dst_dir}/{os.path.basename(self.desktop_entry_path)}", dst)
         subprocess.run(("7z", "a", f"{dst_direct}.7z", dst_direct), cwd=self.dst_dir)
-
 
 if __name__ == '__main__':
     try:
