@@ -75,6 +75,8 @@ class Items():
         self.items = []
         self.completed_items = []
         self.item_count = 0
+        self.completion_times = []
+        self.prev_completion_time = None
     
     def getStatusText(self):
         out = f"Converted {self.getCompletedItemCount()} out of {self.getItemCount()} images\n"
