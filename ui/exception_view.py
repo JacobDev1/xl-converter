@@ -1,4 +1,5 @@
 import csv
+import platform
 
 from PySide6.QtWidgets import (
     QDialog,
@@ -112,6 +113,7 @@ class ExceptionView(QDialog):
             with open(dlg.toLocalFile(), "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
                 writer.writerow(("Version", VERSION))
+                writer.writerow(("OS", platform.system()))
                 writer.writerow(("ID", "Exception", "Source"))
                 for row in range(self.table.rowCount()):
                     row_data = []
