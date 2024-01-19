@@ -51,7 +51,7 @@ class AboutTab(QWidget):
 
         self.update_btn = QPushButton("Check for Updates", clicked=self.checkForUpdate)
         self.update_checker.finished.connect(lambda: self.update_btn.setEnabled(True))
-        self.manual_btn = QPushButton("Manual", clicked=lambda: QDesktopServices.openUrl(QUrl("https://xl-converter-docs.codepoems.eu/")))
+        self.manual_btn = QPushButton("Manual", clicked=lambda: QDesktopServices.openUrl(QUrl("https://xl-docs.codepoems.eu/")))
         self.report_bug_btn = QPushButton("Report Bug", clicked=lambda: QDesktopServices.openUrl(QUrl("https://github.com/JacobDev1/xl-converter/issues")))
         self.website_btn = QPushButton("Website", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu/xl-converter")))
 

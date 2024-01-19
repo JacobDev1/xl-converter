@@ -9,11 +9,11 @@ Available for Windows and Linux.
 
 ![](misc/screenshots/screenshot_0.png)
 
-The [documentation](https://xl-converter-docs.codepoems.eu)
+The [documentation](https://xl-docs.codepoems.eu)
 
 ## Supported Formats
 
-Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](https://xl-converter-docs.codepoems.eu/supported-formats)
+Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](https://xl-docs.codepoems.eu/supported-formats)
 
 ## Features
 #### JPG Reconstruction
