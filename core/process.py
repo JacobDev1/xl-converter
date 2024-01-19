@@ -16,20 +16,27 @@ def runProcess(*cmd, cwd=None):
     logging.info(f"Running command: {cmd}")
 
     process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo(), cwd=cwd)
-    if process.stdout:
-        logging.debug(process.stdout.decode())
-    if process.stderr:
-        logging.debug(process.stderr.decode())
+    
+    try:
+        if process.stdout:
+            logging.debug(process.stdout.decode())
+        if process.stderr:
+            logging.debug(process.stderr.decode())
+    except Exception as err:
+        logging.error(f"Failed to decode process output. {err}")
 
 def runProcessOutput(*cmd):
     """Run process then return its output."""
     logging.info(f"Running command with output: {cmd}")
 
     process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, startupinfo=_getStartupInfo())
-    if process.stdout:
-        logging.error("[Process] Output is empty")
-        logging.debug(process.stdout.decode())
-    if process.stderr:
-        logging.debug(process.stderr.decode())    
+
+    try:
+        if process.stdout:
+            logging.debug(process.stdout.decode())
+        if process.stderr:
+            logging.debug(process.stderr.decode())    
+    except Exception as err:
+        logging.error(f"Failed to decode process output. {err}")
 
     return process.stdout
