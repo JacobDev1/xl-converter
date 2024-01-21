@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
     def convert(self):
         params = self.output_tab.getSettings()
         params.update(self.modify_tab.getSettings())
-        # params["settings"] = self.settings_tab.getSettings()
+        settings = self.settings_tab.getSettings()
 
         if not self._safetyChecks(params):
             return
@@ -190,7 +190,7 @@ class MainWindow(QMainWindow):
         mutex = QMutex()
 
         for i in range(0, self.items.getItemCount()):
-            worker = Worker(i, self.items.getItem(i), params, threads_per_worker, mutex)
+            worker = Worker(i, self.items.getItem(i), params, settings, threads_per_worker, mutex)
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)

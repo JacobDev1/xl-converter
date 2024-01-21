@@ -35,10 +35,11 @@ class Signals(QObject):
     exception = Signal(str, str, str)
 
 class Worker(QRunnable):
-    def __init__(self, n, item, params, available_threads, mutex):
+    def __init__(self, n, item, params, settings, available_threads, mutex):
         super().__init__()
         self.signals = Signals()
         self.params = copy.deepcopy(params)
+        self.settings = settings    # reference, do not modify
 
         # Convert modules
         self.proxy = Proxy()
@@ -372,6 +373,7 @@ class Worker(QRunnable):
         # Check for UTF-8 characters
         if (
             os.name == "nt" and
+            not self.settings["disable_jxl_utf8_check"] and
             (
                 self.params["format"] == "JPEG XL" or
                 self.item_ext == "jxl" or

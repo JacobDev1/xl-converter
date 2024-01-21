@@ -67,6 +67,9 @@ class SettingsTab(QWidget):
         self.custom_resampling_cb.toggled.connect(self.signals.custom_resampling.emit)
         conv_grp_lt.addWidget(self.custom_resampling_cb)
 
+        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("Disable UTF-8 Check (JPEG XL / Windows)"))
+        conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
+
         # File List
         file_list_hbox = QHBoxLayout()
         self.file_list_l = QLabel("File List")
@@ -134,6 +137,7 @@ class SettingsTab(QWidget):
             "disable_downscaling_startup": self.disable_downscaling_startup_cb.isChecked(),
             "disable_delete_startup": self.disable_delete_startup_cb.isChecked(),
             "no_exceptions": self.no_exceptions_cb.isChecked(),
+            "disable_jxl_utf8_check": self.disable_jxl_utf8_check_cb.isChecked(),
         }
     
     def resetToDefault(self):
@@ -145,3 +149,4 @@ class SettingsTab(QWidget):
         self.disable_downscaling_startup_cb.setChecked(True)
         self.disable_delete_startup_cb.setChecked(True)
         self.no_exceptions_cb.setChecked(False)
+        self.disable_jxl_utf8_check_cb.setChecked(False)
