@@ -26,7 +26,7 @@ src: src-min
 
 src-min: clean
 	mkdir -p dist/src
-	rsync -a --exclude-from=.gitignore --exclude=.git --exclude=screenshots --exclude=.github --exclude=.pytest_cache ./ dist/src/
+	rsync -a --include=misc/* --exclude-from=.gitignore --exclude=.git --exclude=screenshots --exclude=.github --exclude=.pytest_cache ./ dist/src/
 
 test:
 ifdef n
