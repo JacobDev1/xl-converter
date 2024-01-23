@@ -65,7 +65,7 @@ Prerequisites:
 Clone the repo.
 
 ```cmd
-git clone -b v0.9.5 --depth 1 https://github.com/JacobDev1/xl-converter.git
+git clone -b v0.9.6 --depth 1 https://github.com/JacobDev1/xl-converter.git
 cd xl-converter
 ```
 
@@ -108,7 +108,7 @@ sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev 
 Clone and set up the repo.
 
 ```bash
-git clone -b v0.9.5 --depth 1 https://github.com/JacobDev1/xl-converter.git
+git clone -b v0.9.6 --depth 1 https://github.com/JacobDev1/xl-converter.git
 chmod -R +x xl-converter
 cd xl-converter
 ```
