@@ -1,16 +1,19 @@
-from core.utils import removeDuplicates
-import os, platform, sys
+import os
+import platform
+import sys
+import logging
 
-VERSION = "0.9.5"
+from core.utils import removeDuplicates
+
+VERSION = "0.9.6"
 VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
 
-# Logs
-PROCESS_LOGS = False
-PROCESS_LOGS_VERBOSE = False
-THREAD_LOGS = False
-CONVERT_LOGS = False
-DOWNSCALE_LOGS = False
-FILEVIEW_LOGS = False
+logging.basicConfig(
+    level=logging.WARNING,    # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    stream=sys.stderr,
+    encoding="utf-8",
+    format="[%(levelname)s] %(message)s",
+)
 
 # Filled below
 CONFIG_LOCATION = ""
@@ -67,7 +70,7 @@ elif platform.system() == "Linux":
 JPEG_ALIASES = ["jpg", "jpeg", "jfif", "jif", "jpe"] # Used by CJXL for JPEG reconstruction, before adding more verify support
 ALLOWED_INPUT_DJXL = ["jxl"]
 ALLOWED_INPUT_CJXL = JPEG_ALIASES + ["png", "apng", "gif"]
-ALLOWED_INPUT_IMAGE_MAGICK = JPEG_ALIASES + ["png", "gif", "heif", "heifs", "heic", "heics", "avci", "avcs", "hif", "webp", "tiff", "jp2", "bmp", "ico"]     # Before adding more, make sure the included ImageMagick works with it. Some formats (like FLIF) seem not to have been included
+ALLOWED_INPUT_IMAGE_MAGICK = JPEG_ALIASES + ["png", "gif", "heif", "heifs", "heic", "heics", "avci", "avcs", "hif", "webp", "jp2", "bmp", "ico"]     # Before adding more, make sure the included ImageMagick works with it. Some formats (like FLIF) seem not to have been included
 ALLOWED_INPUT_AVIFENC = JPEG_ALIASES + ["png"]
 ALLOWED_INPUT_AVIFDEC = ["avif"]
 ALLOWED_INPUT_OXIPNG = ["png"]

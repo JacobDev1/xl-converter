@@ -54,13 +54,13 @@ class Conflicts():
         
         return self.conflict
 
-    def conflictOccured(self):
+    def conflictOccurred(self):
         return self.conflict
 
     def getConflictsMsg(self):
         return self.conflict_msg
 
-    def jxlConflictOccured(self):
+    def jxlConflictOccurred(self):
         return self.jxl_conflict
     
     def jxlGetNormEffort(self, effort):

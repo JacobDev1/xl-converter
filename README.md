@@ -9,32 +9,17 @@ Available for Windows and Linux.
 
 ![](misc/screenshots/screenshot_0.png)
 
-## Support This Project
-
-- [Patreon](https://patreon.com/codepoems) - get rewards
-- [Ko-Fi](https://ko-fi.com/codepoems) - one-time donation
-- [Libera](https://liberapay.com/CodePoems/donate)
-
-## Knowledge-base
-
-Easy to digest documentation [here](https://xl-converter-docs.codepoems.eu)
+The [documentation](https://xl-docs.codepoems.eu)
 
 ## Supported Formats
 
-Encode to **JPEG XL, AVIF, WEBP, and JPG**. [read more](https://xl-converter-docs.codepoems.eu/supported-formats)
+Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](https://xl-docs.codepoems.eu/supported-formats)
 
 ## Features
-### JPEG XL
-
-#### Intelligent Effort
-
-Optimizes `Effort` for smaller size.
-
 #### JPG Reconstruction
 
 Reconstructs the original JPG from a JPEG XL file.
 
-### Technical
 #### Multithreading
 
 Speeds up JPEG XL encoding significantly.
@@ -45,14 +30,9 @@ Avoid picky encoders. A proxy is generated when an encoder doesn't support a spe
 
 For example, this enables HEIF -> JPEG XL conversion.
 
-### General
 #### Downscaling
 
 Scale down images to resolution, percent, shortest (and longest) side, or file size.
-
-#### Lossless (Only If Smaller)
-
-Picks the smallest out of two.
 
 #### Smallest Lossless
 
@@ -60,17 +40,32 @@ Utilize multiple formats to achieve the smallest size.
 
 ![](misc/screenshots/screenshot_2.png)
 
+#### Intelligent Effort
+
+Optimizes `Effort` for smaller size.
+
+#### Lossless (Only If Smaller)
+
+Picks the smallest out of two.
+
+## Bug Reports
+
+You can submit a bug report in 2 ways
+- \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
+- \[private\] Email me at contact@codepoems.eu
+
 ## Building from Source
 
 ### Windows 10
 
-Install Python `3.11.6` from [here](https://www.python.org/downloads).
+Prerequisites:
+- Python `3.11.6` (with `pip`)
+- `git`
 
-Check `Add Python to environment variables` and `pip` as option features.
-
-Download and enter the repo.
+Clone the repo.
 
 ```cmd
+git clone -b v0.9.6 --depth 1 https://github.com/JacobDev1/xl-converter.git
 cd xl-converter
 ```
 
@@ -82,7 +77,7 @@ env\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-Install redistributables
+Install redistributable
 
 ```cmd
 misc\VC_redist.x64.exe
@@ -113,8 +108,8 @@ sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev 
 Clone and set up the repo.
 
 ```bash
-git clone https://github.com/JacobDev1/xl-converter.git
-chmod -R 755 xl-converter
+git clone -b v0.9.6 --depth 1 https://github.com/JacobDev1/xl-converter.git
+chmod -R +x xl-converter
 cd xl-converter
 ```
 
@@ -175,12 +170,6 @@ make build
 #### Python Version on Linux
 
 The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
-
-## Bug Reports
-
-You can submit a bug report in 2 ways
-- \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
-- \[private\] Email me at contact@codepoems.eu
 
 ## Contributions
 

@@ -2,19 +2,6 @@ import os
 from pathlib import Path
 
 import qdarktheme
-from send2trash import send2trash
-
-def delete(path, trash=False):
-    """Delete a file (or move to trash)."""
-    try:
-        if trash:
-            send2trash(path)
-        else:
-            os.remove(path)
-    except OSError as err:
-        print(f"[Error] Failed to delete the file ({path})\n{err}")
-        return False
-    return True
 
 def scanDir(path):
     """Recursively scan a directory for files"""

@@ -22,11 +22,14 @@ src-full: clean
 	mkdir -p dist/src
 	rsync -a --exclude-from=.gitignore ./ dist/src/
 
-src: src-min
-
 src-min: clean
 	mkdir -p dist/src
-	rsync -a --exclude-from=.gitignore --exclude=.git --exclude=screenshots --exclude=.github --exclude=.pytest_cache ./ dist/src/
+	rsync -a --include=misc/* --exclude-from=.gitignore --exclude=.git --exclude=screenshots --exclude=.github --exclude=.pytest_cache ./ dist/src/
+
+src: src-min
+
+src-zip: src
+	cd dist && 7z a src_`date +%Y%m%d_%H%M%S`.zip src/
 
 test:
 ifdef n

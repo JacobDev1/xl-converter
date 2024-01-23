@@ -1,17 +1,15 @@
-import shutil, os
+import os
 
 import data.task_status as task_status
 from data.constants import (
-    CJXL_PATH,
     IMAGE_MAGICK_PATH,
     ALLOWED_RESAMPLING,
-    ALLOWED_INPUT_IMAGE_MAGICK,
-    DOWNSCALE_LOGS
 )
-from core.utils import delete, clip
+from core.utils import clip
 from core.pathing import getUniqueFilePath
 import core.metadata as metadata
 from core.convert import convert, getDecoder
+from core.exceptions import CancellationException, GenericException, FileException
 
 # ------------------------------------------------------------
 #                           Helper
@@ -26,15 +24,6 @@ def _downscaleToPercent(src, dst, amount=90, resample="Default", n=None):
     args.extend([f"-resize {amount}%"])
 
     convert(IMAGE_MAGICK_PATH, src, dst, args, n)
-
-def log(msg, n = None):
-    if not DOWNSCALE_LOGS:
-        return
-
-    if n == None:
-        print(msg)
-    else:
-        print(f"[Worker #{n}] {msg}")
 
 # ------------------------------------------------------------
 #                           Math
@@ -70,99 +59,19 @@ def _extrapolateScale(sample_points, desired_size) -> int:
 
     return int(y_new)
 
-def _isInRangeOrSmaller(value, range_center, fault_tolerance) -> bool:
-    """Returns True If value is in range or smaller.
-
-    parameters:
-        value: number
-        range_center: number
-        fault_tolerance: percent
-    """
-    upper_ceil = range_center + range_center * (fault_tolerance / 100)
-    # bottom_ceil = range_center - range_center * (fault_tolerance / 100)
-
-    if upper_ceil > value:
-        return True
-    else:
-        return False
+def cancelCheck(*tmp_files):
+    """Checks if the task was canceled and removes temporary files."""
+    if task_status.wasCanceled():
+        for file in tmp_files:
+            try:
+                os.remove(file)
+            except OSError as err:
+                raise FileException("D5", err)
+        raise CancellationException()
 
 # ------------------------------------------------------------
 #                           Scaling
 # ------------------------------------------------------------
-
-def _downscaleToMaxFileSize(params):
-    """Downscale image to fit under a certain file size."""
-    # Prepare data
-    amount = 100
-    proxy_src = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
-    shutil.copy(params["src"], proxy_src)
-
-    # Int. Effort
-    if params["format"] == "JPEG XL" and params["jxl_int_e"]:
-        params["args"][1] = "-e 7"
-
-    # Downscale until it's small enough
-    while True:
-        if task_status.wasCanceled():
-            delete(proxy_src)
-            delete(params["dst"])
-            return False
-
-        # Normal conversion
-        convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
-
-        # Failed conversion check (in case of corrupt images)
-        if not os.path.isfile(params["dst"]):
-            delete(proxy_src)
-            return False
-
-        # If bigger - resize
-        try:
-            size = os.path.getsize(params["dst"])
-        except OSError as err:
-            delete(proxy_src)
-            delete(params["dst"])
-            return False
-
-        if (size / 1024) > params["max_size"]:
-            amount -= params["step"]
-            if amount < 1:
-                delete(proxy_src)
-                log("[Error] Cannot downscale to less than 1%", params["n"])
-                return False
-            
-            if task_status.wasCanceled():
-                delete(proxy_src)
-                delete(params["dst"])
-                return False
-
-            _downscaleToPercent(params["src"], proxy_src, amount, params["resample"], params["n"])
-
-        else:
-            # JPEG XL - intelligent effort
-            if params["format"] == "JPEG XL" and params["jxl_int_e"]:
-                params["args"][1] = "-e 9"
-                e9_tmp = getUniqueFilePath(params["dst_dir"], params["name"], "jxl", True)
-
-                convert(params["enc"], proxy_src, e9_tmp, params["args"], params["n"])
-
-                try:
-                    e7_size = os.path.getsize(params["dst"])
-                    e9_size = os.path.getsize(e9_tmp)
-                except OSError as err:
-                    delete(proxy_src)
-                    delete(params["dst"])
-                    return False
-
-                if e9_size < e7_size:
-                    delete(params["dst"])
-                    os.rename(e9_tmp, params["dst"])
-                else:
-                    delete(e9_tmp)
-
-            # Clean-up
-            delete(proxy_src)
-            return True
 
 def _downscaleToFileSizeStepAuto(params):
     # Prepare data
@@ -176,43 +85,62 @@ def _downscaleToFileSizeStepAuto(params):
     # Sample 2 data points (evenly)
     _downscaleToPercent(params["src"], proxy_src, 66, params["resample"], params["n"])
     convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
+
     try:
         size_samples.append([os.path.getsize(params["dst"]), 66])
     except OSError as err:
-        delete(proxy_src)
-        delete(params["dst"])
-        return False
+        try:
+            os.remove(proxy_src)
+            os.remove(params["dst"])
+        except OSError as err:
+            raise FileException("D7", err)
+        raise FileException("D6", err)
 
-    if not os.path.isfile(params["dst"]) or task_status.wasCanceled():  # Failed conversion check (in case of corrupt images)
-        delete(proxy_src)
-        delete(params["dst"])
-        return False
+    cancelCheck(proxy_src, params["dst"])
+
+    if not os.path.isfile(params["dst"]):  # Failed conversion check (in case of corrupt images)
+        try:
+            os.remove(proxy_src)
+            os.remove(params["dst"])
+        except OSError as err:
+            raise FileException("D8", err)
+        raise FileException("D9", f"Failed conversion check. {err}")
 
     _downscaleToPercent(params["src"], proxy_src, 33, params["resample"], params["n"])
     convert(params["enc"], proxy_src, params["dst"], params["args"], params["n"])
+
     try:
         size_samples.append([os.path.getsize(params["dst"]), 33])
     except OSError as err:
-        delete(proxy_src)
-        delete(params["dst"])
-        return False
+        try:
+            os.remove(proxy_src)
+        except OSError as err:
+            raise FileException("D10", err)
+        raise FileException("D11", f"Getting file sizes failed. {err}")
 
-    delete(params["dst"])
+    try:
+        os.remove(params["dst"])
+    except OSError as err:
+        raise FileException("D12", err)
 
-    if task_status.wasCanceled():
-        delete(proxy_src)
-        return False
+    cancelCheck(proxy_src)
 
     # Use gathered data
     extrapolated_scale = _extrapolateScale(size_samples, params["max_size"] * 1024)
 
     if extrapolated_scale < 0:
-        delete(proxy_src)
-        return False
+        try:
+            os.remove(proxy_src)
+        except OSError as err:
+            raise FileException("D13", err)
+        raise GenericException("D14", f"Extrapolated scale cannot be negative ({extrapolated_scale})")
     elif extrapolated_scale >= 100:
         # Non-downscaled conversion
         convert(params["enc"], params["src"], params["dst"], params["args"], params["n"])
-        delete(proxy_src)
+        try:
+            os.remove(proxy_src)
+        except OSError as err:
+            raise FileException("D15", err)
         return True
     else:
         while True:
@@ -222,17 +150,19 @@ def _downscaleToFileSizeStepAuto(params):
             extrapolated_scale -= 10
             
             try:
-                if _isInRangeOrSmaller(os.path.getsize(params["dst"]), params["max_size"]  * 1024, 10):
+                size = os.path.getsize(params["dst"])
+                threshold = params["max_size"] * 1024 * 1.1   # 10% fault tolerance
+                if size < threshold:
                     break
             except OSError as err:
-                delete(proxy_src)
-                delete(params["dst"])
-                return False
+                try:
+                    os.remove(proxy_src)
+                    os.remove(params["dst"])
+                except OSError as err:
+                    raise FileException("D17", err)
+                raise FileException("D16", err)
 
-            if task_status.wasCanceled():
-                delete(proxy_src)
-                delete(params["dst"])
-                return False
+            cancelCheck(proxy_src, params["dst"])
         
         # JPEG XL - intelligent effort
         if params["format"] == "JPEG XL" and params["jxl_int_e"]:
@@ -244,19 +174,20 @@ def _downscaleToFileSizeStepAuto(params):
             try:
                 e7_size = os.path.getsize(params["dst"])
                 e9_size = os.path.getsize(e9_tmp)
+                if e9_size < e7_size:
+                    os.remove(params["dst"])
+                    os.rename(e9_tmp, params["dst"])
+                else:
+                    os.remove(e9_tmp)
             except OSError as err:
-                delete(proxy_src)
-                delete(params["dst"])
-                return False
+                raise FileException("D18", err)
             
-            if e9_size < e7_size:
-                delete(params["dst"])
-                os.rename(e9_tmp, params["dst"])
-            else:
-                delete(e9_tmp)
-
         # Cleanup
-        delete(proxy_src)
+        try:
+            os.remove(proxy_src)
+        except OSError as err:
+            raise FileException("D19", err)
+
         return True
 
 def _downscaleManualModes(params):
@@ -272,9 +203,11 @@ def _downscaleManualModes(params):
         case "Resolution":
             args.append(f"-resize {params['width']}x{params['height']}")
         case "Shortest Side":
-            args.append(f"-resize \"{params['shortest_side']}x{params['shortest_side']}^>\"")
+            args.append(f"-resize {params['shortest_side']}x{params['shortest_side']}^>")
         case "Longest Side":
-            args.append(f"-resize \"{params['longest_side']}x{params['longest_side']}>\"")
+            args.append(f"-resize {params['longest_side']}x{params['longest_side']}>")
+        case _:
+            raise GenericException("D2", f"Downscaling mode not recognized ({params['mode']})")
     
     # Downscale
     if params["enc"] == IMAGE_MAGICK_PATH:  # We can just add arguments If the encoder is ImageMagick, since it also handles downscaling
@@ -303,19 +236,21 @@ def _downscaleManualModes(params):
             try:
                 e7_size = os.path.getsize(params["dst"])
                 e9_size = os.path.getsize(e9_tmp)
-            except OSError as err:
-                delete(params["dst"])
-                delete(e9_tmp)
-                return False
 
-            if e9_size < e7_size:
-                delete(params["dst"])
-                os.rename(e9_tmp, params["dst"])
-            else:
-                delete(e9_tmp)
+                if e9_size < e7_size:
+                    os.remove(params["dst"])
+                    os.rename(e9_tmp, params["dst"])
+                else:
+                    os.remove(e9_tmp)
+
+            except OSError as err:
+                raise FileException("D3", err)
 
         # Clean-up
-        delete(downscaled_path)
+        try:
+            os.remove(downscaled_path)
+        except OSError as err:
+            raise FileException("D4", err)
 
 # ------------------------------------------------------------
 #                           Public
@@ -339,7 +274,10 @@ def decodeAndDownscale(params, ext, metadata_mode):
         downscale(params)
 
         # Clean-up
-        delete(proxy_path)
+        try:
+            os.remove(proxy_path)
+        except OSError as err:
+            raise FileException("D1", err)
 
 def downscale(params):
     """A wrapper for all downscaling methods. Keeps the same aspect ratio.
@@ -369,14 +307,11 @@ def downscale(params):
         "n" - worker number
     """
     if task_status.wasCanceled():
-        return False
+        raise CancellationException()
     
     if params["mode"] == "File Size":
-        if params["step_fast"]:
-            _downscaleToFileSizeStepAuto(params)
-        else:
-            _downscaleToMaxFileSize(params)
+        _downscaleToFileSizeStepAuto(params)
     elif params["mode"] in ("Percent", "Resolution", "Shortest Side", "Longest Side"):
         _downscaleManualModes(params)
     else:
-        log(f"[Error] Downscaling mode not recognized ({params['mode']})", params["n"])
+        raise GenericException("D0", f"Downscaling mode not recognized ({params['mode']})")
