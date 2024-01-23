@@ -1,6 +1,44 @@
-XL Converter is licensed under GNU General Public License v3 (GPLv3).
+XL Converter is licensed under GNU General Public License v3.
 
-Copyright (c) 2023 code poems <contact@codepoems.eu>
+Copyright (c) 2023 - 2024 Code Poems <contact@codepoems.eu>
+
+---------------------------------------------------------------------------------
+
+This End-User License Agreement ("EULA") is a legal agreement between you (either an individual or an entity) and the software program's authors and contributors, for the software product accompanying this EULA, which includes computer software and may include associated media, printed materials, and "online" or electronic documentation ("Software").
+
+By installing, copying, or otherwise using the Software, you agree to be bound by the terms of this EULA, which incorporates the terms and conditions of the GNU General Public License Version 3 (GPLv3) as published by the Free Software Foundation. If you do not agree to the terms of this EULA, do not install or use the Software.
+
+COPYRIGHT: The Software is copyrighted and licensed (not sold) to you. The Software is protected by copyright laws and treaties around the world. All rights not expressly granted to you by this EULA are reserved by the copyright owners.
+
+LICENSE: The Software is licensed under the GNU General Public License Version 3 (GPLv3), the terms of which are incorporated herein by reference. By installing, copying, or using the Software you acknowledge that you have read the GPLv3, understand it, and agree to be bound by its terms and conditions. The GPLv3 can be obtained at: http://www.gnu.org/licenses/gpl-3.0.html
+
+LICENSE GRANT: This EULA grants you the following rights, subject to the terms of the GPLv3:
+- You may copy, distribute, and modify the software provided that you track changes/dates in source files and keep intact all notices on the original software.
+- You may distribute the software to anyone and for any purpose and charge no more than the cost of distributing the software.
+- You may use portions of the software independently of the complete program.
+- Works that you distribute or publish that contain or are derived from the Software or any part thereof must be licensed as a whole at no charge to all third parties under the terms of this License (GPLv3).
+
+UPDATE FEATURE: The Software includes a feature to check for updates, which requires the transmission of the user's Internet Protocol (IP) address to a server in order to obtain a text file for the update process. By using this feature, you acknowledge and consent to the transmission of your IP address for this purpose. The IP address is used solely for fetching the necessary update information and will not be used for any other purposes. While the IP address may be stored for a period of up to 12 months, it is typically stored for a shorter period.
+
+WEB LINK FEATURE: The Software includes a feature that opens a link to our webpage or our GitHub repository. By using this feature, you acknowledge and consent to the Software initiating an external connection to these sites. Please note that our webpage and GitHub repository are governed by their own terms of service and privacy policies, which we encourage you to review.
+
+PRIVACY: The author prioritizes your privacy. Apart from the IP address used for the update feature, no other personal data is collected from you without your explicit consent.
+
+DISCLAIMER OF WARRANTY: The Software is provided 'as is' without warranty of any kind, either expressed or implied, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose. The entire risk as to the quality and performance of the Software is with you.
+
+LIMITATION OF LIABILITY: Except as mandated by law or as explicitly agreed upon in a written contract, neither copyright owners nor any individuals or entities that amend and/or distribute the Software under GPLv3 shall bear financial responsibility to you for any form of loss or damage. This exclusion of liability encompasses a wide range of potential issues, such as general, specific, unplanned, or secondary harm that may arise from utilizing or the failure to use the Software. Potential issues covered include, but are not limited to, data loss, data corruption, any harm suffered by you or third parties, or the inability of the Software to function with other software systems, even if such copyright owner or entity has been previously notified about the risk of such damages.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+TERMINATION: This EULA and your rights under it will terminate automatically without notice from the copyright owner if you fail to comply with any of its terms and conditions, including but not limited to the terms of the GNU General Public License Version 3 (GPLv3).
+
+MISCELLANEOUS: This EULA is governed by the laws of the jurisdiction in which the copyright owner resides. If any part of this EULA is found to be void, invalid, or unenforceable, it will not affect the validity of the balance of the EULA, which shall remain valid and enforceable according to its terms.
+
+ENTIRE AGREEMENT: This EULA (including the GPLv3) is the entire agreement between you and the copyright owner relating to the Software and supersedes all prior or contemporaneous oral or written communications, proposals, and representations with respect to the Software or any other subject matter covered by this EULA.
+
+By installing, copying, or using the Software you acknowledge that you have read this EULA, understand it, and agree to be bound by its terms and conditions. You also agree that this EULA is the complete and exclusive statement of the agreement between us and supersedes all proposals or prior agreements, oral or written, and any other communications relating to the subject matter of this EULA.
+
+You can contact me at this email address: contact@codepoems.eu
 
 -----------------------------------------------------------------------------------
 

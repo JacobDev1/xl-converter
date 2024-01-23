@@ -1,32 +1,42 @@
 import subprocess
-from data.constants import PROCESS_LOGS, PROCESS_LOGS_VERBOSE
+import os
+import logging
 
-def runProcess(cmd):
+def _getStartupInfo():
+    """Get startup info for Windows. Prevents console window from showing."""
+    startupinfo = None
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = subprocess.SW_HIDE
+    return startupinfo
+
+def runProcess(*cmd, cwd=None):
     """Run process."""
-    if PROCESS_LOGS:
-        print(f"Running command: {cmd}")
+    logging.info(f"Running command: {cmd}")
 
-    if PROCESS_LOGS_VERBOSE:
-        subprocess.run(cmd, shell=True)
-    else:
-        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-
-def runProcessFromPath(cmd, path):
-    """Run process from the specified directory."""
-    if PROCESS_LOGS:
-        print(f"Running command from \"{path}\": {cmd}")
+    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo(), cwd=cwd)
     
-    if PROCESS_LOGS_VERBOSE:
-        subprocess.run(cmd, shell=True, cwd=path)
-    else:
-        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=path)
+    try:
+        if process.stdout:
+            logging.debug(process.stdout.decode())
+        if process.stderr:
+            logging.debug(process.stderr.decode())
+    except Exception as err:
+        logging.error(f"Failed to decode process output. {err}")
 
-def runProcessOutput(cmd):
+def runProcessOutput(*cmd):
     """Run process then return its output."""
-    if PROCESS_LOGS:
-        print(f"Running command with output: {cmd}")
+    logging.info(f"Running command with output: {cmd}")
 
-    out = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
-    if PROCESS_LOGS_VERBOSE:
-        print(out)
-    return out
+    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, startupinfo=_getStartupInfo())
+
+    try:
+        if process.stdout:
+            logging.debug(process.stdout.decode())
+        if process.stderr:
+            logging.debug(process.stderr.decode())    
+    except Exception as err:
+        logging.error(f"Failed to decode process output. {err}")
+
+    return process.stdout

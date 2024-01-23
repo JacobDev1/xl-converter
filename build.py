@@ -1,4 +1,14 @@
-import platform, os, shutil, glob, subprocess, PyInstaller.__main__, argparse, shutil, stat
+import platform
+import os
+import shutil
+import subprocess
+import argparse
+import stat
+from pathlib import Path
+
+import PyInstaller.__main__
+import requests
+
 from data.constants import VERSION
 
 PROGRAM_FOLDER = os.path.dirname(os.path.realpath(__file__))
@@ -67,6 +77,35 @@ def rmTree(path):
     if os.path.isdir(path):
         shutil.rmtree(path)
 
+class Downloader():
+    """Downloads dependencies."""
+    def __init__(self):
+        self.appimagetool_url = "https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage"
+        self.appimagetool_dst = "misc/appimagetool"
+
+        self.redist_url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+        self.redist_dst = "misc/VC_redist.x64.exe"
+
+    def download(self, url, dst):
+        if Path(dst).is_file():
+            return
+
+        print(f"[Downloading] Downloading \"{dst}\"")        
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(Path(dst), 'wb') as f:
+                f.write(response.content)
+        else:
+            print(f"[Downloading] Downloading failed ({dst})")
+        
+        addExecPerm(dst)
+
+    def downloadAppImageTool(self):
+        self.download(self.appimagetool_url, self.appimagetool_dst)
+    
+    def downloadRedistributable(self):
+        self.download(self.redist_url, self.redist_dst)
+
 class Args():
     def __init__(self):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -89,9 +128,10 @@ class Args():
         return self.args[arg]
 
 class Builder():
-    # You can use "/" paths (the functions will normalize it)
+    # You can use the "/" symbol to divide paths (the functions will normalize it)
     def __init__(self):
         self.args = Args()
+        self.downloader = Downloader()
 
         # General
         self.project_name = "xl-converter" 
@@ -136,7 +176,7 @@ class Builder():
         self._appendInstaller()
         self._appendDesktopEntry()
         self._appendMisc()
-        self._appendRedistributables()
+        self._appendRedistributable()
         self._appendUpdateFile()
         self._finish()
 
@@ -170,7 +210,8 @@ class Builder():
         print("[Building] Generating binaries")
         makedirs(self.dst_dir)
         PyInstaller.__main__.run([
-            'main.spec'
+            "--log-level=ERROR",
+            str(Path("misc/main.spec"))
         ])
     
     def _copyDependencies(self):
@@ -209,12 +250,13 @@ class Builder():
         makedirs(f"{self.internal_dir}/icons")
         copy(self.icon_svg_path, f"{self.internal_dir}/icons/{os.path.basename(self.icon_svg_path)}")
 
-    def _appendRedistributables(self):
+    def _appendRedistributable(self):
         if platform.system() != "Windows":
             return
 
-        print("[Building] Appending redistributables")
-        redist_dst = f"{self.dst_dir}/{self.project_name}/redistributables"
+        self.downloader.downloadRedistributable()
+        print("[Building] Appending redistributable")
+        redist_dst = f"{self.dst_dir}/{self.project_name}/redist"
         makedirs(redist_dst)
         copy(self.redist_path, redist_dst)
     
@@ -231,6 +273,12 @@ class Builder():
 
     # _build methods transform the directory!
     def _buildAppImage(self):
+        if platform.system() != "Linux":
+            return
+
+        self.downloader.downloadAppImageTool()
+
+        print("[Building] Building an AppImage")
         dsk_ent_f = os.path.basename(self.desktop_entry_path)
         dsk_ent_p = f"{self.dst_dir}/{dsk_ent_f}"
         appdir = f"{self.dst_dir}/AppDir"
@@ -260,7 +308,13 @@ class Builder():
         move(f"{self.dst_dir}/{os.path.basename(self.desktop_entry_path)}", dst)
         subprocess.run(("7z", "a", f"{dst_direct}.7z", dst_direct), cwd=self.dst_dir)
 
-
 if __name__ == '__main__':
-    builder = Builder()
-    builder.build()
+    try:
+        builder = Builder()
+        builder.build()
+    except (KeyboardInterrupt, SystemExit):
+        print("[Building] Interrupted")
+        exit()
+    except (Exception, OSError) as err:
+        print(f"[Building] Error - ({err})")
+        exit()

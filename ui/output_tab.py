@@ -1,6 +1,3 @@
-from .widget_manager import WidgetManager
-import os
-
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -18,11 +15,12 @@ from PySide6.QtWidgets import(
     QSpinBox,
     QSizePolicy,
 )
-
 from PySide6.QtCore import(
     Qt,
     Signal
 )
+
+from .widget_manager import WidgetManager
 
 class OutputTab(QWidget):
     convert = Signal()
@@ -276,7 +274,7 @@ class OutputTab(QWidget):
         cur_format = self.format_cmb.currentText()
         self.prev_format = cur_format
         
-        self.wm.setCheckedByTag("lossless", False)  # Widgets reenable themselves when you use setChecked() on a disabled widget, so this needs to stay in the beginning
+        self.wm.setCheckedByTag("lossless", False)  # Widgets re-enable themselves when you use setChecked() on a disabled widget, so this needs to stay in the beginning
 
         # Enable Lossless Mode
         self.wm.setEnabledByTag("lossless", cur_format in ("JPEG XL", "WEBP"))
@@ -293,12 +291,15 @@ class OutputTab(QWidget):
         self.wm.setEnabledByTag("quality", not cur_format in ("PNG", "Smallest Lossless"))
         self.quality_l.setEnabled(not cur_format in ("PNG", "Smallest Lossless"))
 
+        # Quality slider
+        if cur_format in ("JPEG XL", "AVIF"):
+            self.setQualityRange(0, 99)
+        else:
+            self.setQualityRange(1, 100)
+
         # Quality Slider Range and label
         if cur_format == "AVIF":
-            self.quality_sl.setRange(-63, 0)
-            self.quality_sb.setRange(0, 63)
             self.effort_sb.setRange(0, 10)
-            self.quality_l.setText("Constant Quality")
             self.effort_l.setText("Speed")
         else:
             if cur_format == "JPEG XL":
@@ -329,10 +330,7 @@ class OutputTab(QWidget):
         self.quality_sb.setValue(abs(self.quality_sl.value()))
 
     def onQualitySbChanged(self):
-        if self.format_cmb.currentText() == "AVIF":
-            self.quality_sl.setValue(-self.quality_sb.value())
-        else:
-            self.quality_sl.setValue(self.quality_sb.value())
+        self.quality_sl.setValue(self.quality_sb.value())
     
     def onDeleteOriginalChanged(self):
         self.delete_original_cmb.setEnabled(self.delete_original_cb.isChecked())
@@ -354,7 +352,7 @@ class OutputTab(QWidget):
         self.wm.cleanVars()
 
         if self.format_cmb.currentText() == "AVIF":
-            self.quality_sl.setValue(-20)
+            self.quality_sl.setValue(70)
             self.effort_sb.setValue(6)
         else:
             self.quality_sl.setValue(80)
@@ -414,7 +412,7 @@ class OutputTab(QWidget):
                 self.wm.applyVar("jxl_lossless", "lossless_cb", False)
                 self.wm.applyVar("jxl_lossless_if", "lossless_if_cb", False)
             case "AVIF":
-                self.wm.applyVar("avif_quality", "quality_sl", -20)
+                self.wm.applyVar("avif_quality", "quality_sl", 70)
                 self.wm.applyVar("avif_speed", "effort_sb", 6)
             case "WEBP":
                 self.wm.applyVar("webp_quality", "quality_sl", 80)

@@ -1,25 +1,23 @@
-from .file_view import FileView
-from data.constants import ALLOWED_INPUT
-from core.utils import scanDir, listToFilter
-from core.pathing import stripPathToFilename
-from .notifications import Notifications
-
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
     QPushButton,
     QFileDialog
 )
-
 from PySide6.QtCore import(
     Signal,
     QUrl
 )
-
 from PySide6.QtGui import(
     QShortcut,
     QKeySequence,
 )
+
+from .file_view import FileView
+from data.constants import ALLOWED_INPUT
+from core.utils import scanDir, listToFilter
+from core.pathing import stripPathToFilename
+from .notifications import Notifications
 
 class InputTab(QWidget):
     convert = Signal()
@@ -117,7 +115,7 @@ class InputTab(QWidget):
             return
 
         try:
-            with open(dlg.toLocalFile(), "w") as file:
+            with open(dlg.toLocalFile(), "w", encoding="utf-8") as file:
                 for row in range(item_count):
                     path = self.file_view.topLevelItem(row).text(2)
                     if path is not None:
@@ -134,7 +132,7 @@ class InputTab(QWidget):
             
         try:
             paths = []
-            with open(dlg.toLocalFile(), "r") as file:
+            with open(dlg.toLocalFile(), "r", encoding="utf-8") as file:
                 paths = [line.replace('\n', '') for line in file.readlines()]
             self._addItems(paths)
         except Exception as err:

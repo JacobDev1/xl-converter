@@ -1,4 +1,5 @@
 from statistics import mean
+import logging
 
 from core.pathing import stripPathToFilename
 from data.constants import ALLOWED_INPUT
@@ -15,14 +16,14 @@ class Items():
         self.prev_completion_time = None
 
     def parseData(self, root):
-        """Populates the structure with proper data."""
+        """Populate the structure with proper data."""
         for i in range(root.childCount()):
             item = root.child(i)
             file_data = stripPathToFilename(item.text(2))
             if file_data[1].lower() in ALLOWED_INPUT:
                 self.items.append(file_data)
             else:
-                print(f"[Data] File not allowed for current format ({file_data[3]})")
+                logging.error(f"[Data] File not allowed for current format ({file_data[3]})")
         self.item_count = len(self.items)
 
     def getItem(self, n):
@@ -74,6 +75,8 @@ class Items():
         self.items = []
         self.completed_items = []
         self.item_count = 0
+        self.completion_times = []
+        self.prev_completion_time = None
     
     def getStatusText(self):
         out = f"Converted {self.getCompletedItemCount()} out of {self.getItemCount()} images\n"

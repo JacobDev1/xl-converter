@@ -1,11 +1,27 @@
 #!/usr/bin/python3
 
-import sys, os, time
+import sys
+import os
+import time
+import logging
+
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QTabWidget,
+)
+from PySide6.QtCore import (
+    QThreadPool,
+    QMutex
+)
+from PySide6.QtGui import (
+    QIcon,
+    QShortcut,
+    QKeySequence
+)
 
 from data.constants import (
-    PROGRAM_FOLDER,
     ICON_SVG,
-    THREAD_LOGS
 )
 from ui import (
     InputTab,
@@ -13,29 +29,14 @@ from ui import (
     ModifyTab,
     OutputTab,
     SettingsTab,
-    Notifications
+    Notifications,
+    ProgressDialog,
+    ExceptionView,
 )
 from core.worker import Worker
-from core.utils import setTheme, clip
+from core.utils import clip
 from data import Items
 import data.task_status as task_status
-
-from PySide6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QTabWidget,
-    QProgressDialog,
-)
-from PySide6.QtCore import (
-    QThreadPool,
-    QMutex
-)
-
-from PySide6.QtGui import (
-    QIcon,
-    QShortcut,
-    QKeySequence
-)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -49,9 +50,9 @@ class MainWindow(QMainWindow):
 
         self.threadpool = QThreadPool.globalInstance()
         self.items = Items()
-        self.progress_dialog = None
+        self.progress_dialog = ProgressDialog(parent=self, title="Converting...", default_text="Starting the conversion...\n", cancelable=True)
+        self.progress_dialog.canceled.connect(task_status.cancel)
         self.n = Notifications()
-        self.exceptions = []
 
         # Tabs
         self.settings_tab = SettingsTab()
@@ -72,6 +73,11 @@ class MainWindow(QMainWindow):
 
         self.about_tab = AboutTab()
 
+        # Misc.
+        self.exception_view = ExceptionView(settings, parent=self)
+        self.exception_view.dont_show_again.connect(self.settings_tab.setExceptionsEnabled)
+        self.settings_tab.signals.no_exceptions.connect(self.exception_view.setDontShowAgain)
+
         # Layout
         self.tabs.addTab(self.input_tab, "Input")
         self.tabs.addTab(self.output_tab, "Output")
@@ -88,15 +94,14 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
 
     def start(self, n):
-        if THREAD_LOGS:
-            print(f"[Worker #{n}] Started")
+        logging.debug(f"[Worker #{n}] Started")
     
     def complete(self, n):
-        if THREAD_LOGS:
-            print(f"[Worker #{n}] Finished")
+        logging.debug(f"[Worker #{n}] Finished")
 
         if self.progress_dialog.wasCanceled():
             self.setUIEnabled(True)
+            self.progress_dialog.finished()
             return
 
         self.items.appendCompletedItem(n)
@@ -104,29 +109,27 @@ class MainWindow(QMainWindow):
         self.progress_dialog.setLabelText(self.items.getStatusText())
         self.progress_dialog.setValue(self.items.getCompletedItemCount())
 
-        if THREAD_LOGS:
-            print(f"Active Threads: {self.threadpool.activeThreadCount()}")
+        logging.debug(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
         if self.items.getCompletedItemCount() == self.items.getItemCount():
             self.setUIEnabled(True)
-            self.progress_dialog.close()
+            self.progress_dialog.finished()
 
             # Post conversion routines
-            if self.exceptions and not self.settings_tab.getSettings()["no_exceptions"]:
-                self.n.notifyDetailed("Exceptions Occured", "Exceptions occured during conversion.", '\n'.join(self.exceptions))
+            if not self.exception_view.isEmpty() and not self.settings_tab.getSettings()["no_exceptions"]:
+                self.exception_view.resizeToContent()
+                self.exception_view.show()
             
             if self.output_tab.isClearAfterConvChecked():
                 self.input_tab.clearInput()
 
     def cancel(self, n):
-        if THREAD_LOGS:
-            print(f"[Worker #{n}] Canceled")
-    
+        logging.debug(f"[Worker #{n}] Canceled")
         self.setUIEnabled(True)
 
     def _safetyChecks(self, params):
         if self.input_tab.file_view.topLevelItemCount() == 0:
-            self.n.notify("Empty List", "You haven't added any files.\nDrag and drop images (or folders) onto the program to add them.")
+            self.n.notify("Empty List", "File list is empty.\nDrag and drop images (or folders) onto the program to add them.")
             return False
 
         # Check Permissions
@@ -154,24 +157,22 @@ class MainWindow(QMainWindow):
     def convert(self):
         params = self.output_tab.getSettings()
         params.update(self.modify_tab.getSettings())
-        # params["settings"] = self.settings_tab.getSettings()
+        settings = self.settings_tab.getSettings()
 
         if not self._safetyChecks(params):
             return
 
         # Reset and Parse data
-        self.exceptions = []
+        self.exception_view.close()
+        self.exception_view.clear()
         self.items.clear()
         self.items.parseData(self.input_tab.file_view.invisibleRootItem())
         if self.items.getItemCount() == 0:
             return
         
         # Set progress dialog
-        self.progress_dialog = QProgressDialog("Converting Images...", "Cancel", 0, self.items.getItemCount(), self)
-        self.progress_dialog.setWindowTitle("XL Converter")
-        self.progress_dialog.setMinimumWidth(350)
+        self.progress_dialog.setRange(0, self.items.getItemCount())
         self.progress_dialog.show()
-        self.progress_dialog.canceled.connect(task_status.cancel)
 
         # Configure Multithreading
         threads_per_worker = 1
@@ -189,15 +190,12 @@ class MainWindow(QMainWindow):
         mutex = QMutex()
 
         for i in range(0, self.items.getItemCount()):
-            worker = Worker(i, self.items.getItem(i), params, threads_per_worker, mutex)
+            worker = Worker(i, self.items.getItem(i), params, settings, threads_per_worker, mutex)
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
-            worker.signals.exception.connect(self.exception)
+            worker.signals.exception.connect(self.exception_view.addItem)
             self.threadpool.start(worker)
-
-    def exception(self, msg):
-        self.exceptions.append(msg)
 
     def setUIEnabled(self, n):
         self.tabs.setEnabled(n)
@@ -206,7 +204,7 @@ class MainWindow(QMainWindow):
         self.settings_tab.wm.saveState()
         self.output_tab.saveState()
         self.modify_tab.wm.saveState()
-        self.about_tab.beforeExit()
+        self.exception_view.close()
 
         if self.threadpool.activeThreadCount() > 0:
             return -1

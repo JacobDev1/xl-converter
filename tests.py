@@ -1,23 +1,19 @@
-import unittest, sys, shutil, binascii
+import unittest
+import sys
+import shutil
+import binascii
 from pathlib import Path
+
 import requests
-
 from PySide6.QtGui import (
-    QDragEnterEvent,
     QDropEvent,
-    QKeySequence
 )
-
 from PySide6.QtWidgets import (
     QApplication,
-    QFileDialog
 )
-
 from PySide6.QtTest import (
     QTest,
-    QSignalSpy
 )
-
 from PySide6.QtCore import (
     Qt,
     QMimeData,
@@ -43,7 +39,7 @@ def scan_dir(path):
     for i in Path(path).rglob("*"):
         if i.is_file():
             items.add(i.resolve())
-    return list(items)  # So it can be access by an index
+    return list(items)  # So it can be accessed by an index
 
 def rmtree(path):
     path = Path(path).resolve()
@@ -234,7 +230,6 @@ class Interact:
             shortest=None,
             longest=None,
             file_size=None,
-            file_size_step_auto=None
         ):
 
         self.main_window.modify_tab.downscale_cb.setChecked(True)
@@ -250,9 +245,6 @@ class Interact:
         set_value(self.main_window.modify_tab.shortest_sb, shortest)
         set_value(self.main_window.modify_tab.longest_sb, longest)
         set_value(self.main_window.modify_tab.file_size_sb, file_size)
-
-        if file_size_step_auto != None:
-            self.main_window.modify_tab.file_size_step_fast_cb.setChecked(file_size_step_auto)
         
 # ---------------------------------------------------------------
 #                         Unit Tests
@@ -465,20 +457,12 @@ class TestMainWindow(unittest.TestCase):
         assert converted[0].stat().st_size != converted[1].stat().st_size, "No change detected"
 
     def test_downscaling_file_size_auto(self):
-        self.app.set_downscaling_mode("File Size", file_size_step_auto=True, file_size=50)
+        self.app.set_downscaling_mode("File Size", file_size=50)
         self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
 
         downscaled = self.data.get_tmp_folder_content()[0]
 
         assert 45 * 1024 < downscaled.stat().st_size < 55 * 1024, "File size outside of expected range"   # Fault tolerance of 10% is baked in the auto method
-    
-    def test_downscaling_file_size(self):
-        self.app.set_downscaling_mode("File Size", file_size_step_auto=False, file_size=50)
-        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
-
-        downscaled = self.data.get_tmp_folder_content()[0]
-
-        assert downscaled.stat().st_size < 50 * 1024, "File size is larger than expected"
 
     def test_update_file(self):
         try:

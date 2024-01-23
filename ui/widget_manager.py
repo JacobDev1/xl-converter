@@ -1,5 +1,8 @@
+import os
+import json
+import logging
+
 from data.constants import CONFIG_LOCATION, VERSION
-import os, json
 
 class WidgetManager():
     """A powerful widget manager.
@@ -10,7 +13,7 @@ class WidgetManager():
         variables - for saving multi-purpose widgets.
     """
     def __init__(self, name):
-        self.name = name         # Unique indentifier for saving and loading states
+        self.name = name         # Unique identifier for saving and loading states
         self.widgets = {}        # id: widget
         self.tags = {}           # tag: [id]
         self.variables = {}      # var: value
@@ -22,7 +25,7 @@ class WidgetManager():
         try:
             os.makedirs(CONFIG_LOCATION, exist_ok=True)
         except OSError as err:
-            self.log(f"{err}\nCannot create a config folder.")
+            self.error(f"Cannot create a config folder. {err}")
     
     def addWidget(self, _id: str, widget, *tags):
         self.widgets[_id] = widget
@@ -138,7 +141,7 @@ class WidgetManager():
             with open(self.save_state_path, "w") as f:
                 f.writelines(json.dumps(output, indent=4))
         except OSError as err:
-            self.log(err)
+            self.error(err)
 
     def loadState(self):
         if not os.path.isfile(self.save_state_path):
@@ -151,27 +154,27 @@ class WidgetManager():
                 try:
                     loaded = json.load(f)
                 except:
-                    self.log("Parsing JSON failed. Cannot load saved states.")
+                    self.error("Parsing JSON failed. Cannot load saved states.")
                     return
         except OSError as err:
-            self.log(err)
+            self.error(err)
 
         if "variables" in loaded:
             if not isinstance(loaded["variables"], dict):
-                self.log(f"Type mismatch. Expected dictionary, got {type(loaded['variables'])}")
+                self.error(f"Type mismatch. Expected dictionary, got {type(loaded['variables'])}")
                 return
             self.variables = loaded["variables"]
 
         # Set values
         if "widgets" in loaded:
             if not isinstance(loaded["widgets"], dict):
-                self.log(f"Type mismatch. Expected dictionary, got {type(loaded['widgets'])}")
+                self.error(f"Type mismatch. Expected dictionary, got {type(loaded['widgets'])}")
                 return
 
             widgets = loaded["widgets"]
             for key in widgets:
                 if key not in self.widgets:
-                    self.log(f"Unrecognized widget id ({key})")
+                    self.error(f"Unrecognized widget id ({key})")
                     continue
                 
                 self._applyValue(key, widgets[key])
@@ -183,10 +186,7 @@ class WidgetManager():
             if os.path.isfile(self.save_state_path):
                 os.remove(self.save_state_path)
         except OSError as err:
-            self.log(err)
-    
-    def log(self, msg):
-        print(f"[WidgetManager - {self.name}] {msg}")
+            self.error(err)
     
     def _applyValue(self, _id, val):
         """For internal use only. Applies value based on a class name."""
@@ -206,7 +206,7 @@ class WidgetManager():
                 val_mismatch = True
 
         if val_mismatch:
-            self.log(f"Type mismatch (Tried applying {type(val)} onto [{_id}: {widget_class}])")
+            self.error(f"Type mismatch (Tried applying {type(val)} onto [{_id}: {widget_class}])")
             return
 
         # Apply
@@ -227,8 +227,11 @@ class WidgetManager():
             case "QLineEdit":
                 widget.setText(val)
             case _:
-                self.log(f"Unrecognized widget type ({widget})")
+                self.error(f"Unrecognized widget type ({widget})")
     
+    def error(self, msg):
+        logging.error(f"[WidgetManager] {msg}")
+
     def exit(self):
         """Purges all widgets and other elements from memory."""
         for key in self.widgets:

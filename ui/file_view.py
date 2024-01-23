@@ -5,14 +5,13 @@ from PySide6.QtWidgets import(
     QAbstractItemView,
     QTreeWidgetItem,
 )
-
 from PySide6.QtCore import(
     Qt
 )
 
 from core.pathing import stripPathToFilename
 from core.utils import scanDir
-from data.constants import ALLOWED_INPUT, ALLOWED_INPUT_CJXL, ALLOWED_INPUT_DJXL, FILEVIEW_LOGS
+from data.constants import ALLOWED_INPUT
 
 class FileView(QTreeWidget):
     def __init__(self, parent):
@@ -56,7 +55,6 @@ class FileView(QTreeWidget):
             item = self.invisibleRootItem().child(n)
             path = item.text(2)
             if path in unique_items:
-                self.log(f"Duplicate found: {path}")
                 self.takeTopLevelItem(n)
             else:
                 unique_items.add(path)
@@ -82,14 +80,12 @@ class FileView(QTreeWidget):
                 if i.isLocalFile():
                     path = str(i.toLocalFile())
                     if os.path.isdir(path):
-                        self.log(f"Dropped directory: {path}")
                         files = scanDir(path)
                         for file in files:
                             file_data = stripPathToFilename(file)
                             if file_data[1].lower() in ALLOWED_INPUT:
                                 items.append((file_data[0], file_data[1], file_data[3]))
                     elif os.path.isfile(path):
-                        self.log(f"Dropped file: {path}")
                         file_data = stripPathToFilename(path)
                         if file_data[1].lower() in ALLOWED_INPUT:
                             items.append((file_data[0], file_data[1], file_data[3]))
@@ -154,6 +150,7 @@ class FileView(QTreeWidget):
         if not selected_indexes:
             return
 
+        self.setUpdatesEnabled(False)
         selected_rows = sorted(set(idx.row() for idx in selected_indexes), reverse=True)
         next_row = -1
 
@@ -166,12 +163,8 @@ class FileView(QTreeWidget):
 
         for row in selected_rows:
             self.takeTopLevelItem(row)
-            self.log(f"Removed item from list (index {row})")
         
         if root.childCount() > 0:
             self.setCurrentIndex(self.model().index(next_row, 0))
-    
-    # Misc.
-    def log(self, msg):
-        if FILEVIEW_LOGS:
-            print(f"[FileView] {msg}")
+        
+        self.setUpdatesEnabled(True)

@@ -1,59 +1,74 @@
-from data.constants import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
-from .update_checker import UpdateChecker
-
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
+    QVBoxLayout,
+    QHBoxLayout,
     QLabel,
     QPushButton,
     QSizePolicy,
 )
-
 from PySide6.QtCore import(
     Qt,
     QUrl,
 )
-
-from PySide6.QtGui import (
-    QDesktopServices
+from PySide6.QtGui import(
+    QDesktopServices,
 )
+
+from data.constants import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
+from ui.update_checker import UpdateChecker
 
 class AboutTab(QWidget):
     def __init__(self):
         super(AboutTab, self).__init__()
 
-        tab_lt = QGridLayout()
+        tab_lt = QHBoxLayout()
         self.setLayout(tab_lt)
         self.update_checker = UpdateChecker()
 
         # Label
-        credits_l = QLabel(f"<h3>XL Converter</h3>Version {VERSION}<br>contact@codepoems.eu<br>XL Converter is licensed under <a href=\"{QUrl.fromLocalFile(LICENSE_PATH).toString()}\">GPL v3</a><br><a href=\"{QUrl.fromLocalFile(LICENSE_3RD_PARTY_PATH).toString()}\">3rd party licenses")
-        credits_l.setAlignment(Qt.AlignCenter)
+        text_vb = QVBoxLayout()
+        headers_l = QLabel(f"""
+            <h3><a href=\"https://codepoems.eu/xl-converter\">XL Converter</a></h3>
+            <h4>Version {VERSION}</h4>
+        """)
+        credits_l = QLabel(f"""
+            <a href=\"mailto:contact@codepoems.eu\">contact@codepoems.eu</a><br>
+            XL Converter is licensed under <a href=\"{QUrl.fromLocalFile(LICENSE_PATH).toString()}\">GPL v3</a><br>
+            <a href=\"{QUrl.fromLocalFile(LICENSE_3RD_PARTY_PATH).toString()}\">3rd party licenses</a>
+        """)
+
+        headers_l.setOpenExternalLinks(True)
         credits_l.setOpenExternalLinks(True)
+        headers_l.setAlignment(Qt.AlignCenter)
+        credits_l.setAlignment(Qt.AlignCenter)
+        text_vb.addWidget(headers_l)
+        text_vb.addWidget(credits_l)
+        tab_lt.addLayout(text_vb)
 
         # Buttons
-        donate_btn = QPushButton("Donate", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu/donate")))
-        website_btn = QPushButton("Website", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu")))
-        self.update_btn = QPushButton("Check for an Update", clicked=self.checkForUpdate)
+        buttons_vb = QVBoxLayout()
+
+        self.update_btn = QPushButton("Check for Updates", clicked=self.checkForUpdate)
         self.update_checker.finished.connect(lambda: self.update_btn.setEnabled(True))
+        self.manual_btn = QPushButton("Manual", clicked=lambda: QDesktopServices.openUrl(QUrl("https://xl-docs.codepoems.eu/")))
+        self.report_bug_btn = QPushButton("Report Bug", clicked=lambda: QDesktopServices.openUrl(QUrl("https://github.com/JacobDev1/xl-converter/issues")))
+        self.website_btn = QPushButton("Website", clicked=lambda: QDesktopServices.openUrl(QUrl("https://codepoems.eu/xl-converter")))
 
-        # Positions
-        tab_lt.addWidget(credits_l,0,0,1,0)
-        tab_lt.addWidget(donate_btn,1,0)
-        tab_lt.addWidget(website_btn,1,1)
-        tab_lt.addWidget(self.update_btn, 2, 0, 1, 0)
+        buttons_vb.addWidget(self.update_btn)
+        buttons_vb.addWidget(self.manual_btn)
+        buttons_vb.addWidget(self.report_bug_btn)
+        buttons_vb.addWidget(self.website_btn)
+        tab_lt.addLayout(buttons_vb)
 
-        # Size Policy
-        tab_lt.setVerticalSpacing(10)
-        tab_lt.setAlignment(Qt.AlignCenter)
+        # Layout
+
+        text_vb.setAlignment(Qt.AlignVCenter)
+        buttons_vb.setAlignment(Qt.AlignVCenter)
 
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.setMaximumSize(900, 300)
+        self.setMaximumSize(700, 300)
     
     def checkForUpdate(self):
         self.update_checker.run()
         self.update_btn.setEnabled(False)
-    
-    def beforeExit(self):
-        """Clean-up before exiting the application."""
-        self.update_checker.beforeExit()
