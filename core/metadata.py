@@ -17,7 +17,7 @@ def _runExifTool(*args):
     if platform.system() == "Windows":
         runProcess(EXIFTOOL_PATH, *args)
     elif platform.system() == "Linux":  # Relative path needed for Brotli dependency to work on Linux
-        runProcess(EXIFTOOL_BIN_NAME, *args, cwd=EXIFTOOL_FOLDER_PATH)
+        runProcess("./" + EXIFTOOL_BIN_NAME, *args, cwd=EXIFTOOL_FOLDER_PATH)
 
 def copyMetadata(src, dst):
     """Copy all metadata from one file onto another."""
