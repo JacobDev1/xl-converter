@@ -77,11 +77,7 @@ env\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-Install redistributable
-
-```cmd
-misc\VC_redist.x64.exe
-```
+Install [redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 
 Run the application
 
