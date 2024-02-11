@@ -137,6 +137,13 @@ class Worker(QRunnable):
                     self.params["intelligent_effort"] = False
                     args[1] = "-e 9"
 
+                if not self.params["lossless"]:
+                    if self.settings["jxl_mode"] == "VarDCT":
+                        args.append("--modular=0")
+                    elif self.settings["jxl_mode"] == "Modular":
+                        args.append("--modular=1")
+                    # Encoder decides by itself when no arguments are passed
+
                 encoder = CJXL_PATH
             case "AVIF":
                 args = [

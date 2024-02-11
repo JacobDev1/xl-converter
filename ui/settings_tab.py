@@ -8,6 +8,7 @@ from PySide6.QtWidgets import(
     QPushButton,
     QLabel,
     QSizePolicy,
+    QComboBox,
 )
 from PySide6.QtCore import(
     Signal,
@@ -58,19 +59,30 @@ class SettingsTab(QWidget):
         self.no_sorting_cb.toggled.connect(self.signals.disable_sorting)
         gen_grp_lt.addWidget(self.no_sorting_cb)
 
-        # Conversion group
-        conv_grp = QGroupBox("Conversion")
+        # Advanced group
+        conv_grp = QGroupBox("Advanced")
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
+
+        jxl_mode_hb = QHBoxLayout()
+        self.jxl_mode_l = QLabel("JPEG XL - Lossy Mode")
+        self.jxl_mode_cmb = self.wm.addWidget("jxl_mode_cmb", QComboBox())
+        self.jxl_mode_cmb.addItems((
+            "Encoder Decides",
+            "VarDCT",
+            "Modular",
+        ))
+        jxl_mode_hb.addWidget(self.jxl_mode_l)
+        jxl_mode_hb.addWidget(self.jxl_mode_cmb)
+        conv_grp_lt.addLayout(jxl_mode_hb)
+
+        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("JPEG XL - Disable UTF-8 Check (Windows)"))
+        conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
 
         self.custom_resampling_cb = self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
         self.custom_resampling_cb.toggled.connect(self.signals.custom_resampling.emit)
         conv_grp_lt.addWidget(self.custom_resampling_cb)
 
-        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("Disable UTF-8 Check (JPEG XL / Windows)"))
-        conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
-
-        # File List
         file_list_hbox = QHBoxLayout()
         self.file_list_l = QLabel("File List")
         self.file_list_save_btn = QPushButton("Save")
@@ -84,18 +96,8 @@ class SettingsTab(QWidget):
         file_list_hbox.addWidget(self.file_list_load_btn)
         conv_grp_lt.addLayout(file_list_hbox)
 
-        # logs_hbox = QHBoxLayout()
-        # self.wm.addWidget("logs_cb", QCheckBox("Enable Logs"))
-        # self.wm.addWidget("logs_open_btn", QPushButton("Open"))
-        # self.wm.addWidget("logs_wipe_btn", QPushButton("Wipe"))
-        # logs_hbox.addWidget(self.wm.getWidget("logs_cb"))
-        # logs_hbox.addWidget(self.wm.getWidget("logs_open_btn"))
-        # logs_hbox.addWidget(self.wm.getWidget("logs_wipe_btn"))
-        # gen_grp_lt.addLayout(logs_hbox)
-
         # Bottom
         self.restore_defaults_btn = QPushButton("Reset to Default")
-        # self.wm.addWidget("restore_defaults_btn", QPushButton("Reset to Default"))
         self.restore_defaults_btn.clicked.connect(self.resetToDefault)
         tab_lt.addWidget(self.restore_defaults_btn,1,0,1,0)
 
@@ -104,6 +106,7 @@ class SettingsTab(QWidget):
 
         gen_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        jxl_mode_hb.setAlignment(Qt.AlignLeft)
 
         gen_grp.setMaximumSize(400, 232)
         conv_grp.setMaximumSize(400, 232)
@@ -138,11 +141,11 @@ class SettingsTab(QWidget):
             "disable_delete_startup": self.disable_delete_startup_cb.isChecked(),
             "no_exceptions": self.no_exceptions_cb.isChecked(),
             "disable_jxl_utf8_check": self.disable_jxl_utf8_check_cb.isChecked(),
+            "jxl_mode": self.jxl_mode_cmb.currentText(),
         }
     
     def resetToDefault(self):
         self.dark_theme_cb.setChecked(True)
-        # self.wm.getWidget("logs_cb").setChecked(False)
         self.no_sorting_cb.setChecked(False)
         
         self.custom_resampling_cb.setChecked(False)
@@ -150,3 +153,4 @@ class SettingsTab(QWidget):
         self.disable_delete_startup_cb.setChecked(True)
         self.no_exceptions_cb.setChecked(False)
         self.disable_jxl_utf8_check_cb.setChecked(False)
+        self.jxl_mode_cmb.setCurrentIndex(0)
