@@ -21,6 +21,7 @@ from PySide6.QtCore import(
 )
 
 from .widget_manager import WidgetManager
+from core.utils import dictToList
 
 class OutputTab(QWidget):
     convert = Signal()
@@ -252,6 +253,13 @@ class OutputTab(QWidget):
                 },
         }
     
+    def getReportData(self):
+        """Used by ExceptionView"""
+        report = self.getSettings()
+        report.pop("custom_output_dir_path")
+
+        return dictToList(report)
+
     def onThreadSlChange(self):
         self.threads_sb.setValue(self.threads_sl.value())
 

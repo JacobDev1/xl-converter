@@ -1,5 +1,6 @@
 import csv
 import platform
+from pathlib import Path
 
 from PySide6.QtWidgets import (
     QDialog,
@@ -29,6 +30,7 @@ class ExceptionView(QDialog):
     def __init__(self, settings, parent=None):
         super(ExceptionView, self).__init__(parent)
         self.notifications = Notifications()
+        self.report_data = []
 
         # Table
         headers = [
@@ -94,6 +96,10 @@ class ExceptionView(QDialog):
         while self.table.rowCount() > 0:
             self.table.removeRow(0)
 
+    def updateReportData(self, *rows):
+        """Includes additional information in debug log. Replaces current one."""
+        self.report_data = list(rows)
+
     def saveToFile(self):
         if self.table.rowCount() == 0:
             self.notifications.notify("Empty List", "Exception list is empty, there is nothing to save.")
@@ -112,13 +118,22 @@ class ExceptionView(QDialog):
         try:
             with open(dlg.toLocalFile(), "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+                
+                # Header
                 writer.writerow(("Version", VERSION))
                 writer.writerow(("OS", platform.system()))
-                writer.writerow(("ID", "Exception", "Source"))
+                for row in self.report_data:
+                    writer.writerow(row)
+
+                # Row data
+                writer.writerow(("Exceptions",))
+                writer.writerow(("ID", "Exception", "Source Extension"))
                 for row in range(self.table.rowCount()):
-                    row_data = []
-                    for col in range(self.table.columnCount()):
-                        row_data.append(self.table.item(row, col).text())
+                    row_data = (
+                        self.table.item(row, 0).text(),
+                        self.table.item(row, 1).text(),
+                        Path(self.table.item(row, 2).text()).suffix,
+                    )
                     writer.writerow(row_data)
         except OSError as err:
             self.notifications.notifyDetailed("Error", "Failed to save file", str(err))

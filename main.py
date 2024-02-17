@@ -165,6 +165,15 @@ class MainWindow(QMainWindow):
         # Reset and Parse data
         self.exception_view.close()
         self.exception_view.clear()
+        output_tab_report = self.output_tab.getReportData()
+        modify_tab_report = self.modify_tab.getReportData()
+        self.exception_view.updateReportData(
+            (), ("Format",),
+            *output_tab_report,
+            (),
+            *modify_tab_report,
+            (),
+        )
         self.items.clear()
         self.items.parseData(self.input_tab.file_view.invisibleRootItem())
         if self.items.getItemCount() == 0:
