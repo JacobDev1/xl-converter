@@ -138,9 +138,9 @@ class Worker(QRunnable):
                     args[1] = "-e 9"
 
                 if not self.params["lossless"]:
-                    if self.settings["jxl_mode"] == "VarDCT":
+                    if self.params["jxl_mode"] == "VarDCT":
                         args.append("--modular=0")
-                    elif self.settings["jxl_mode"] == "Modular":
+                    elif self.params["jxl_mode"] == "Modular":
                         args.append("--modular=1")
                     # Encoder decides by itself when no arguments are passed
 

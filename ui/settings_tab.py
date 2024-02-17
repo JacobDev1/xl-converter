@@ -64,18 +64,6 @@ class SettingsTab(QWidget):
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
-        jxl_mode_hb = QHBoxLayout()
-        self.jxl_mode_l = QLabel("JPEG XL - Lossy Mode")
-        self.jxl_mode_cmb = self.wm.addWidget("jxl_mode_cmb", QComboBox())
-        self.jxl_mode_cmb.addItems((
-            "Encoder Decides",
-            "VarDCT",
-            "Modular",
-        ))
-        jxl_mode_hb.addWidget(self.jxl_mode_l)
-        jxl_mode_hb.addWidget(self.jxl_mode_cmb)
-        conv_grp_lt.addLayout(jxl_mode_hb)
-
         self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("JPEG XL - Disable UTF-8 Check (Windows)"))
         conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
 
@@ -106,7 +94,6 @@ class SettingsTab(QWidget):
 
         gen_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        jxl_mode_hb.setAlignment(Qt.AlignLeft)
 
         gen_grp.setMaximumSize(400, 232)
         conv_grp.setMaximumSize(400, 232)
@@ -141,7 +128,6 @@ class SettingsTab(QWidget):
             "disable_delete_startup": self.disable_delete_startup_cb.isChecked(),
             "no_exceptions": self.no_exceptions_cb.isChecked(),
             "disable_jxl_utf8_check": self.disable_jxl_utf8_check_cb.isChecked(),
-            "jxl_mode": self.jxl_mode_cmb.currentText(),
         }
     
     def resetToDefault(self):
@@ -153,4 +139,3 @@ class SettingsTab(QWidget):
         self.disable_delete_startup_cb.setChecked(True)
         self.no_exceptions_cb.setChecked(False)
         self.disable_jxl_utf8_check_cb.setChecked(False)
-        self.jxl_mode_cmb.setCurrentIndex(0)
