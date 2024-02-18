@@ -282,14 +282,10 @@ class ModifyTab(QWidget):
     def getReportData(self):
         """Used by ExceptionView"""
         settings = self.getSettings()
-        
-        report = [["Downscaling"]]
-        report.extend(dictToList(settings["downscaling"]))
-        report.append(())
-        report.append(["Misc."])
-        report.extend(dictToList(settings["misc"]))
-
-        return report
+        return {
+            "Downscaling": dictToList(settings["downscaling"]),
+            "Misc.": dictToList(settings["misc"])
+        }
 
     def getResampling(self):
         if self.resample_visible:

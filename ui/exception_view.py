@@ -30,7 +30,7 @@ class ExceptionView(QDialog):
     def __init__(self, settings, parent=None):
         super(ExceptionView, self).__init__(parent)
         self.notifications = Notifications()
-        self.report_data = []
+        self.report_data = {}
 
         # Table
         headers = [
@@ -96,9 +96,11 @@ class ExceptionView(QDialog):
         while self.table.rowCount() > 0:
             self.table.removeRow(0)
 
-    def updateReportData(self, *rows):
-        """Includes additional information in debug log. Replaces current one."""
-        self.report_data = list(rows)
+    def updateReportHeader(self, *data):
+        """Include additional information in the debug file (If one is saved)."""
+        self.report_data = {}
+        for e in data:
+            self.report_data.update(e)
 
     def saveToFile(self):
         if self.table.rowCount() == 0:
@@ -122,12 +124,19 @@ class ExceptionView(QDialog):
                 # Header
                 writer.writerow(("Version", VERSION))
                 writer.writerow(("OS", platform.system()))
-                for row in self.report_data:
-                    writer.writerow(row)
+
+                # Additional data
+                if self.report_data:
+                    writer.writerow([])
+                    for k, v in self.report_data.items():
+                        writer.writerow((k,))
+                        for row in v:
+                            writer.writerow(row)
+                        writer.writerow([])
 
                 # Row data
                 writer.writerow(("Exceptions",))
-                writer.writerow(("ID", "Exception", "Source Extension"))
+                writer.writerow(("ID", "Exception", "Extension"))
                 for row in range(self.table.rowCount()):
                     row_data = (
                         self.table.item(row, 0).text(),

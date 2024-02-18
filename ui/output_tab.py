@@ -258,7 +258,9 @@ class OutputTab(QWidget):
         report = self.getSettings()
         report.pop("custom_output_dir_path")
 
-        return dictToList(report)
+        return {
+            "Output": dictToList(report)
+        }
 
     def onThreadSlChange(self):
         self.threads_sb.setValue(self.threads_sl.value())
