@@ -133,7 +133,7 @@ class Worker(QRunnable):
                 args[1] = f"-e {self.params['effort']}"
                 args[3] = f"--num_threads={self.available_threads}"
 
-                if self.params["intelligent_effort"] and self.params["lossless"]:
+                if self.params["intelligent_effort"] and (self.params["lossless"] or self.params["jxl_mode"] == "Modular"):
                     self.params["intelligent_effort"] = False
                     args[1] = "-e 9"
 
