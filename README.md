@@ -22,7 +22,7 @@ Reconstructs the original JPG from a JPEG XL file.
 
 #### Multithreading
 
-Speeds up JPEG XL encoding significantly.
+Use as many CPU cores as you want.
 
 #### Image Proxy
 
@@ -42,11 +42,15 @@ Utilize multiple formats to achieve the smallest size.
 
 #### Intelligent Effort
 
-Optimizes `Effort` for smaller size.
+Optimize `Effort` for smaller sizes.
 
-#### Lossless (Only If Smaller)
+#### Metadata
 
-Picks the smallest out of two.
+Easily copy and wipe metadata using encoder parameters or ExifTool.
+
+#### Out of the Box
+
+Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
 
 ## Bug Reports
 
