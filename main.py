@@ -43,7 +43,6 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.setWindowTitle("XL Converter")
         self.setWindowIcon(QIcon(ICON_SVG))
-        self.resize(650,300)
 
         self.tabs = QTabWidget(self)
         self.setAcceptDrops(True)
@@ -77,6 +76,16 @@ class MainWindow(QMainWindow):
         self.exception_view = ExceptionView(settings, parent=self)
         self.exception_view.dont_show_again.connect(self.settings_tab.setExceptionsEnabled)
         self.settings_tab.signals.no_exceptions.connect(self.exception_view.setDontShowAgain)
+
+        # Size Policy
+        self.resize(650,300)
+        
+        MAX_WIDTH = 825
+        MAX_HEIGHT = 320
+        self.output_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
+        self.modify_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
+        self.settings_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
+        self.about_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
 
         # Layout
         self.tabs.addTab(self.input_tab, "Input")

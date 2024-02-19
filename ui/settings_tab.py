@@ -95,9 +95,6 @@ class SettingsTab(QWidget):
         gen_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        gen_grp.setMaximumSize(400, 232)
-        conv_grp.setMaximumSize(400, 232)
-
         # Main Layout
         tab_lt.addWidget(gen_grp, 0, 0)
         tab_lt.addWidget(conv_grp, 0, 1)

@@ -188,9 +188,6 @@ class ModifyTab(QWidget):
         downscale_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         misc_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        misc_grp.setMaximumSize(400, 232)
-        downscale_grp.setMaximumSize(400, 232)
-
         # Alignment
         metadata_hb.setAlignment(Qt.AlignLeft)
 

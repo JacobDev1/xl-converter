@@ -204,15 +204,10 @@ class OutputTab(QWidget):
         # Size Policy
         output_page_lt.setAlignment(Qt.AlignTop)
 
-        format_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)    # Minimum so it can spread vertically
-
-        output_grp.setMaximumWidth(400)
-        format_grp.setMaximumWidth(400)
-        conv_grp.setMaximumWidth(400)
-        after_conv_grp.setMaximumWidth(400)
+        format_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)    # Minimum so it can spread vertically
 
         # Misc
         self.resetToDefault()
