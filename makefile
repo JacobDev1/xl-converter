@@ -26,7 +26,7 @@ src-min: clean
 	mkdir -p dist/src
 	rsync -a --include=misc/* --exclude-from=.gitignore --exclude=.git --exclude=screenshots --exclude=.github --exclude=.pytest_cache ./ dist/src/
 
-src: src-min
+src: src-zip
 
 src-zip: src
 	cd dist && 7z a src_`date +%Y%m%d_%H%M%S`.zip src/
