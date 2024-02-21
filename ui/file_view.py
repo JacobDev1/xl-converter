@@ -6,7 +6,9 @@ from PySide6.QtWidgets import(
     QTreeWidgetItem,
 )
 from PySide6.QtCore import(
-    Qt
+    Qt,
+    QItemSelectionModel,
+    QItemSelection,
 )
 
 from core.pathing import stripPathToFilename
@@ -105,15 +107,53 @@ class FileView(QTreeWidget):
         elif event.key() == Qt.Key_Down:
             self.moveSelectionDown()
         elif event.key() == Qt.Key_Home:
-            self.moveSelectionToTop()
+            if event.modifiers() == Qt.ShiftModifier:
+                self.selectItemsAbove()
+            else:
+                self.moveSelectionToTop()
         elif event.key() == Qt.Key_End:
-            self.moveSelectionToBottom()
+            if event.modifiers() == Qt.ShiftModifier:
+                self.selectItemsBelow()
+            else:
+                self.moveSelectionToBottom()
 
     # Navigation
     def selectAllItems(self):
         if self.invisibleRootItem().childCount() > 0:
             self.selectAll()
     
+    def selectItemsBelow(self):
+        current_item = self.currentItem()
+        root = self.invisibleRootItem()
+        if current_item:
+            current_index = self.indexFromItem(current_item)
+            last_item = root.child(root.childCount() - 1)
+            last_index = self.indexFromItem(last_item)
+
+            top_left = self.model().index(current_index.row(), 0)
+            bottom_right = self.model().index(last_index.row(), self.columnCount() - 1)
+            selection = QItemSelection(top_left, bottom_right)
+
+            self.setCurrentIndex(last_index)
+            self.moveSelectionToBottom()
+            self.selectionModel().select(selection, QItemSelectionModel.Select)
+
+    def selectItemsAbove(self):
+        current_item = self.currentItem()
+        root = self.invisibleRootItem()
+        if current_item:
+            current_index = self.indexFromItem(current_item)
+            first_item = root.child(0)
+            first_index = self.indexFromItem(first_item)
+
+            top_left = self.model().index(first_index.row(), 0)
+            bottom_right = self.model().index(current_index.row(), self.columnCount() - 1)
+            selection = QItemSelection(top_left, bottom_right)
+
+            self.setCurrentIndex(first_index)
+            self.moveSelectionToTop()
+            self.selectionModel().select(selection, QItemSelectionModel.Select)
+
     def moveSelectionDown(self):
         cur_idx = self.currentIndex()
 
