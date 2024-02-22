@@ -96,7 +96,6 @@ class FileView(QTreeWidget):
 
             self.startAddingItems()
             self.addItems(items)
-            # QApplication.processEvents()
             self.finishAddingItems()
 
     def keyPressEvent(self, event):
