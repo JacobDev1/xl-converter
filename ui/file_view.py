@@ -107,23 +107,23 @@ class FileView(QTreeWidget):
                 self.selectShiftUp()
             else:
                 self.shift_start = None
-                self.moveSelectionUp()
+                self.moveIndexUp()
         elif event.key() == Qt.Key_Down:
             if event.modifiers() == Qt.ShiftModifier:
                 self.selectShiftDown()
             else:
                 self.shift_start = None
-                self.moveSelectionDown()
+                self.moveIndexDown()
         elif event.key() == Qt.Key_Home:
             if event.modifiers() == Qt.ShiftModifier:
                 self.selectItemsAbove()
             else:
-                self.moveSelectionToTop()
+                self.moveIndexToTop()
         elif event.key() == Qt.Key_End:
             if event.modifiers() == Qt.ShiftModifier:
                 self.selectItemsBelow()
             else:
-                self.moveSelectionToBottom()
+                self.moveIndexToBottom()
 
     def mousePressEvent(self, event):
         self.shift_start = None
@@ -147,7 +147,7 @@ class FileView(QTreeWidget):
             selection = QItemSelection(top_left, bottom_right)
 
             self.setCurrentIndex(last_index)
-            self.moveSelectionToBottom()
+            self.moveIndexToBottom()
             self.selectionModel().select(selection, QItemSelectionModel.Select)
 
     def selectItemsAbove(self):
@@ -163,7 +163,7 @@ class FileView(QTreeWidget):
             selection = QItemSelection(top_left, bottom_right)
 
             self.setCurrentIndex(first_index)
-            self.moveSelectionToTop()
+            self.moveIndexToTop()
             self.selectionModel().select(selection, QItemSelectionModel.Select)
 
     def selectShiftDown(self):
@@ -191,24 +191,24 @@ class FileView(QTreeWidget):
             item.setSelected(True)
         self.setSelectionMode(QTreeWidget.ExtendedSelection)
 
-    def moveSelectionDown(self):
+    def moveIndexDown(self):
         cur_idx = self.currentIndex()
 
         if cur_idx.isValid() and cur_idx.row() < self.model().rowCount(cur_idx.parent()) - 1:
             new_idx = self.model().index(cur_idx.row() + 1, cur_idx.column())
             self.setCurrentIndex(new_idx)
     
-    def moveSelectionUp(self):
+    def moveIndexUp(self):
         cur_idx = self.currentIndex()
 
         if cur_idx.isValid() and cur_idx.row() > 0:
             new_idx = self.model().index(cur_idx.row() - 1, cur_idx.column())
             self.setCurrentIndex(new_idx)
 
-    def moveSelectionToTop(self):
+    def moveIndexToTop(self):
         self.setCurrentIndex(self.model().index(0, 0))
     
-    def moveSelectionToBottom(self):
+    def moveIndexToBottom(self):
         self.setCurrentIndex(self.model().index(self.model().rowCount() - 1, 0))
 
     def scrollToLastItem(self):
