@@ -1,7 +1,7 @@
 import unittest
 import sys
 import shutil
-import binascii
+import hashlib
 from pathlib import Path
 
 import requests
@@ -46,15 +46,15 @@ def rmtree(path):
     if path.is_dir():
         shutil.rmtree(path)
 
-def CRC32(path):
-    crc32_val = 0
+def blake2(path):
+    hasher = hashlib.blake2b()
 
     with open(path, "rb") as file:
         buff_size = 8192
         for buf in iter(lambda: file.read(buff_size), b""):
-            crc32_val = binascii.crc32(buf, crc32_val)
-
-    return crc32_val & 0xffffffff
+            hasher.update(buf)
+    
+    return hasher.hexdigest()
 
 def sleep(ms):
     QTest.qWait(ms)
@@ -318,7 +318,7 @@ class TestMainWindow(unittest.TestCase):
         self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPEG XL", effort=9)
 
         converted = self.data.get_tmp_folder_content()
-        assert CRC32(converted[0]) != CRC32(converted[1]), "Images should not be the same"
+        assert blake2(converted[0]) != blake2(converted[1]), "Images should not be the same"
 
     def test_jpg_reconstruction(self):
         # Source -> JPG
@@ -330,7 +330,7 @@ class TestMainWindow(unittest.TestCase):
         # JXL -> JPG
         self.app.convert_preset(self.data.get_tmp_folder_content("jxl")[0], self.data.make_tmp_subfolder("reconstructed"), "PNG")
 
-        assert CRC32(self.data.get_tmp_folder_content("jpg")[0]) == CRC32(self.data.get_tmp_folder_content("reconstructed")[0]), "Hash mismatch for reconstructed JPG"
+        assert blake2(self.data.get_tmp_folder_content("jpg")[0]) == blake2(self.data.get_tmp_folder_content("reconstructed")[0]), "Hash mismatch for reconstructed JPG"
 
     def test_avif(self): 
         self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("avif"), "AVIF")
