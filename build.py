@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import argparse
 import stat
+import hashlib
 from pathlib import Path
 
 import PyInstaller.__main__
@@ -77,31 +78,54 @@ def rmTree(path):
     if os.path.isdir(path):
         shutil.rmtree(path)
 
+def blake2(path):
+    """Calculate the blake2 hash."""
+    hasher = hashlib.blake2b()
+
+    with open(path, "rb") as file:
+        buff_size = 8192
+        for buf in iter(lambda: file.read(buff_size), b""):
+            hasher.update(buf)
+    
+    return hasher.hexdigest()
+
 class Downloader():
     """Downloads dependencies."""
     def __init__(self):
         self.appimagetool_url = "https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage"
         self.appimagetool_dst = "misc/appimagetool"
+        self.appimagetool_blake2 = "83db0c2644d992045f974592099fdbf69c690f20d8440e773bfb76fff199d4abf9a3b19a72279e63b9aa37ef46b201ced2a106138c0404e2a03de2f7b390c4a5"
 
         self.redist_url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
         self.redist_dst = "misc/VC_redist.x64.exe"
+        # No static link available
 
-    def download(self, url, dst):
-        if Path(dst).is_file():
+    def download(self, url, dst, checksum = None):
+        dst = Path(dst)
+        if dst.is_file():
             return
 
-        print(f"[Downloading] Downloading \"{dst}\"")        
+        # Download the file
+        print(f"[Downloading] Downloading \"{dst.name}\"")
         response = requests.get(url)
         if response.status_code == 200:
             with open(Path(dst), 'wb') as f:
                 f.write(response.content)
         else:
-            print(f"[Downloading] Downloading failed ({dst})")
+            print(f"[Downloading] Downloading failed ({dst.name})")
+            raise Exception(f"[Downloading] Status code: {response.status_code}")
         
+        # Verify the checksum
+        if checksum is not None:
+            if blake2(dst) != checksum:
+                raise Exception(f"[Downloading] Checksum mismatch ({dst.name})")
+        
+        # Permissions
         addExecPerm(dst)
+        print(f"[Downloading] Download completed ({dst.name})")
 
     def downloadAppImageTool(self):
-        self.download(self.appimagetool_url, self.appimagetool_dst)
+        self.download(self.appimagetool_url, self.appimagetool_dst, self.appimagetool_blake2)
     
     def downloadRedistributable(self):
         self.download(self.redist_url, self.redist_dst)
