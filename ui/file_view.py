@@ -20,6 +20,7 @@ class FileView(QTreeWidget):
         super(FileView, self).__init__(parent)
 
         self.setting_sorting_disabled = False
+        self.shift_start = None
 
         self.setColumnCount(3)
         self.setHeaderLabels(("File Name", "Ext.", "Location"))
@@ -102,9 +103,17 @@ class FileView(QTreeWidget):
         if event.key() == Qt.Key_Delete:
             self.deleteSelected()
         elif event.key() == Qt.Key_Up:
-            self.moveSelectionUp()
+            if event.modifiers() == Qt.ShiftModifier:
+                self.selectShiftUp()
+            else:
+                self.shift_start = None
+                self.moveSelectionUp()
         elif event.key() == Qt.Key_Down:
-            self.moveSelectionDown()
+            if event.modifiers() == Qt.ShiftModifier:
+                self.selectShiftDown()
+            else:
+                self.shift_start = None
+                self.moveSelectionDown()
         elif event.key() == Qt.Key_Home:
             if event.modifiers() == Qt.ShiftModifier:
                 self.selectItemsAbove()
@@ -115,6 +124,10 @@ class FileView(QTreeWidget):
                 self.selectItemsBelow()
             else:
                 self.moveSelectionToBottom()
+
+    def mousePressEvent(self, event):
+        self.shift_start = None
+        super(FileView, self).mousePressEvent(event)
 
     # Navigation
     def selectAllItems(self):
@@ -152,6 +165,31 @@ class FileView(QTreeWidget):
             self.setCurrentIndex(first_index)
             self.moveSelectionToTop()
             self.selectionModel().select(selection, QItemSelectionModel.Select)
+
+    def selectShiftDown(self):
+        self.selectShift(self.itemBelow)
+
+    def selectShiftUp(self):
+        self.selectShift(self.itemAbove)
+
+    def selectShift(self, get_next_item):
+        current_item = self.currentItem()
+        if self.shift_start is None:
+            self.shift_start = current_item
+
+        next_item = get_next_item(current_item)
+        if next_item:
+            self.setCurrentItem(next_item)
+            current_item = next_item
+
+        self.setSelectionMode(QTreeWidget.MultiSelection)
+        self.clearSelection()
+        start_index = self.indexFromItem(self.shift_start)
+        end_index = self.indexFromItem(self.currentItem())
+        for i in range(min(start_index.row(), end_index.row()), max(start_index.row(), end_index.row()) + 1):
+            item = self.topLevelItem(i)
+            item.setSelected(True)
+        self.setSelectionMode(QTreeWidget.ExtendedSelection)
 
     def moveSelectionDown(self):
         cur_idx = self.currentIndex()
