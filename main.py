@@ -202,7 +202,7 @@ class MainWindow(QMainWindow):
         self.setUIEnabled(False)
         mutex = QMutex()
 
-        for i in range(0, self.items.getItemCount()):
+        for i in range(self.items.getItemCount()):
             worker = Worker(i, self.items.getItem(i), params, settings, threads_per_worker, mutex)
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)

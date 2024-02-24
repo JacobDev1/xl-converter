@@ -18,26 +18,24 @@ class Items():
     def parseData(self, *items):
         """Populate the structure with proper data."""
         for item in items:
-            path = Path(item)
+            try:
+                path = Path(item).resolve()
+                ext = path.suffix[1:]
+            except Exception as e:
+                logging.error(f"[Items] Error parsing item: {e}")
+                continue
 
-            file_data = (               # Legacy data structure
-                path.stem,              # 0 - image
-                path.suffix[1:],        # 1 - png
-                str(path.parent),       # 2 - D:/images
-                str(path.resolve()),    # 3 - D:/images/image.png
-            )
-
-            if file_data[1].lower() in ALLOWED_INPUT:
-                self.items.append(file_data)
+            if ext.lower() in ALLOWED_INPUT:
+                self.items.append(path)
             else:
-                logging.error(f"[Data] File not allowed for current format ({file_data[3]})")
+                logging.info(f"[Items] File not allowed for current format ({ext})")
         
         self.item_count = len(self.items)
 
-    def getItem(self, n):
+    def getItem(self, n) -> Path:
         return self.items[n]
 
-    def getItemCount(self):
+    def getItemCount(self) -> int:
         return self.item_count
     
     def getCompletedItemCount(self):
