@@ -108,6 +108,7 @@ class FileView(QTreeWidget):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
+            self.shift_start = None
             self.deleteSelected()
         elif event.key() == Qt.Key_Up:
             if event.modifiers() == Qt.ShiftModifier:
@@ -195,7 +196,8 @@ class FileView(QTreeWidget):
         end_index = self.indexFromItem(self.currentItem())
         for i in range(min(start_index.row(), end_index.row()), max(start_index.row(), end_index.row()) + 1):
             item = self.topLevelItem(i)
-            item.setSelected(True)
+            if item:
+                item.setSelected(True)
         self.setSelectionMode(QTreeWidget.ExtendedSelection)
 
     def moveIndexDown(self):
