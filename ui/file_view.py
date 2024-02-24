@@ -232,24 +232,27 @@ class FileView(QTreeWidget):
     def deleteSelected(self):
         root = self.invisibleRootItem()
 
+        # Get selected indexes
         selected_indexes = self.selectionModel().selectedIndexes()
         if not selected_indexes:
             return
 
         self.setUpdatesEnabled(False)
         selected_rows = sorted(set(idx.row() for idx in selected_indexes), reverse=True)
+        
+        # Determine next row to select
         next_row = -1
+        if root.childCount() > 0:
+            if selected_rows[-1] < root.childCount() - 1:
+                next_row = selected_rows[-1]
+            elif selected_rows[0] > 0:
+                next_row = selected_rows[0] - 1
 
-        if root.childCount() == 0:
-            next_row = -1
-        elif selected_rows[0] == root.childCount() - 1:
-            next_row = max(0, selected_rows[0] - 1)
-        else:
-            next_row = selected_rows[0]
-
+        # Remove selected items
         for row in selected_rows:
             self.takeTopLevelItem(row)
         
+        # Select next item
         if root.childCount() > 0:
             self.setCurrentIndex(self.model().index(next_row, 0))
         
