@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from PySide6.QtWidgets import(
     QTreeWidget,
@@ -11,7 +12,6 @@ from PySide6.QtCore import(
     QItemSelection,
 )
 
-from core.pathing import stripPathToFilename
 from core.utils import scanDir
 from data.constants import ALLOWED_INPUT
 
@@ -66,6 +66,9 @@ class FileView(QTreeWidget):
         self.setting_sorting_disabled = disabled
         self.setSortingEnabled(not disabled)
 
+    def getItemPaths(self):
+        return [self.invisibleRootItem().child(i).text(2) for i in range(self.invisibleRootItem().childCount())]
+
     # Events
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -76,28 +79,32 @@ class FileView(QTreeWidget):
     def dropEvent(self, event):
         if event.mimeData().hasUrls():
             event.accept()
-            
-            items = []
-            for i in event.mimeData().urls():
-                path = ""
-                if i.isLocalFile():
-                    path = str(i.toLocalFile())
-                    if os.path.isdir(path):
-                        files = scanDir(path)
-                        for file in files:
-                            file_data = stripPathToFilename(file)
-                            if file_data[1].lower() in ALLOWED_INPUT:
-                                items.append((file_data[0], file_data[1], file_data[3]))
-                    elif os.path.isfile(path):
-                        file_data = stripPathToFilename(path)
-                        if file_data[1].lower() in ALLOWED_INPUT:
-                            items.append((file_data[0], file_data[1], file_data[3]))
-                else:
-                    path = str(i.toString())
+        else:
+            event.ignore()
+            return
 
-            self.startAddingItems()
-            self.addItems(items)
-            self.finishAddingItems()
+        items = []
+        for url in event.mimeData().urls():
+            if url.isLocalFile():
+                path = str(url.toLocalFile())
+                if os.path.isdir(path):     # Directory
+                    files = scanDir(path)
+                    for file in files:
+                        pure_path = Path(file)
+                        ext = pure_path.suffix[1:]
+
+                        if ext.lower() in ALLOWED_INPUT:
+                            items.append((pure_path.stem, ext, str(pure_path.resolve())))
+                elif os.path.isfile(path):  # Single file
+                    pure_path = Path(path)
+                    ext = pure_path.suffix[1:]
+
+                    if ext.lower() in ALLOWED_INPUT:
+                        items.append((pure_path.stem, ext, str(pure_path.resolve())))
+
+        self.startAddingItems()
+        self.addItems(items)
+        self.finishAddingItems()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:

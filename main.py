@@ -179,7 +179,7 @@ class MainWindow(QMainWindow):
             self.modify_tab.getReportData(),
         )
         self.items.clear()
-        self.items.parseData(self.input_tab.file_view.invisibleRootItem())
+        self.items.parseData(*self.input_tab.file_view.getItemPaths())
         if self.items.getItemCount() == 0:
             return
         

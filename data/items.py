@@ -1,7 +1,7 @@
 from statistics import mean
+from pathlib import Path
 import logging
 
-from core.pathing import stripPathToFilename
 from data.constants import ALLOWED_INPUT
 
 EST_TIME_TRAIL_RANGE = 30
@@ -15,15 +15,23 @@ class Items():
         self.completion_times = []
         self.prev_completion_time = None
 
-    def parseData(self, root):
+    def parseData(self, *items):
         """Populate the structure with proper data."""
-        for i in range(root.childCount()):
-            item = root.child(i)
-            file_data = stripPathToFilename(item.text(2))
+        for item in items:
+            path = Path(item)
+
+            file_data = (               # Legacy data structure
+                path.stem,              # 0 - image
+                path.suffix[1:],        # 1 - png
+                str(path.parent),       # 2 - D:/images
+                str(path.resolve()),    # 3 - D:/images/image.png
+            )
+
             if file_data[1].lower() in ALLOWED_INPUT:
                 self.items.append(file_data)
             else:
                 logging.error(f"[Data] File not allowed for current format ({file_data[3]})")
+        
         self.item_count = len(self.items)
 
     def getItem(self, n):
