@@ -1,3 +1,5 @@
+import os
+
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -64,8 +66,9 @@ class SettingsTab(QWidget):
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
-        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("JPEG XL - Disable UTF-8 Check (Windows)"))
-        conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
+        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("JPEG XL - Disable UTF-8 Check"))
+        if os.name == "nt":
+            conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
 
         self.custom_resampling_cb = self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
         self.custom_resampling_cb.toggled.connect(self.signals.custom_resampling.emit)
