@@ -34,15 +34,11 @@ class OutputTab(QWidget):
 
         self.MAX_THREAD_COUNT = max_threads
 
+        # Main layout
         output_page_lt = QGridLayout()
         self.setLayout(output_page_lt)
 
-        # Conversion Group
-        conv_grp = QGroupBox("Conversion")
-        conv_grp_lt = QVBoxLayout()
-        conv_grp.setLayout(conv_grp_lt)
-
-        threads_hb = QHBoxLayout()
+        # Conversion - widgets
         self.threads_sl = self.wm.addWidget("threads_sl", QSlider(Qt.Horizontal))
         self.threads_sb = self.wm.addWidget("threads_sb", QSpinBox())
 
@@ -52,24 +48,27 @@ class OutputTab(QWidget):
         self.threads_sl.valueChanged.connect(self.onThreadSlChange)
         self.threads_sb.valueChanged.connect(self.onThreadSbChange)
         
+        self.duplicates_cmb = self.wm.addWidget("duplicates_cmb", QComboBox())
+        self.duplicates_cmb.addItems(("Replace", "Rename", "Skip"))
+
+        # Conversion - layout
+        conv_grp = QGroupBox("Conversion")
+        conv_grp_lt = QVBoxLayout()
+        conv_grp.setLayout(conv_grp_lt)
+        
+        threads_hb = QHBoxLayout()
         threads_hb.addWidget(QLabel("Threads"))
         threads_hb.addWidget(self.threads_sl)
         threads_hb.addWidget(self.threads_sb)
 
         duplicates_hb = QHBoxLayout()
-        self.duplicates_cmb = self.wm.addWidget("duplicates_cmb", QComboBox())
-        self.duplicates_cmb.addItems(("Replace", "Rename", "Skip"))
         duplicates_hb.addWidget(QLabel("Duplicates"))
         duplicates_hb.addWidget(self.duplicates_cmb)
 
         conv_grp_lt.addLayout(duplicates_hb)
         conv_grp_lt.addLayout(threads_hb)
-
-        # After Conversion Group
-        after_conv_grp = QGroupBox("After Conversion")
-        after_conv_grp_lt = QVBoxLayout()
-        after_conv_grp.setLayout(after_conv_grp_lt)
-
+        
+        # After Conversion - widgets
         self.clear_after_conv_cb = self.wm.addWidget("clear_after_conv_cb", QCheckBox("Clear File List"))
         self.delete_original_cb = self.wm.addWidget("delete_original_cb", QCheckBox("Delete Original"))
         self.delete_original_cmb = self.wm.addWidget("delete_original_cmb", QComboBox())
@@ -77,24 +76,31 @@ class OutputTab(QWidget):
         self.delete_original_cmb.addItems(("To Trash", "Permanently"))
         self.delete_original_cb.stateChanged.connect(self.onDeleteOriginalChanged)
 
+        # After conversion - layout
+        after_conv_grp = QGroupBox("After Conversion")
+        after_conv_grp_lt = QVBoxLayout()
+        after_conv_grp.setLayout(after_conv_grp_lt)
+
         after_conv_grp_lt.addWidget(self.clear_after_conv_cb)
         delete_original_hb = QHBoxLayout()
         delete_original_hb.addWidget(self.delete_original_cb)
         delete_original_hb.addWidget(self.delete_original_cmb)
         after_conv_grp_lt.addLayout(delete_original_hb)
 
-        # Output Group
-        output_grp = QGroupBox("Save To")
-        output_grp_lt = QVBoxLayout()
-        output_grp.setLayout(output_grp_lt)
-
+        # Output - widgets
         self.choose_output_src_rb = self.wm.addWidget("choose_output_src_rb", QRadioButton("Source Folder"))
         self.choose_output_ct_rb = self.wm.addWidget("choose_output_ct_rb", QRadioButton("Custom"))
         self.choose_output_ct_le = self.wm.addWidget("choose_output_ct_le", QLineEdit(), "output_ct")
-        self.choose_output_ct_btn = self.wm.addWidget("choose_output_ct_btn", QPushButton("...",clicked=self.chooseOutput), "output_ct")
-        
+        self.choose_output_ct_btn = self.wm.addWidget("choose_output_ct_btn", QPushButton("..."), "output_ct")
+
+        self.choose_output_ct_btn.clicked.connect(self.chooseOutput)        
         self.choose_output_ct_rb.toggled.connect(self.onOutputToggled)
         self.choose_output_ct_btn.setMaximumWidth(25)
+
+        # Output - layout
+        output_grp = QGroupBox("Save To")
+        output_grp_lt = QVBoxLayout()
+        output_grp.setLayout(output_grp_lt)
 
         output_hb = QHBoxLayout()
         output_hb.addWidget(self.choose_output_ct_rb)
@@ -104,43 +110,34 @@ class OutputTab(QWidget):
         output_grp_lt.addWidget(self.choose_output_src_rb)
         output_grp_lt.addLayout(output_hb)
 
-        # Format Group
-        format_grp = QGroupBox("Format")
-        format_grp_lt = QVBoxLayout()
-        format_grp.setLayout(format_grp_lt)
-
-        self.quality_l = self.wm.addWidget("quality_l", QLabel("Quality"), "quality_all")
+        # Format - widgets
         self.format_cmb = self.wm.addWidget("format_cmb", QComboBox())
         self.format_cmb.addItems(("JPEG XL","AVIF", "WEBP", "JPG", "PNG", "Smallest Lossless"))
         self.format_cmb.currentIndexChanged.connect(self.onFormatChange)
 
-        self.effort_l = self.wm.addWidget("effort_l", QLabel("Effort"), "effort")
-        self.int_effort_cb = self.wm.addWidget("int_effort_cb", QCheckBox("Intelligent"), "effort")
-        self.effort_sb = self.wm.addWidget("effort_sb", QSpinBox(), "effort")
+        self.effort_l = self.wm.addWidget("effort_l", QLabel("Effort"))
+        self.effort_sb = self.wm.addWidget("effort_sb", QSpinBox())
+        self.int_effort_cb = self.wm.addWidget("int_effort_cb", QCheckBox("Intelligent"))
         self.int_effort_cb.toggled.connect(self.onEffortToggled)
 
+        self.wm.addTag("effort", "effort_l")
+        self.wm.addTag("effort", "int_effort_cb")
+        self.wm.addTag("effort", "effort_sb")
+
+        self.quality_l = self.wm.addWidget("quality_l", QLabel("Quality"), "quality_all")
         self.quality_sb = self.wm.addWidget("quality_sb", QSpinBox(), "quality", "quality_all")
         self.quality_sl = self.wm.addWidget("quality_sl", QSlider(Qt.Horizontal), "quality", "quality_all")
         self.quality_sl.setTickInterval(5)
-
         self.quality_sl.valueChanged.connect(self.onQualitySlChanged)
         self.quality_sb.valueChanged.connect(self.onQualitySbChanged)
 
-        # Lossless
         self.lossless_cb = self.wm.addWidget("lossless_cb", QCheckBox("Lossless"), "lossless")
         self.lossless_if_cb = self.wm.addWidget("lossless_if_cb", QCheckBox("Lossless (only if smaller)"), "lossless")
-        self.max_compression_cb = self.wm.addWidget("max_compression_cb", QCheckBox("Max Compression"))
-
         self.lossless_if_cb.toggled.connect(self.onLosslessToggled)
         self.lossless_cb.toggled.connect(self.onLosslessToggled)
 
-        lossless_hb = QHBoxLayout()
-        lossless_hb.addWidget(self.lossless_cb)
-        lossless_hb.addWidget(self.lossless_if_cb)
-        lossless_hb.addWidget(self.max_compression_cb)
-
-        # JPEG XL Modes
-        self.jxl_mode_hb = QHBoxLayout()
+        self.max_compression_cb = self.wm.addWidget("max_compression_cb", QCheckBox("Max Compression"))
+        
         self.jxl_mode_l = self.wm.addWidget("jxl_mode_l", QLabel("Lossy Mode"), "jxl_mode")
         self.jxl_mode_cmb = self.wm.addWidget("jxl_mode_cmb", QComboBox(), "jxl_mode")
         self.jxl_mode_cmb.addItems((
@@ -148,66 +145,72 @@ class OutputTab(QWidget):
             "VarDCT",
             "Modular",
         ))
-        self.jxl_mode_hb.addWidget(self.jxl_mode_l)
-        self.jxl_mode_hb.addWidget(self.jxl_mode_cmb)
-
-        # Assemble Format UI
-        format_cmb_hb = QHBoxLayout()
-        format_cmb_hb.addWidget(QLabel("Format"))
-        format_cmb_hb.addWidget(self.format_cmb)
-        format_grp_lt.addLayout(format_cmb_hb)
-
-        effort_hb = QHBoxLayout()
-        for i in self.wm.getWidgetsByTag("effort"):
-            effort_hb.addWidget(i)
-        format_grp_lt.addLayout(effort_hb)
-
-        quality_hb = QHBoxLayout()
-        quality_hb.addWidget(self.quality_l)
-        quality_hb.addWidget(self.quality_sl)
-        quality_hb.addWidget(self.quality_sb)
-        format_grp_lt.addLayout(quality_hb)
         
-        # Smallest Lossless - Format Pool
-        format_sm_l_hb = QHBoxLayout()
-
         self.smallest_lossless_png_cb = self.wm.addWidget("smallest_lossless_png_cb", QCheckBox("PNG"), "format_pool")
         self.smallest_lossless_webp_cb = self.wm.addWidget("smallest_lossless_webp_cb", QCheckBox("WEBP"), "format_pool")
         self.smallest_lossless_jxl_cb = self.wm.addWidget("smallest_lossless_jxl_cb", QCheckBox("JPEG XL"), "format_pool")
         
+        self.reconstruct_jpg_cb = self.wm.addWidget("reconstruct_jpg_cb", QCheckBox("Reconstruct JPG from JPEG XL"))
+        
+        # Format - layout
+        format_cmb_hb = QHBoxLayout()                       # Format ComboBox
+        format_cmb_hb.addWidget(QLabel("Format"))
+        format_cmb_hb.addWidget(self.format_cmb)
+        
+        effort_hb = QHBoxLayout()                           # Effort
+        for i in self.wm.getWidgetsByTag("effort"):
+            effort_hb.addWidget(i)
+
+        lossless_hb = QHBoxLayout()                         # Lossless
+        lossless_hb.addWidget(self.lossless_cb)
+        lossless_hb.addWidget(self.lossless_if_cb)
+
+        self.jxl_mode_hb = QHBoxLayout()                    # JPEG XL Mode
+        self.jxl_mode_hb.addWidget(self.jxl_mode_l)
+        self.jxl_mode_hb.addWidget(self.jxl_mode_cmb)
+
+        quality_hb = QHBoxLayout()                          # Quality
+        quality_hb.addWidget(self.quality_l)
+        quality_hb.addWidget(self.quality_sl)
+        quality_hb.addWidget(self.quality_sb)
+        
+        format_sm_l_hb = QHBoxLayout()                      # Smallest Lossless
         for i in self.wm.getWidgetsByTag("format_pool"):
             format_sm_l_hb.addWidget(i)
-        format_grp_lt.addLayout(format_sm_l_hb)
 
-        # Format
+        format_grp = QGroupBox("Format")                    # Layout
+        format_grp_lt = QVBoxLayout()
+        format_grp.setLayout(format_grp_lt)
+        format_grp_lt.addLayout(format_cmb_hb)
+        format_grp_lt.addLayout(effort_hb)
+        format_grp_lt.addLayout(quality_hb)
         format_grp_lt.addLayout(lossless_hb)
-        self.reconstruct_jpg_cb = self.wm.addWidget("reconstruct_jpg_cb", QCheckBox("Reconstruct JPG from JPEG XL"))
-        format_grp_lt.addWidget(self.reconstruct_jpg_cb)
+        format_grp_lt.addLayout(format_sm_l_hb)
+        format_grp_lt.addWidget(self.max_compression_cb)
         format_grp_lt.addLayout(self.jxl_mode_hb)
+        format_grp_lt.addWidget(self.reconstruct_jpg_cb)
 
         # Buttons
         reset_to_default_btn = QPushButton("Reset to Default")
-        self.convert_btn_2 = QPushButton("Convert")
-        
         reset_to_default_btn.clicked.connect(self.resetToDefault)
+        self.convert_btn_2 = QPushButton("Convert")
         self.convert_btn_2.clicked.connect(self.convert.emit)
-
+        
+        # Main layout
         output_page_lt.addWidget(reset_to_default_btn,2,0)
         output_page_lt.addWidget(self.convert_btn_2,2,1)
-
-        # Group Positions
+        
         output_page_lt.addWidget(format_grp,0,1)
         output_page_lt.addWidget(output_grp, 0, 0)
         output_page_lt.addWidget(conv_grp,1,0)
         output_page_lt.addWidget(after_conv_grp,1,1)
-
-        # Size Policy
+        
         output_page_lt.setAlignment(Qt.AlignTop)
 
         format_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)    # Minimum so it can spread vertically
+        output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Misc
         self.resetToDefault()
