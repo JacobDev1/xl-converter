@@ -184,10 +184,10 @@ class OutputTab(QWidget):
         format_grp_lt.addLayout(format_cmb_hb)
         format_grp_lt.addLayout(effort_hb)
         format_grp_lt.addLayout(quality_hb)
+        format_grp_lt.addLayout(self.jxl_mode_hb)
         format_grp_lt.addLayout(lossless_hb)
         format_grp_lt.addLayout(format_sm_l_hb)
         format_grp_lt.addWidget(self.max_compression_cb)
-        format_grp_lt.addLayout(self.jxl_mode_hb)
         format_grp_lt.addWidget(self.reconstruct_jpg_cb)
 
         # Buttons
