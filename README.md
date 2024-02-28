@@ -38,8 +38,6 @@ Scale down images to resolution, percent, shortest (and longest) side, or file s
 
 Utilize multiple formats to achieve the smallest size.
 
-![](misc/screenshots/screenshot_2.png)
-
 #### Intelligent Effort
 
 Optimize `Effort` for smaller sizes.
