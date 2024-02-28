@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from PySide6.QtWidgets import(
     QTreeWidget,
@@ -6,10 +7,11 @@ from PySide6.QtWidgets import(
     QTreeWidgetItem,
 )
 from PySide6.QtCore import(
-    Qt
+    Qt,
+    QItemSelectionModel,
+    QItemSelection,
 )
 
-from core.pathing import stripPathToFilename
 from core.utils import scanDir
 from data.constants import ALLOWED_INPUT
 
@@ -18,6 +20,7 @@ class FileView(QTreeWidget):
         super(FileView, self).__init__(parent)
 
         self.setting_sorting_disabled = False
+        self.shift_start = None
 
         self.setColumnCount(3)
         self.setHeaderLabels(("File Name", "Ext.", "Location"))
@@ -63,6 +66,9 @@ class FileView(QTreeWidget):
         self.setting_sorting_disabled = disabled
         self.setSortingEnabled(not disabled)
 
+    def getItemPaths(self):
+        return [self.invisibleRootItem().child(i).text(2) for i in range(self.invisibleRootItem().childCount())]
+
     # Events
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -73,65 +79,145 @@ class FileView(QTreeWidget):
     def dropEvent(self, event):
         if event.mimeData().hasUrls():
             event.accept()
-            
-            items = []
-            for i in event.mimeData().urls():
-                path = ""
-                if i.isLocalFile():
-                    path = str(i.toLocalFile())
-                    if os.path.isdir(path):
-                        files = scanDir(path)
-                        for file in files:
-                            file_data = stripPathToFilename(file)
-                            if file_data[1].lower() in ALLOWED_INPUT:
-                                items.append((file_data[0], file_data[1], file_data[3]))
-                    elif os.path.isfile(path):
-                        file_data = stripPathToFilename(path)
-                        if file_data[1].lower() in ALLOWED_INPUT:
-                            items.append((file_data[0], file_data[1], file_data[3]))
-                else:
-                    path = str(i.toString())
+        else:
+            event.ignore()
+            return
 
-            self.startAddingItems()
-            self.addItems(items)
-            # QApplication.processEvents()
-            self.finishAddingItems()
+        items = []
+        for url in event.mimeData().urls():
+            if url.isLocalFile():
+                path = str(url.toLocalFile())
+                if os.path.isdir(path):     # Directory
+                    files = scanDir(path)
+                    for file in files:
+                        pure_path = Path(file)
+                        ext = pure_path.suffix[1:]
+
+                        if ext.lower() in ALLOWED_INPUT:
+                            items.append((pure_path.stem, ext, str(pure_path.resolve())))
+                elif os.path.isfile(path):  # Single file
+                    pure_path = Path(path)
+                    ext = pure_path.suffix[1:]
+
+                    if ext.lower() in ALLOWED_INPUT:
+                        items.append((pure_path.stem, ext, str(pure_path.resolve())))
+
+        self.startAddingItems()
+        self.addItems(items)
+        self.finishAddingItems()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
+            self.shift_start = None
             self.deleteSelected()
         elif event.key() == Qt.Key_Up:
-            self.moveSelectionUp()
+            if event.modifiers() == Qt.ShiftModifier:
+                self.selectShiftUp()
+            else:
+                self.shift_start = None
+                self.moveIndexUp()
         elif event.key() == Qt.Key_Down:
-            self.moveSelectionDown()
+            if event.modifiers() == Qt.ShiftModifier:
+                self.selectShiftDown()
+            else:
+                self.shift_start = None
+                self.moveIndexDown()
         elif event.key() == Qt.Key_Home:
-            self.moveSelectionToTop()
+            if event.modifiers() == Qt.ShiftModifier:
+                self.selectItemsAbove()
+            else:
+                self.moveIndexToTop()
         elif event.key() == Qt.Key_End:
-            self.moveSelectionToBottom()
+            if event.modifiers() == Qt.ShiftModifier:
+                self.selectItemsBelow()
+            else:
+                self.moveIndexToBottom()
+
+    def mousePressEvent(self, event):
+        self.shift_start = None
+        super(FileView, self).mousePressEvent(event)
 
     # Navigation
     def selectAllItems(self):
         if self.invisibleRootItem().childCount() > 0:
             self.selectAll()
     
-    def moveSelectionDown(self):
+    def selectItemsBelow(self):
+        current_item = self.currentItem()
+        root = self.invisibleRootItem()
+        if current_item:
+            current_index = self.indexFromItem(current_item)
+            last_item = root.child(root.childCount() - 1)
+            last_index = self.indexFromItem(last_item)
+
+            top_left = self.model().index(current_index.row(), 0)
+            bottom_right = self.model().index(last_index.row(), self.columnCount() - 1)
+            selection = QItemSelection(top_left, bottom_right)
+
+            self.setCurrentIndex(last_index)
+            self.moveIndexToBottom()
+            self.selectionModel().select(selection, QItemSelectionModel.Select)
+
+    def selectItemsAbove(self):
+        current_item = self.currentItem()
+        root = self.invisibleRootItem()
+        if current_item:
+            current_index = self.indexFromItem(current_item)
+            first_item = root.child(0)
+            first_index = self.indexFromItem(first_item)
+
+            top_left = self.model().index(first_index.row(), 0)
+            bottom_right = self.model().index(current_index.row(), self.columnCount() - 1)
+            selection = QItemSelection(top_left, bottom_right)
+
+            self.setCurrentIndex(first_index)
+            self.moveIndexToTop()
+            self.selectionModel().select(selection, QItemSelectionModel.Select)
+
+    def selectShiftDown(self):
+        self.selectShift(self.itemBelow)
+
+    def selectShiftUp(self):
+        self.selectShift(self.itemAbove)
+
+    def selectShift(self, get_next_item):
+        current_item = self.currentItem()
+        if self.shift_start is None:
+            self.shift_start = current_item
+
+        next_item = get_next_item(current_item)
+        if next_item:
+            self.setCurrentItem(next_item)
+            current_item = next_item
+
+        self.setSelectionMode(QTreeWidget.MultiSelection)
+        self.clearSelection()
+        start_index = self.indexFromItem(self.shift_start)
+        end_index = self.indexFromItem(self.currentItem())
+        for i in range(min(start_index.row(), end_index.row()), max(start_index.row(), end_index.row()) + 1):
+            item = self.topLevelItem(i)
+            if item:
+                item.setSelected(True)
+        self.setSelectionMode(QTreeWidget.ExtendedSelection)
+
+    def moveIndexDown(self):
         cur_idx = self.currentIndex()
 
         if cur_idx.isValid() and cur_idx.row() < self.model().rowCount(cur_idx.parent()) - 1:
             new_idx = self.model().index(cur_idx.row() + 1, cur_idx.column())
             self.setCurrentIndex(new_idx)
     
-    def moveSelectionUp(self):
+    def moveIndexUp(self):
         cur_idx = self.currentIndex()
 
         if cur_idx.isValid() and cur_idx.row() > 0:
             new_idx = self.model().index(cur_idx.row() - 1, cur_idx.column())
             self.setCurrentIndex(new_idx)
 
-    def moveSelectionToTop(self):
+    def moveIndexToTop(self):
         self.setCurrentIndex(self.model().index(0, 0))
     
-    def moveSelectionToBottom(self):
+    def moveIndexToBottom(self):
         self.setCurrentIndex(self.model().index(self.model().rowCount() - 1, 0))
 
     def scrollToLastItem(self):
@@ -146,24 +232,27 @@ class FileView(QTreeWidget):
     def deleteSelected(self):
         root = self.invisibleRootItem()
 
+        # Get selected indexes
         selected_indexes = self.selectionModel().selectedIndexes()
         if not selected_indexes:
             return
 
         self.setUpdatesEnabled(False)
         selected_rows = sorted(set(idx.row() for idx in selected_indexes), reverse=True)
+        
+        # Determine next row to select
         next_row = -1
+        if root.childCount() > 0:
+            if selected_rows[-1] < root.childCount() - 1:
+                next_row = selected_rows[-1]
+            elif selected_rows[0] > 0:
+                next_row = selected_rows[0] - 1
 
-        if root.childCount() == 0:
-            next_row = -1
-        elif selected_rows[0] == root.childCount() - 1:
-            next_row = max(0, selected_rows[0] - 1)
-        else:
-            next_row = selected_rows[0]
-
+        # Remove selected items
         for row in selected_rows:
             self.takeTopLevelItem(row)
         
+        # Select next item
         if root.childCount() > 0:
             self.setCurrentIndex(self.model().index(next_row, 0))
         

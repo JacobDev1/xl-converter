@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import List, Any
 
 import qdarktheme
 
@@ -18,12 +19,12 @@ def setTheme(theme="dark"):
         case "light":
             qdarktheme.setup_theme("light", corner_shape="sharp", custom_colors={"primary":"#EF7202"})
 
-def removeDuplicates(data: []):
+def removeDuplicates(data: List[Any]):
     new_data = []
     [new_data.append(n) for n in data if n not in new_data]
     return new_data
 
-def listToFilter(title: str, ext: []):
+def listToFilter(title: str, ext: List[str]):
     """Convert a list of extensions into a name filter for file dialogs."""
     last_idx = len(ext) - 1
 
@@ -33,6 +34,17 @@ def listToFilter(title: str, ext: []):
 
     output += f"*.{ext[last_idx]})" # Last one (no space at the end)
     return output
+
+def dictToList(data: dict):
+    """Convert a dictionary into a list."""
+    result = []
+    for k, v in data.items():
+        if isinstance(v, dict):
+            v = dictToList(v)
+        result.append(
+            (k, v)
+        )
+    return result
 
 def clip(val, _min, _max):
     """Limit value to a given range."""

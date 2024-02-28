@@ -19,6 +19,7 @@ from PySide6.QtCore import(
 
 from data.constants import ALLOWED_RESAMPLING
 from .widget_manager import WidgetManager
+from core.utils import dictToList
 
 MAX_RES_PX = 999999999
 MAX_FILE_SIZE = 1024**2   # KiB
@@ -187,9 +188,6 @@ class ModifyTab(QWidget):
         downscale_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         misc_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        misc_grp.setMaximumSize(400, 232)
-        downscale_grp.setMaximumSize(400, 232)
-
         # Alignment
         metadata_hb.setAlignment(Qt.AlignLeft)
 
@@ -278,6 +276,14 @@ class ModifyTab(QWidget):
             }
         }
     
+    def getReportData(self):
+        """Used by ExceptionView"""
+        settings = self.getSettings()
+        return {
+            "Downscaling": dictToList(settings["downscaling"]),
+            "Misc.": dictToList(settings["misc"])
+        }
+
     def getResampling(self):
         if self.resample_visible:
             return self.resample_cmb.currentText()

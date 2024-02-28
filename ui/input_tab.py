@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -16,7 +18,6 @@ from PySide6.QtGui import(
 from .file_view import FileView
 from data.constants import ALLOWED_INPUT
 from core.utils import scanDir, listToFilter
-from core.pathing import stripPathToFilename
 from .notifications import Notifications
 
 class InputTab(QWidget):
@@ -69,10 +70,12 @@ class InputTab(QWidget):
             return
         
         items = []
-        for file in file_paths:
-            file_data = stripPathToFilename(file)
-            if file_data[1].lower() in ALLOWED_INPUT:
-                items.append((file_data[0], file_data[1], file_data[3]))
+        for path in file_paths:
+            path = Path(path)
+            ext = path.suffix[1:]
+
+            if ext.lower() in ALLOWED_INPUT:
+                items.append((path.stem, ext, str(path.resolve())))
         
         self.file_view.startAddingItems()
         self.file_view.addItems(items)

@@ -66,8 +66,7 @@ class AboutTab(QWidget):
         text_vb.setAlignment(Qt.AlignVCenter)
         buttons_vb.setAlignment(Qt.AlignVCenter)
 
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.setMaximumSize(700, 300)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
     
     def checkForUpdate(self):
         self.update_checker.run()
