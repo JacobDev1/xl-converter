@@ -417,7 +417,6 @@ class OutputTab(QWidget):
                 self.wm.setVar("jxl_int_effort", self.int_effort_cb.isChecked())
                 self.wm.setVar("jxl_lossless", self.lossless_cb.isChecked())
                 self.wm.setVar("jxl_lossless_if", self.lossless_if_cb.isChecked())
-                self.wm.setVar("jxl_mode", self.jxl_mode_cmb.currentText())
             case "AVIF":
                 self.wm.setVar("avif_quality", self.quality_sl.value())
                 self.wm.setVar("avif_speed", self.effort_sb.value())
@@ -435,7 +434,6 @@ class OutputTab(QWidget):
                 self.wm.applyVar("jxl_effort", "effort_sb", 7)
                 self.wm.applyVar("jxl_lossless", "lossless_cb", False)
                 self.wm.applyVar("jxl_lossless_if", "lossless_if_cb", False)
-                self.wm.applyVar("jxl_mode", "jxl_mode_cmb", "Default")
             case "AVIF":
                 self.wm.applyVar("avif_quality", "quality_sl", 70)
                 self.wm.applyVar("avif_speed", "effort_sb", 6)
@@ -453,7 +451,6 @@ class OutputTab(QWidget):
             "effort_sb",
             "lossless_cb",
             "lossless_if_cb",
-            "jxl_mode_cmb",
         ])
 
         self.saveFormatState()
