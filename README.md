@@ -18,11 +18,11 @@ Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](htt
 ## Features
 #### JPG Reconstruction
 
-Reconstructs the original JPG from a JPEG XL file.
+Losslessly transcode JPG to JPEG XL, reverse the process when needed.
 
 #### Multithreading
 
-Speeds up JPEG XL encoding significantly.
+Use as many CPU cores as you want.
 
 #### Image Proxy
 
@@ -38,15 +38,17 @@ Scale down images to resolution, percent, shortest (and longest) side, or file s
 
 Utilize multiple formats to achieve the smallest size.
 
-![](misc/screenshots/screenshot_2.png)
-
 #### Intelligent Effort
 
-Optimizes `Effort` for smaller size.
+Optimize `Effort` for smaller sizes.
 
-#### Lossless (Only If Smaller)
+#### Metadata
 
-Picks the smallest out of two.
+Easily copy and wipe metadata using encoder parameters or ExifTool.
+
+#### Out of the Box
+
+Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
 
 ## Bug Reports
 
@@ -65,7 +67,7 @@ Prerequisites:
 Clone the repo.
 
 ```cmd
-git clone -b v0.9.6 --depth 1 https://github.com/JacobDev1/xl-converter.git
+git clone -b v0.9.7 --depth 1 https://github.com/JacobDev1/xl-converter.git
 cd xl-converter
 ```
 
@@ -77,11 +79,7 @@ env\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-Install redistributable
-
-```cmd
-misc\VC_redist.x64.exe
-```
+Install [redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 
 Run the application
 
@@ -108,7 +106,7 @@ sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev 
 Clone and set up the repo.
 
 ```bash
-git clone -b v0.9.6 --depth 1 https://github.com/JacobDev1/xl-converter.git
+git clone -b v0.9.7 --depth 1 https://github.com/JacobDev1/xl-converter.git
 chmod -R +x xl-converter
 cd xl-converter
 ```

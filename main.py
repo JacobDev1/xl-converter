@@ -43,7 +43,6 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.setWindowTitle("XL Converter")
         self.setWindowIcon(QIcon(ICON_SVG))
-        self.resize(650,300)
 
         self.tabs = QTabWidget(self)
         self.setAcceptDrops(True)
@@ -77,6 +76,16 @@ class MainWindow(QMainWindow):
         self.exception_view = ExceptionView(settings, parent=self)
         self.exception_view.dont_show_again.connect(self.settings_tab.setExceptionsEnabled)
         self.settings_tab.signals.no_exceptions.connect(self.exception_view.setDontShowAgain)
+
+        # Size Policy
+        self.resize(650,300)
+        
+        MAX_WIDTH = 825
+        MAX_HEIGHT = 320
+        self.output_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
+        self.modify_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
+        self.settings_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
+        self.about_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
 
         # Layout
         self.tabs.addTab(self.input_tab, "Input")
@@ -165,8 +174,12 @@ class MainWindow(QMainWindow):
         # Reset and Parse data
         self.exception_view.close()
         self.exception_view.clear()
+        self.exception_view.updateReportHeader(
+            self.output_tab.getReportData(),
+            self.modify_tab.getReportData(),
+        )
         self.items.clear()
-        self.items.parseData(self.input_tab.file_view.invisibleRootItem())
+        self.items.parseData(*self.input_tab.file_view.getItemPaths())
         if self.items.getItemCount() == 0:
             return
         
@@ -189,7 +202,7 @@ class MainWindow(QMainWindow):
         self.setUIEnabled(False)
         mutex = QMutex()
 
-        for i in range(0, self.items.getItemCount()):
+        for i in range(self.items.getItemCount()):
             worker = Worker(i, self.items.getItem(i), params, settings, threads_per_worker, mutex)
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)

@@ -75,6 +75,7 @@ def cancelCheck(*tmp_files):
 
 def _downscaleToFileSizeStepAuto(params):
     # Prepare data
+    fault_tolerance = 0.1    # 0.1 is 10%
     size_samples = []
     proxy_src = getUniqueFilePath(params["dst_dir"], params["name"], "png", True)
 
@@ -128,14 +129,15 @@ def _downscaleToFileSizeStepAuto(params):
     # Use gathered data
     extrapolated_scale = _extrapolateScale(size_samples, params["max_size"] * 1024)
 
-    if extrapolated_scale < 0:
+    if extrapolated_scale < 0:          # Error
+        
         try:
             os.remove(proxy_src)
         except OSError as err:
             raise FileException("D13", err)
         raise GenericException("D14", f"Extrapolated scale cannot be negative ({extrapolated_scale})")
-    elif extrapolated_scale >= 100:
-        # Non-downscaled conversion
+    elif extrapolated_scale >= 100:     # Non-downscaled conversion
+        
         convert(params["enc"], params["src"], params["dst"], params["args"], params["n"])
         try:
             os.remove(proxy_src)
@@ -151,7 +153,7 @@ def _downscaleToFileSizeStepAuto(params):
             
             try:
                 size = os.path.getsize(params["dst"])
-                threshold = params["max_size"] * 1024 * 1.1   # 10% fault tolerance
+                threshold = params["max_size"] * 1024 * (1 + fault_tolerance)
                 if size < threshold:
                     break
             except OSError as err:

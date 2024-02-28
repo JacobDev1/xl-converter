@@ -17,8 +17,8 @@ install(){
     sudo cp -r xl-converter /opt
     sudo chmod -R +x /opt/xl-converter
     
-    echo "Installation completed"
-    echo "You will find shortcuts in the start menu and the desktop"
+    echo "Installation complete"
+    echo "You will find shortcuts in the start menu and on the desktop"
 }
 
 check_root_permissions(){

@@ -1,13 +1,16 @@
 import os
 import shutil
 import copy
+from pathlib import Path
+from typing import Dict
 
 from PySide6.QtCore import (
     QRunnable,
     QObject,
     Signal,
     Slot,
-    QMutexLocker
+    QMutexLocker,
+    QMutex,
 )
 from send2trash import send2trash
 
@@ -35,7 +38,7 @@ class Signals(QObject):
     exception = Signal(str, str, str)
 
 class Worker(QRunnable):
-    def __init__(self, n, item, params, settings, available_threads, mutex):
+    def __init__(self, n: int, item_path: Path, params: Dict, settings: Dict, available_threads: int, mutex: QMutex):
         super().__init__()
         self.signals = Signals()
         self.params = copy.deepcopy(params)
@@ -50,17 +53,17 @@ class Worker(QRunnable):
         self.available_threads = available_threads
         self.mutex = mutex
         
-        # Original Item info
-        self.item = item    # Original file
+        # Item info - always points to the original file
+        self.org_item_abs_path = str(item_path)         # path -> str cast is done for legacy reasons
         
-        # Item info - these can be reassigned
-        self.item_name = item[0]    
-        self.item_ext = item[1].lower()     # lowercase version of self.item[1]
-        self.item_dir = item[2]
-        self.item_abs_path = item[3]
+        # Item info - can be (carefully) reassigned
+        self.item_name = item_path.stem
+        self.item_ext = item_path.suffix[1:].lower()
+        self.item_dir = str(item_path.parent)
+        self.item_abs_path = str(item_path)
 
         # Destination
-        self.output = None        # tmp, gets renamed to final_output
+        self.output = None          # tmp, gets renamed to final_output
         self.output_dir = None
         self.output_ext = None
         self.final_output = None 
@@ -70,7 +73,7 @@ class Worker(QRunnable):
         self.skip = False
     
     def logException(self, id, msg):
-        self.signals.exception.emit(id, msg, self.item[3])
+        self.signals.exception.emit(id, msg, self.org_item_abs_path)
 
     @Slot()
     def run(self):
@@ -133,9 +136,16 @@ class Worker(QRunnable):
                 args[1] = f"-e {self.params['effort']}"
                 args[3] = f"--num_threads={self.available_threads}"
 
-                if self.params["intelligent_effort"] and self.params["lossless"]:
+                if self.params["intelligent_effort"] and (self.params["lossless"] or self.params["jxl_mode"] == "Modular"):
                     self.params["intelligent_effort"] = False
                     args[1] = "-e 9"
+
+                if not self.params["lossless"]:
+                    if self.params["jxl_mode"] == "VarDCT":
+                        args.append("--modular=0")
+                    elif self.params["jxl_mode"] == "Modular":
+                        args.append("--modular=1")
+                    # Encoder decides by itself when no arguments are passed
 
                 encoder = CJXL_PATH
             case "AVIF":
@@ -251,7 +261,7 @@ class Worker(QRunnable):
             except OSError as err:
                 raise FileException("S0", f"Failed to create output directory. {err}")
         else:
-            self.output_dir = self.item[2]
+            self.output_dir = self.item_dir
 
         # Assign output paths
         self.output_ext = getExtension(self.params["format"])
@@ -314,7 +324,7 @@ class Worker(QRunnable):
                 self.proxy.cleanup()
             except OSError as err:
                 raise FileException("F1", f"Failed to delete proxy. {err}")
-            self.item_abs_path = self.item[3]   # Redirect the source back to original file
+            self.item_abs_path = self.org_item_abs_path   # Redirect the source back to original file
         
         # Check for existing files
         try:
@@ -344,12 +354,12 @@ class Worker(QRunnable):
         if os.path.isfile(self.final_output):    # Checking if renaming was successful
             
             # Apply metadata
-            metadata.runExifTool(self.item[3], self.final_output, self.params["misc"]["keep_metadata"])
+            metadata.runExifTool(self.org_item_abs_path, self.final_output, self.params["misc"]["keep_metadata"])
 
             # Apply attributes
             try:
                 if self.params["misc"]["attributes"]:
-                    shutil.copystat(self.item[3], self.final_output)
+                    shutil.copystat(self.org_item_abs_path, self.final_output)
             except OSError as err:
                 raise FileException("P0", f"Failed to apply attributes. {err}")
 
@@ -357,9 +367,9 @@ class Worker(QRunnable):
             try:
                 if self.params["delete_original"]:
                     if self.params["delete_original_mode"] == "To Trash":
-                        send2trash(self.item[3])
+                        send2trash(self.org_item_abs_path)
                     elif self.params["delete_original_mode"] == "Permanently":
-                        os.remove(self.item[3])
+                        os.remove(self.org_item_abs_path)
             except OSError as err:
                 raise FileException("P1", f"Failed to delete original file. {err}")
         elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently)
@@ -367,7 +377,7 @@ class Worker(QRunnable):
 
     def runChecks(self):
         # Input was moved / deleted
-        if os.path.isfile(self.item[3]) == False:
+        if os.path.isfile(self.org_item_abs_path) == False:
             raise FileException("C0", "File not found")
 
         # Check for UTF-8 characters
@@ -384,7 +394,7 @@ class Worker(QRunnable):
             )
         ):
             try:
-                self.item[3].encode("cp1252")
+                self.org_item_abs_path.encode("cp1252")
             except UnicodeEncodeError:
                 raise GenericException("C1", "JPEG XL does not support paths with non-ANSI characters on Windows.")
 
@@ -452,7 +462,7 @@ class Worker(QRunnable):
             elif key == "jxl":
                 src = self.item_abs_path
                 if self.item_ext in JPEG_ALIASES:  # Exception for handling JPG reconstruction
-                    src = self.item[3]
+                    src = self.org_item_abs_path
                 convert(CJXL_PATH, src, path_pool["jxl"], args["jxl"], self.n)
 
         # Get file sizes
