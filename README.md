@@ -18,7 +18,7 @@ Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](htt
 ## Features
 #### JPG Reconstruction
 
-Reconstructs the original JPG from a JPEG XL file.
+Losslessly transcode JPG to JPEG XL, reverse the process when needed.
 
 #### Multithreading
 
