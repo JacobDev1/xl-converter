@@ -71,6 +71,7 @@ class Worker(QRunnable):
         # Misc.
         self.scl_params = None
         self.skip = False
+        self.jpg_to_jxl_lossless = False
     
     def logException(self, id, msg):
         self.signals.exception.emit(id, msg, self.org_item_abs_path)
@@ -129,6 +130,8 @@ class Worker(QRunnable):
                 if self.params["lossless"]:
                     args[0] = "-q 100"
                     args[2] = "--lossless_jpeg=1"
+                    if self.item_ext in JPEG_ALIASES:
+                        self.jpg_to_jxl_lossless = True
                 else:
                     args[0] = f"-q {self.params['quality']}"
                     args[2] = "--lossless_jpeg=0"
@@ -179,7 +182,7 @@ class Worker(QRunnable):
                 raise GenericException("C0", f"Unknown Format ({self.params['format']})")
 
         # Prepare metadata
-        args.extend(metadata.getArgs(encoder, self.params["misc"]["keep_metadata"]))
+        args.extend(metadata.getArgs(encoder, self.params["misc"]["keep_metadata"], self.jpg_to_jxl_lossless))
 
         # Convert & downscale
         if self.params["downscaling"]["enabled"]:
@@ -447,7 +450,7 @@ class Worker(QRunnable):
         # Handle metadata
         args["png"].extend(metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
         args["webp"].extend(metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
-        args["jxl"].extend(metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
+        args["jxl"].extend(metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"], self.jpg_to_jxl_lossless))
 
         # Generate files
         for key in path_pool:

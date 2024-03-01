@@ -41,7 +41,7 @@ def runExifTool(src, dst, mode):
         case "ExifTool - Unsafe Wipe":
             deleteMetadataUnsafe(dst)
 
-def getArgs(encoder, mode) -> []:
+def getArgs(encoder, mode, jpg_to_jxl_lossless = False) -> []:
     """Return metadata arguments for the specified encoder.
 
     Example Usage:
@@ -51,9 +51,10 @@ def getArgs(encoder, mode) -> []:
     match mode:
         case "Encoder - Wipe":
             if encoder == CJXL_PATH:
-                return []
-                # return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
-                # return ["-x exif=", "-x xmp=", "-x jumbf="]
+                if not jpg_to_jxl_lossless:
+                    return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
+                else:
+                    return []
             elif encoder in (DJXL_PATH, AVIFDEC_PATH):
                 return []
             elif encoder == IMAGE_MAGICK_PATH:
