@@ -16,6 +16,7 @@ from send2trash import send2trash
 
 from data.constants import (
     CJXL_PATH,
+    CJPEGLI_PATH,
     JPEG_ALIASES,
     AVIFENC_PATH,
     IMAGE_MAGICK_PATH,
@@ -160,8 +161,12 @@ class Worker(QRunnable):
 
                 encoder = AVIFENC_PATH
             case "JPG":
-                args = [f"-quality {self.params['quality']}"]
-                encoder = IMAGE_MAGICK_PATH
+                if self.params["jpg_encoder"] == "JPEGLI from JPEG XL":
+                    args = [f"-q {self.params['quality']}"]
+                    encoder = CJPEGLI_PATH
+                else:
+                    args = [f"-quality {self.params['quality']}"]
+                    encoder = IMAGE_MAGICK_PATH
             case "WEBP":
                 args = []
 

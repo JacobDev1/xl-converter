@@ -4,6 +4,7 @@ from data.constants import (
     EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME,
     IMAGE_MAGICK_PATH,
     CJXL_PATH,
+    CJPEGLI_PATH,
     DJXL_PATH,
     AVIFENC_PATH,
     AVIFDEC_PATH,
@@ -55,7 +56,7 @@ def getArgs(encoder, mode, jpg_to_jxl_lossless = False) -> []:
                     return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
                 else:
                     return []
-            elif encoder in (DJXL_PATH, AVIFDEC_PATH):
+            elif encoder in (DJXL_PATH, AVIFDEC_PATH, CJPEGLI_PATH):
                 return []
             elif encoder == IMAGE_MAGICK_PATH:
                 return ["-strip"]

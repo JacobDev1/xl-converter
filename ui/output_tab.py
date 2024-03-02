@@ -145,6 +145,13 @@ class OutputTab(QWidget):
             "VarDCT",
             "Modular",
         ))
+
+        self.jpg_encoder_l = self.wm.addWidget("jpg_encoder_l", QLabel("Encoder"), "jpg_encoder")
+        self.jpg_encoder_cmb = self.wm.addWidget("jpg_encoder_cmb", QComboBox(), "jpg_encoder")
+        self.jpg_encoder_cmb.addItems((
+            "JPEGLI from JPEG XL",
+            "ImageMagick",
+        ))
         
         self.smallest_lossless_png_cb = self.wm.addWidget("smallest_lossless_png_cb", QCheckBox("PNG"), "format_pool")
         self.smallest_lossless_webp_cb = self.wm.addWidget("smallest_lossless_webp_cb", QCheckBox("WEBP"), "format_pool")
@@ -165,15 +172,19 @@ class OutputTab(QWidget):
         lossless_hb.addWidget(self.lossless_cb)
         lossless_hb.addWidget(self.lossless_if_cb)
 
-        self.jxl_mode_hb = QHBoxLayout()                    # JPEG XL Mode
-        self.jxl_mode_hb.addWidget(self.jxl_mode_l)
-        self.jxl_mode_hb.addWidget(self.jxl_mode_cmb)
-
         quality_hb = QHBoxLayout()                          # Quality
         quality_hb.addWidget(self.quality_l)
         quality_hb.addWidget(self.quality_sl)
         quality_hb.addWidget(self.quality_sb)
-        
+
+        self.jxl_mode_hb = QHBoxLayout()                    # JPEG XL Mode
+        self.jxl_mode_hb.addWidget(self.jxl_mode_l)
+        self.jxl_mode_hb.addWidget(self.jxl_mode_cmb)
+
+        self.jpg_encoder_hb = QHBoxLayout()                 # JPG Encoder
+        self.jpg_encoder_hb.addWidget(self.jpg_encoder_l)
+        self.jpg_encoder_hb.addWidget(self.jpg_encoder_cmb)
+
         format_sm_l_hb = QHBoxLayout()                      # Smallest Lossless
         for i in self.wm.getWidgetsByTag("format_pool"):
             format_sm_l_hb.addWidget(i)
@@ -186,6 +197,7 @@ class OutputTab(QWidget):
         format_grp_lt.addLayout(quality_hb)
         format_grp_lt.addLayout(self.jxl_mode_hb)
         format_grp_lt.addLayout(lossless_hb)
+        format_grp_lt.addLayout(self.jpg_encoder_hb)
         format_grp_lt.addLayout(format_sm_l_hb)
         format_grp_lt.addWidget(self.max_compression_cb)
         format_grp_lt.addWidget(self.reconstruct_jpg_cb)
@@ -239,6 +251,7 @@ class OutputTab(QWidget):
             "intelligent_effort": self.int_effort_cb.isChecked(),
             "reconstruct_jpg": self.reconstruct_jpg_cb.isChecked(),
             "jxl_mode": self.jxl_mode_cmb.currentText(),
+            "jpg_encoder": self.jpg_encoder_cmb.currentText(),
             "if_file_exists": self.duplicates_cmb.currentText(),
             "custom_output_dir": self.choose_output_ct_rb.isChecked(),
             "custom_output_dir_path": self.choose_output_ct_le.text(),
@@ -334,11 +347,16 @@ class OutputTab(QWidget):
         
         # Smallest Lossless mode
         is_sm_l = cur_format == "Smallest Lossless"
-        self.wm.setVisibleByTag("lossless", not is_sm_l)
         self.wm.setVisibleByTag("effort", not is_sm_l)
         self.wm.setVisibleByTag("format_pool", is_sm_l)
         self.max_compression_cb.setVisible(is_sm_l)
         
+        # JPG
+        self.wm.setVisibleByTag("jpg_encoder", cur_format == "JPG")
+
+        # Lossless
+        self.wm.setVisibleByTag("lossless", cur_format not in ("PNG", "JPG", "Smallest Lossless"))
+
         # Decoding (PNG)
         if cur_format == "PNG":
             self.reconstruct_jpg_cb.setVisible(True)
@@ -391,6 +409,7 @@ class OutputTab(QWidget):
         
         self.threads_sl.setValue(self.MAX_THREAD_COUNT - 1 if self.MAX_THREAD_COUNT > 0 else 1)  # -1 because the OS needs some CPU time as well
         self.duplicates_cmb.setCurrentIndex(1)
+        self.jpg_encoder_cmb.setCurrentIndex(0)
 
         # Lossless
         self.wm.setCheckedByTag("lossless", False)
