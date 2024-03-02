@@ -21,7 +21,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.28';
+$VERSION = '1.29';
 
 sub ProcessJpgFromRaw($$$);
 sub WriteJpgFromRaw($$$);
@@ -839,7 +839,7 @@ sub WriteJpgFromRaw($$$)
         my $buff = substr($$dataPt, $dirStart, $dirLen);
         $dataPt = \$buff;
     }
-    my $raf = new File::RandomAccess($dataPt);
+    my $raf = File::RandomAccess->new($dataPt);
     my $outbuff;
     my %dirInfo = (
         RAF => $raf,
@@ -890,7 +890,7 @@ sub ProcessJpgFromRaw($$$)
     # extract information from embedded JPEG
     my %dirInfo = (
         Parent => 'RAF',
-        RAF    => new File::RandomAccess($dataPt),
+        RAF    => File::RandomAccess->new($dataPt),
     );
     if ($verbose) {
         my $indent = $$et{INDENT};
@@ -934,7 +934,7 @@ write meta information in Panasonic/Leica RAW, RW2 and RWL images.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

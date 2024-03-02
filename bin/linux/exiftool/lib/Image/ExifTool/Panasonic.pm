@@ -37,7 +37,7 @@ use vars qw($VERSION %leicaLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '2.19';
+$VERSION = '2.22';
 
 sub ProcessLeicaLEIC($$$);
 sub WhiteBalanceConv($;$$);
@@ -1991,6 +1991,15 @@ my %shootingMode = (
         },
         PrintConvInv => '$_=$val; tr/A-Z0-9//dc; s/(.{3})(19|20)/$1/; $_',
     },
+    0x05ff => {
+        Name => 'CameraIFD', # (Leica Q3)
+        Condition => '$$valPt =~ /^(II\x2a\0\x08\0\0\0|MM\0\x2a\0\0\0\x08)/',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::PanasonicRaw::CameraIFD',
+            Base => '$start',
+            ProcessProc => \&Image::ExifTool::ProcessTIFF,
+        },
+    },
 );
 
 # Leica type5 ShotInfo (ref PH) (X2)
@@ -2176,6 +2185,10 @@ my %shootingMode = (
         Name => 'WhitePoint', # (x/y)
         Writable => 'rational64u',
         Count => 2,
+    },
+    0x0370 => { #forum15440
+        Name => 'LensProfileName',
+        Writable => 'string',
     },
 );
 
@@ -2498,6 +2511,27 @@ my %shootingMode = (
             Start => 12,
         },
     },
+);
+
+# Leica XMP Digital Shift Assistant tags
+%Image::ExifTool::Panasonic::DSA = (
+    GROUPS => { 0 => 'XMP', 1 => 'XMP-xmpDSA', 2 => 'Image' },
+    PROCESS_PROC => 'Image::ExifTool::XMP::ProcessXMP',
+    NAMESPACE => 'xmpDSA',
+    WRITABLE => 'string',
+    AVOID => 1,
+    VARS => { NO_ID => 1 },
+    NOTES => 'XMP Digital Shift Assistant tags written by some Leica cameras.',
+    Version             => { }, # eg. "1.0.0"
+    CorrectionAlreadyApplied => { Writable => 'boolean' },
+    PitchAngle          => { Writable => 'real' },
+    RollAngle           => { Writable => 'real' },
+    FocalLength35mm     => { Writable => 'real' },
+    TargetAspectRatio   => { Writable => 'real' },
+    ScalingFactorHeight => { Writable => 'real' },
+    ValidCropCorners    => { Writable => 'boolean' },
+    ApplyAutomatically  => { Writable => 'boolean' },
+    NormalizedCropCorners => { Writable => 'real', List => 'Seq' },
 );
 
 # Panasonic Composite tags
@@ -2834,10 +2868,14 @@ sub ProcessLeicaTrailer($;$)
             my $val = Image::ExifTool::Exif::RebuildMakerNotes($et, \%dirInfo, $tagTablePtr);
             unless (defined $val) {
                 $et->Warn('Error rebuilding maker notes (may be corrupt)') if $len > 4;
-                $val = $buff,
+                $val = $buff;
             }
             my $key = $et->FoundTag($tagInfo, $val);
             $et->SetGroup($key, 'ExifIFD');
+            if ($$et{MAKER_NOTE_FIXUP}) {
+                $$et{TAG_EXTRA}{$key}{Fixup} = $$et{MAKER_NOTE_FIXUP};
+                delete $$et{MAKER_NOTE_FIXUP};
+            }
         }
     }
     SetByteOrder($oldOrder);
@@ -2863,7 +2901,7 @@ Panasonic and Leica maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

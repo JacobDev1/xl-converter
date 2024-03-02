@@ -290,7 +290,7 @@ sub WritePDF($$)
     $raf->Seek($pos, 0);
 
     # create a new ExifTool object and use it to read PDF and XMP information
-    my $newTool = new Image::ExifTool;
+    my $newTool = Image::ExifTool->new;
     $newTool->Options(List => 1);
     $newTool->Options(Password => $et->Options('Password'));
     $newTool->Options(NoPDFList => $et->Options('NoPDFList'));
@@ -753,7 +753,7 @@ C<PDF-update> pseudo group).
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

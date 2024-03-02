@@ -17,7 +17,7 @@ package Image::ExifTool::Validate;
 use strict;
 use vars qw($VERSION %exifSpec);
 
-$VERSION = '1.21';
+$VERSION = '1.23';
 
 use Image::ExifTool qw(:Utils);
 use Image::ExifTool::Exif;
@@ -86,7 +86,7 @@ my %verCheck = (
     GPS        => { GPSVersionID => \%gpsVer },
 );
 
-# tags standard in various RAW file formats
+# tags standard in various RAW file formats or IFD's
 my %otherSpec = (
     CR2 => { 0xc5d8 => 1, 0xc5d9 => 1, 0xc5e0 => 1, 0xc640 => 1, 0xc6dc => 1, 0xc6dd => 1 },
     NEF => { 0x9216 => 1, 0x9217 => 1 },
@@ -103,6 +103,7 @@ my %otherSpec = (
     SRW => { 0xa010 => 1, 0xa011 => 1, 0xa101 => 1, 0xa102 => 1 },
     NRW => { 0x9216 => 1, 0x9217 => 1 },
     X3F => { 0xa500 => 1 },
+    CameraIFD => { All => 1 }, # (exists in JPG and DNG of Leica Q3 images)
 );
 
 # standard format for tags (not necessary for exifSpec or GPS tags where Writable is defined)
@@ -142,20 +143,22 @@ my %stdFormat = (
         # GeoTiff tags:
         0x830e => 'double',     0x8482 => 'double',     0x87af => 'int16u',     0x87b1 => 'string',
         0x8480 => 'double',     0x85d8 => 'double',     0x87b0 => 'double',
-        # DNG tags:
-        0xc615 => '(string|int8u)',              0xc6d3 => '',
-        0xc61a => '(int16u|int32u|rational64u)', 0xc6f4 => '(string|int8u)',
-        0xc61d => 'int(16|32)u',                 0xc6f6 => '(string|int8u)',
-        0xc61f => '(int16u|int32u|rational64u)', 0xc6f8 => '(string|int8u)',
-        0xc620 => '(int16u|int32u|rational64u)', 0xc6fe => '(string|int8u)',
-        0xc628 => '(int16u|rational64u)',        0xc716 => '(string|int8u)',
-        0xc634 => 'int8u',                       0xc717 => '(string|int8u)',
-        0xc640 => '',                            0xc718 => '(string|int8u)',
-        0xc660 => '',                            0xc71e => 'int(16|32)u',
-        0xc68b => '(string|int8u)',              0xc71f => 'int(16|32)u',
-        0xc68d => 'int(16|32)u',                 0xc791 => 'int(16|32)u',
-        0xc68e => 'int(16|32)u',                 0xc792 => 'int(16|32)u',
-        0xc6d2 => '',                            0xc793 => '(int16u|int32u|rational64u)',
+        # DNG tags: (use '' for non-DNG tags in the range 0xc612-0xcd48)
+        0xc615 => '(string|int8u)',              0xc6f4 => '(string|int8u)',
+        0xc61a => '(int16u|int32u|rational64u)', 0xc6f6 => '(string|int8u)',
+        0xc61d => 'int(16|32)u',                 0xc6f8 => '(string|int8u)',
+        0xc61f => '(int16u|int32u|rational64u)', 0xc6fe => '(string|int8u)',
+        0xc620 => '(int16u|int32u|rational64u)', 0xc716 => '(string|int8u)',
+        0xc628 => '(int16u|rational64u)',        0xc717 => '(string|int8u)',
+        0xc634 => 'int8u',                       0xc718 => '(string|int8u)',
+        0xc640 => '',                            0xc71e => 'int(16|32)u',
+        0xc660 => '',                            0xc71f => 'int(16|32)u',
+        0xc68b => '(string|int8u)',              0xc791 => 'int(16|32)u',
+        0xc68d => 'int(16|32)u',                 0xc792 => 'int(16|32)u',
+        0xc68e => 'int(16|32)u',                 0xc793 => '(int16u|int32u|rational64u)',
+        0xc6d2 => '',                            0xcd43 => 'int(16|32)u',
+        0xc6d3 => '',                            0xcd48 => '(string|int8u)',
+
         # Exif 3.0 spec
         0x10e  => 'string|utf8',  0xa430 => 'string|utf8',  0xa439 => 'string|utf8',
         0x10f  => 'string|utf8',  0xa433 => 'string|utf8',  0xa43a => 'string|utf8',
@@ -430,7 +433,7 @@ sub ValidateExif($$$$$$$$)
         my $stdFmt = $stdFormat{$ifd} || $stdFormat{IFD};
         if (defined $$stdFmt{All} or ($tagTablePtr eq \%Image::ExifTool::Exif::Main and
             ($exifSpec{$tag} or $$stdFmt{$tag} or
-            ($tag >= 0xc612 and $tag <= 0xc7b5 and not defined $$stdFmt{$tag}))) or # (DNG tags)
+            ($tag >= 0xc612 and $tag <= 0xcd48 and not defined $$stdFmt{$tag}))) or # (DNG tags)
             $$tagTablePtr{SHORT_NAME} eq 'GPS::Main')
         {
             my $wgp = $$ti{WriteGroup} || $$tagTablePtr{WRITE_GROUP};
@@ -456,8 +459,8 @@ sub ValidateExif($$$$$$$$)
         } elsif (not $otherSpec{$$et{FileType}} or
             (not $otherSpec{$$et{FileType}}{$tag} and not $otherSpec{$$et{FileType}}{All}))
         {
-            if ($tagTablePtr eq \%Image::ExifTool::Exif::Main or $$tagInfo{Unknown}) {
-                $et->Warn(sprintf('Non-standard %s tag 0x%.4x %s', $ifd, $tag, $$ti{Name}), 1);
+            if ($tagTablePtr eq \%Image::ExifTool::Exif::Main or $$ti{Unknown}) {
+                $et->Warn(sprintf('Non-standard %s tag 0x%.4x %s', $ifd, $tag, $$ti{Name}), 1) unless $otherSpec{$ifd};
             }
         }
         # change expected count from read Format to Writable size
@@ -478,7 +481,7 @@ sub ValidateExif($$$$$$$$)
     } elsif (not $otherSpec{$$et{FileType}} or
         (not $otherSpec{$$et{FileType}}{$tag} and not $otherSpec{$$et{FileType}}{All}))
     {
-        $et->Warn(sprintf('Unknown %s tag 0x%.4x', $ifd, $tag), 1);
+        $et->Warn(sprintf('Unknown %s tag 0x%.4x', $ifd, $tag), 1) unless $otherSpec{$ifd};
     }
 }
 
@@ -675,7 +678,7 @@ ExifTool Validate option is enabled.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

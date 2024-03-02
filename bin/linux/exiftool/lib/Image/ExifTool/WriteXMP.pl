@@ -137,13 +137,15 @@ sub ValidateProperty($$;$)
 
 #------------------------------------------------------------------------------
 # Check XMP date values for validity and format accordingly
-# Inputs: 1) EXIF-format date string
+# Inputs: 1) EXIF-format date string (XMP-format also accepted)
 # Returns: XMP date/time string (or undef on error)
 sub FormatXMPDate($)
 {
     my $val = shift;
     my ($y, $m, $d, $t, $tz);
-    if ($val =~ /(\d{4}):(\d{2}):(\d{2}) (\d{2}:\d{2}(?::\d{2}(?:\.\d*)?)?)(.*)/) {
+    if ($val =~ /(\d{4}):(\d{2}):(\d{2}) (\d{2}:\d{2}(?::\d{2}(?:\.\d*)?)?)(.*)/ or
+        $val =~ /(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2}(?::\d{2}(?:\.\d*)?)?)(.*)/)
+    {
         ($y, $m, $d, $t, $tz) = ($1, $2, $3, $4, $5);
         $val = "$y-$m-${d}T$t";
     } elsif ($val =~ /^\s*\d{4}(:\d{2}){0,2}\s*$/) {
@@ -1081,6 +1083,8 @@ sub WriteXMP($$;$)
             # delete all structure (or pseudo-structure) elements
             require 'Image/ExifTool/XMPStruct.pl';
             ($deleted, $added, $existed) = DeleteStruct($et, \%capture, \$path, $nvHash, \$changed);
+            # don't add if it didn't exist and not IsCreating and Avoid
+            undef $added if not $existed and not $$nvHash{IsCreating} and $$tagInfo{Avoid};
             next unless $deleted or $added or $et->IsOverwriting($nvHash);
             next if $existed and $$nvHash{CreateOnly};
         } elsif ($cap) {
@@ -1260,8 +1264,8 @@ sub WriteXMP($$;$)
         # check to see if we want to create this tag
         # (create non-avoided tags in XMP data files by default)
         my $isCreating = ($$nvHash{IsCreating} or (($isStruct or
-                          ($preferred and not $$tagInfo{Avoid} and
-                            not defined $$nvHash{Shift})) and not $$nvHash{EditOnly}));
+                          ($preferred and not defined $$nvHash{Shift})) and
+                          not $$tagInfo{Avoid} and not $$nvHash{EditOnly}));
 
         # don't add new values unless...
             # ...tag existed before and was deleted, or we added it to a list
@@ -1635,7 +1639,7 @@ This file contains routines to write XMP metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

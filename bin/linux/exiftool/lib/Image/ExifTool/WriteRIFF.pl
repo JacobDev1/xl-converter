@@ -19,6 +19,8 @@ my %webpMap = (
    'XMP '        => 'RIFF', # (the RIFF chunk name is 'XMP ')
     EXIF         => 'RIFF',
     ICCP         => 'RIFF',
+    C2PA         => 'RIFF',
+    JUMBF        => 'C2PA',
     XMP          => 'XMP ',
     IFD0         => 'EXIF',
     IFD1         => 'IFD0',
@@ -66,6 +68,7 @@ sub WriteRIFF($$)
         $et->InitWriteDirs(\%webpMap);
         my $addDirs = $$et{ADD_DIRS};
         my $editDirs = $$et{EDIT_DIRS};
+        $$addDirs{IFD0} = 'EXIF' if $$addDirs{EXIF}; # set flag to add IFD0 if adding EXIF (don't ask)
         my ($createVP8X, $deleteVP8X);
 
         # write header
@@ -142,6 +145,17 @@ sub WriteRIFF($$)
             }
             # RIFF chunks are padded to an even number of bytes
             my $len2 = $len + ($len & 0x01);
+            # handle incorrect "XMP\0" chunk ID written by Google software
+            if ($tag eq "XMP\0") {
+                if ($$et{DEL_GROUP}{XMP}) {
+                    # just ignore this chunk if deleting XMP
+                    $raf->Seek($len2, 1) or $et->Error('Seek error'), last;
+                    ++$$et{CHANGED};
+                    next;
+                } else {
+                    $et->Warn('Incorrect XMP tag ID',1) if $pass;
+                }
+            }
             # edit/add/delete necessary metadata chunks (EXIF must come before XMP)
             if ($$editDirs{$tag} or $tag eq '' or ($tag eq 'XMP ' and $$addDirs{EXIF})) {
                 my $handledTag;
@@ -156,13 +170,12 @@ sub WriteRIFF($$)
 #
 # add/edit/delete EXIF/XMP/ICCP (note: EXIF must come before XMP, and ICCP is written elsewhere)
 #
-                my %dirName = ( EXIF => 'IFD0', 'XMP ' => 'XMP', ICCP => 'ICC_Profile' );
-                my %tblName = ( EXIF => 'Exif', 'XMP ' => 'XMP', ICCP => 'ICC_Profile' );
+                my %dirName = ( EXIF => 'IFD0', 'XMP ' => 'XMP', ICCP => 'ICC_Profile', C2PA => 'JUMBF' );
+                my %tblName = ( EXIF => 'Exif', 'XMP ' => 'XMP', ICCP => 'ICC_Profile', C2PA => 'Jpeg2000' );
                 my $dir;
-                foreach $dir ('EXIF', 'XMP ', 'ICCP' ) {
+                foreach $dir ('EXIF', 'XMP ', 'ICCP', 'C2PA' ) {
                     next unless $tag eq $dir or ($$addDirs{$dir} and
                         ($tag eq '' or ($tag eq 'XMP ' and $dir eq 'EXIF')));
-                    delete $$addDirs{$dir}; # (don't try to add again)
                     my $start;
                     unless ($pass) {
                         # write the EXIF and save the result for the next pass
@@ -170,8 +183,15 @@ sub WriteRIFF($$)
                         if ($tag eq 'EXIF') {
                             # (only need to set directory $start for EXIF)
                             if ($buff =~ /^Exif\0\0/) {
-                                $et->Warn('Improper EXIF header') unless $pass;
-                                $start = 6;
+                                if ($$et{DEL_GROUP}{EXIF}) {
+                                    # remove incorrect header if rewriting anyway
+                                    $buff = substr($buff, 6);
+                                    $len -= 6;
+                                    $len2 -= 6;
+                                } else {
+                                    $et->Warn('Improper EXIF header',1) unless $pass;
+                                    $start = 6;
+                                }
                             } else {
                                 $start = 0;
                             }
@@ -189,11 +209,16 @@ sub WriteRIFF($$)
                             Parent   => $dir,
                             DirName  => $dirName{$dir},
                         );
+                        # must pass the TagInfo to enable deletion of C2PA information
+                        if (ref $Image::ExifTool::RIFF::Main{$dir} eq 'HASH') {
+                            $dirInfo{TagInfo} = $Image::ExifTool::RIFF::Main{$dir};
+                        }
                         my $tagTablePtr = GetTagTable("Image::ExifTool::$tblName{$dir}::Main");
                         # (override writeProc for EXIF because it has the TIFF header)
                         my $writeProc = $dir eq 'EXIF' ? \&Image::ExifTool::WriteTIFF : undef;
                         $dirDat{$dir} = $et->WriteDirectory(\%dirInfo, $tagTablePtr, $writeProc);
                     }
+                    delete $$addDirs{$dir}; # (don't try to add again)
                     if (defined $dirDat{$dir}) {
                         if ($dir eq $tag) {
                             $handledTag = 1;    # set flag indicating we edited this tag
@@ -338,7 +363,7 @@ Currently writes only WebP files.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

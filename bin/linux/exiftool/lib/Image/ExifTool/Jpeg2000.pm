@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.36';
+$VERSION = '1.39';
 
 sub ProcessJpeg2000Box($$$);
 sub ProcessJUMD($$$);
@@ -89,12 +89,14 @@ my %uuid = (
 # JPEG2000 codestream markers (ref ISO/IEC FCD15444-1/2)
 my %j2cMarker = (
     0x4f => 'SOC', # start of codestream
+  # 0x50 - seen in JPH codestream
     0x51 => 'SIZ', # image and tile size
     0x52 => 'COD', # coding style default
     0x53 => 'COC', # coding style component
     0x55 => 'TLM', # tile-part lengths
     0x57 => 'PLM', # packet length, main header
     0x58 => 'PLT', # packet length, tile-part header
+  # 0x59 - seen in JPH codestream
     0x5c => 'QCD', # quantization default
     0x5d => 'QCC', # quantization component
     0x5e => 'RGN', # region of interest
@@ -128,12 +130,24 @@ my %j2cMarker = (
     WRITE_PROC => \&ProcessJpeg2000Box,
     PREFERRED => 1, # always add these tags when writing
     NOTES => q{
-        The tags below are found in JPEG 2000 images and the JUMBF metadata in JPEG
-        images, but not all of these are extracted.  Note that ExifTool currently
-        writes only EXIF, IPTC and XMP tags in Jpeg2000 images, and EXIF and XMP in
-        JXL images.  ExifTool will read/write Brotli-compressed EXIF and XMP in JXL
-        images, but the API L<Compress|../ExifTool.html#Compress> option must be set to create new EXIF and XMP
-        in compressed format.
+        The tags below are found in JPEG 2000 images and the C2PA CAI JUMBF metadata
+        in various file types (see below).  Note that ExifTool currently writes only
+        EXIF, IPTC and XMP tags in Jpeg2000 images, and EXIF and XMP in JXL images. 
+        ExifTool will read/write Brotli-compressed EXIF and XMP in JXL images, but
+        the API L<Compress|../ExifTool.html#Compress> option must be set to create new EXIF and XMP in compressed
+        format.
+
+        C2PA (Coalition for Content Provenance and Authenticity) CAI (Content
+        Authenticity Initiative) JUMBF (JPEG Universal Metadata Box Format) metdata
+        is currently extracted from JPEG, PNG, TIFF-based (eg. TIFF, DNG),
+        QuickTime-based (eg. MP4, MOV, HEIF, AVIF), RIFF-based (eg. WAV, AVI, WebP),
+        PDF, SVG and GIF files, and ID3v2 metadata.  The suggested ExifTool
+        command-line arguments for reading C2PA metadata are C<-jumbf:all -G3 -b -j
+        -u -struct>.  This metadata may be deleted from writable JPEG, PNG, WebP,
+        TIFF-based, and QuickTime-based files by deleting the JUMBF group with
+        C<-jumbf:all=>.  The C2PA JUMBF metadata may be extracted as a block via the
+        JUMBF tag.  See L<https://c2pa.org/specifications/> for the C2PA
+        specification.
     },
 #
 # NOTE: ONLY TAGS WITH "Format" DEFINED ARE EXTRACTED!
@@ -346,13 +360,6 @@ my %j2cMarker = (
             },
         },
         {
-            Name => 'UUID-Signature',  # (seen in JUMB data of JPEG images)
-            # (may be able to remove this when JUMBF specification is finalized)
-            Condition => '$$valPt=~/^casg\x00\x11\x00\x10\x80\x00\x00\xaa\x00\x38\x9b\x71/',
-            Format => 'undef',
-            ValueConv => 'substr($val,16)',
-        },
-        {
             Name => 'UUID-C2PAClaimSignature',  # (seen in incorrectly-formatted JUMB data of JPEG images)
             # (may be able to remove this when JUMBF specification is finalized)
             Condition => '$$valPt=~/^c2cs\x00\x11\x00\x10\x80\x00\x00\xaa\x00\x38\x9b\x71/',
@@ -360,6 +367,13 @@ my %j2cMarker = (
                 TagTable => 'Image::ExifTool::CBOR::Main',
                 Start => '$valuePtr + 16',
             },
+        },
+        {
+            Name => 'UUID-Signature',  # (seen in JUMB data of JPEG images)
+            # (may be able to remove this when JUMBF specification is finalized)
+            Condition => '$$valPt=~/^casg\x00\x11\x00\x10\x80\x00\x00\xaa\x00\x38\x9b\x71/',
+            Format => 'undef',
+            ValueConv => 'substr($val,16)',
         },
         {
             Name => 'UUID-Unknown',
@@ -408,7 +422,7 @@ my %j2cMarker = (
         Flags => [ 'Binary', 'Protected' ],
         SubDirectory => { TagTable => 'Image::ExifTool::CBOR::Main' },
     },
-    bfdb => { # used in JUMBF (see  # (used when tag is renamed according to JUMDLabel)
+    bfdb => { # used in JUMBF
         Name => 'BinaryDataType',
         Notes => 'JUMBF, MIME type and optional file name',
         Format => 'undef',
@@ -549,6 +563,7 @@ my %j2cMarker = (
             'jpm ' => 'JPEG 2000 Compound Image (.JPM)',  # image/jpm
             'jpx ' => 'JPEG 2000 with extensions (.JPX)', # image/jpx
             'jxl ' => 'JPEG XL Image (.JXL)',             # image/jxl
+            'jph ' => 'High-throughput JPEG 2000 (.JPH)', # image/jph
         },
     },
     1 => {
@@ -736,6 +751,7 @@ my %j2cMarker = (
         },
         # seen:
         # cacb/cast/caas/cacl/casg/json-00110010800000aa00389b71
+        #   (also brob- but not yet tested)
         # 6579d6fbdba2446bb2ac1b82feeb89d1 - JPEG image
     },
     'label' => { Name => 'JUMDLabel' },
@@ -809,6 +825,7 @@ sub ProcessJUMD($$$)
             $name =~ tr/-_a-zA-Z0-9//dc;    # remove other illegal characters
             $name =~ s/__/_/;               # collapse double underlines
             $name = ucfirst $name;          # capitalize first letter
+            $name =~ s/C2pa/C2PA/;          # capitalize C2PA
             $name = "Tag$name" if length($name) < 2; # must at least 2 characters long
             $$et{JUMBFLabel} = $name;
         }
@@ -840,6 +857,17 @@ sub ProcessJUMD($$$)
         }
     }
     return 1;
+}
+
+#------------------------------------------------------------------------------
+# Warn about error in Brotli compression/decompression
+# Inputs: 0) ExifTool ref, 1) box type, 2) true for decoding (Uncompress)
+sub BrotliWarn($$;$)
+{
+    my ($et, $type, $uncompress) = @_;
+    my ($enc, $mod) = $uncompress ? qw(decoding Uncompress) : qw(encoding Compress);
+    $et->WarnOnce("Error $enc '${type}' brob box");
+    $et->WarnOnce("Try updating to IO::${mod}::Brotli 0.004 or later");
 }
 
 #------------------------------------------------------------------------------
@@ -897,7 +925,7 @@ sub CreateNewBoxes($$)
                         my $compressed;
                         eval { $compressed = IO::Compress::Brotli::bro($pad . $newdir) };
                         if ($@ or not $compressed) {
-                            $et->Warn("Error encoding $dirName brob box");
+                            BrotliWarn($et, $dirName);
                         } else {
                             $et->VPrint(0, "  Writing Brotli-compressed $dir\n");
                             $newdir = $compressed;
@@ -993,10 +1021,24 @@ sub ProcessJpeg2000Box($$$)
     my $dirLen = $$dirInfo{DirLen} || 0;
     my $dirStart = $$dirInfo{DirStart} || 0;
     my $base = $$dirInfo{Base} || 0;
-    my $raf = $$dirInfo{RAF};
     my $outfile = $$dirInfo{OutFile};
+    my $dirName = $$dirInfo{DirName} || '';
     my $dirEnd = $dirStart + $dirLen;
-    my ($err, $outBuff, $verbose, $doColour, $hash);
+    my ($err, $outBuff, $verbose, $doColour, $hash, $raf);
+
+    if ($dataPt) {
+        # save C2PA JUMBF as a block if requested
+        if ($dirName eq 'JUMBF' and $$et{REQ_TAG_LOOKUP}{jumbf} and not $$dirInfo{NoBlockSave}) {
+            if ($dirStart or $dirLen ne length($$dataPt)) {
+                my $dat = substr($$dataPt, $dirStart, $dirLen);
+                $et->FoundTag(JUMBF => \$dat);
+            } else {
+                $et->FoundTag(JUMBF => $dataPt);
+            }
+        }
+    } else {
+        $raf = $$dirInfo{RAF};  # read from RAF
+    }
 
     if ($outfile) {
         unless ($raf) {
@@ -1005,7 +1047,7 @@ sub ProcessJpeg2000Box($$$)
             $outfile = \$outBuff;
         }
         # determine if we will be writing colr box
-        if ($$dirInfo{DirName} and $$dirInfo{DirName} eq 'JP2Header') {
+        if ($dirName eq 'JP2Header') {
             $doColour = 2 if defined $et->GetNewValue('ColorSpecMethod') or $et->GetNewValue('ICC_Profile') or
                              defined $et->GetNewValue('ColorSpecPrecedence') or defined $et->GetNewValue('ColorSpace') or
                              defined $et->GetNewValue('ColorSpecApproximation') or defined $et->GetNewValue('ColorSpecData');
@@ -1013,7 +1055,7 @@ sub ProcessJpeg2000Box($$$)
     } else {
         # (must not set verbose flag when writing!)
         $verbose = $$et{OPTIONS}{Verbose};
-        $et->VerboseDir($$dirInfo{DirName}) if $verbose;
+        $et->VerboseDir($dirName) if $verbose;
         # do hash if requested, but only for top-level image data
         $hash = $$et{ImageDataHash} if $raf;
     }
@@ -1162,7 +1204,7 @@ sub ProcessJpeg2000Box($$$)
         # create new tag for JUMBF data values with name corresponding to JUMBFLabel
         if ($tagInfo and $$et{JUMBFLabel} and (not $$tagInfo{SubDirectory} or $$tagInfo{BlockExtract})) {
             $tagInfo = { %$tagInfo, Name => $$et{JUMBFLabel} . ($$tagInfo{JUMBF_Suffix} || '') };
-            delete $$tagInfo{Description};
+            ($$tagInfo{Description} = Image::ExifTool::MakeDescription($$tagInfo{Name})) =~ s/C2 PA/C2PA/;
             AddTagToTable($tagTablePtr, '_JUMBF_' . $$et{JUMBFLabel}, $tagInfo);
             delete $$tagInfo{Protected}; # (must do this so -j -b returns JUMBF binary data)
             $$tagInfo{TagID} = $boxID;
@@ -1234,7 +1276,7 @@ sub ProcessJpeg2000Box($$$)
                                 my $compressed;
                                 eval { $compressed = IO::Compress::Brotli::bro($pad . $newdir) };
                                 if ($@ or not $compressed) {
-                                    $et->Warn("Error encoding $boxID brob box");
+                                    BrotliWarn($et, $boxID);
                                 } else {
                                     $et->VPrint(0, "  Writing Brotli-compressed $boxID\n");
                                     $newdir = $boxID . $compressed;
@@ -1375,7 +1417,7 @@ sub ProcessBrotli($$$)
         my $verbose = $isWriting ? 0 : $et->Options('Verbose');
         my $dat = substr($$dataPt, 4);
         eval { $dat = IO::Uncompress::Brotli::unbro($dat, 100000000) };
-        $@ and $et->Warn("Error decoding $type brob box"), return 1;
+        $@ and BrotliWarn($et, $type, 1), return 1;
         $verbose > 2 and $et->VerboseDump(\$dat, Prefix => $$et{INDENT} . '  ');
         my %dirInfo = ( DataPt => \$dat );
         if ($type eq 'xml ') {
@@ -1408,7 +1450,7 @@ sub ProcessBrotli($$$)
             # rewrite as uncompressed if Compress option is set to 0 (or '')
             return $dat if defined $compress and not $compress;
             eval { $dat = IO::Compress::Brotli::bro($dat) };
-            $@ and $et->Warn("Error encoding $type brob box"), return undef;
+            $@ and BrotliWarn($et, $type), return undef;
             $et->VPrint(0, "  Writing Brotli-compressed $type\n");
             return $type . $dat;
         }
@@ -1467,6 +1509,28 @@ sub ProcessJXLCodestream($$)
 }
 
 #------------------------------------------------------------------------------
+# Read/write meta information from a C2PA/JUMBF file
+# Inputs: 0) ExifTool object reference, 1) dirInfo reference
+# Returns: 1 on success, 0 if this wasn't a valid JUMBF file
+sub ProcessJUMBF($$)
+{
+    my ($et, $dirInfo) = @_;
+    my $raf = $$dirInfo{RAF};
+    my $hdr;
+
+    # check to be sure this is a valid JPG2000 file
+    return 0 unless $raf->Read($hdr,20) == 20 and $raf->Seek(0,0);
+    return 0 unless $hdr =~ /^.{4}jumb\0.{3}jumd(.{4})/;
+    $et->SetFileType($1 eq 'c2pa' ? 'C2PA' : 'JUMBF');
+    my %dirInfo = (
+        RAF => $raf,
+        DirName => 'JUMBF',
+    );
+    my $tagTablePtr = GetTagTable('Image::ExifTool::Jpeg2000::Main');
+    return $et->ProcessDirectory(\%dirInfo, $tagTablePtr);
+}
+
+#------------------------------------------------------------------------------
 # Read/write meta information from a JPEG 2000 image
 # Inputs: 0) ExifTool object reference, 1) dirInfo reference
 # Returns: 1 on success, 0 if this wasn't a valid JPEG 2000 file, or -1 on write error
@@ -1516,6 +1580,7 @@ sub ProcessJP2($$)
             $fileType = 'JPX' if $1 eq 'jpx ';
             $fileType = 'JPM' if $1 eq 'jpm ';
             $fileType = 'JXL' if $1 eq 'jxl ';
+            $fileType = 'JPH' if $1 eq 'jph ';
         }
         $raf->Seek(-length($buff), 1) if defined $buff;
         $et->SetFileType($fileType);
@@ -1557,7 +1622,7 @@ sub ProcessJXL($$)
             $$et{IsJXL} = 2;
             my $buff = "\0\0\0\x0cJXL \x0d\x0a\x87\x0a\0\0\0\x14ftypjxl \0\0\0\0jxl ";
             # add metadata to empty ISO BMFF container
-            $$dirInfo{RAF} = new File::RandomAccess(\$buff);
+            $$dirInfo{RAF} = File::RandomAccess->new(\$buff);
         } else {
             $et->SetFileType('JXL Codestream','image/jxl', 'jxl');
             if ($$et{ImageDataHash} and $raf->Seek(0,0)) {
@@ -1605,7 +1670,7 @@ files.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

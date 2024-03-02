@@ -28,7 +28,7 @@ use strict;
 use vars qw($VERSION $AUTOLOAD $iptcDigestInfo %printFlags);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.69';
+$VERSION = '1.70';
 
 sub ProcessPhotoshop($$$);
 sub WritePhotoshop($$$);
@@ -70,7 +70,7 @@ my %thumbnailInfo = (
     Protected => 1,
     RawConv => 'my $img=substr($val,0x1c); $self->ValidateImage(\$img,$tag)',
     ValueConvInv => q{
-        my $et = new Image::ExifTool;
+        my $et = Image::ExifTool->new;
         my @tags = qw{ImageWidth ImageHeight FileType};
         my $info = $et->ImageInfo(\$val, @tags);
         my ($w, $h, $type) = @$info{@tags};
@@ -892,7 +892,7 @@ sub ProcessDocumentData($$$)
     unless ($raf) {
         my $dataPt = $$dirInfo{DataPt};
         my $start = $$dirInfo{DirStart} || 0;
-        $raf = new File::RandomAccess($dataPt);
+        $raf = File::RandomAccess->new($dataPt);
         $raf->Seek($start, 0) if $start;
         $dirLen = length $$dataPt - $start unless defined $dirLen;
         $et->VerboseDump($dataPt, Start => $start, Len => $dirLen, Base => $$dirInfo{Base});
@@ -1201,7 +1201,7 @@ be preserved when copying Photoshop information via user-defined tags.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

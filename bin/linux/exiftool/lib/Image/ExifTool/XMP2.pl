@@ -1873,6 +1873,10 @@ my %sSubVersion = (
         ValueConv => 'Image::ExifTool::XMP::DecodeBase64($val)',
         ValueConvInv => 'Image::ExifTool::XMP::EncodeBase64($val)',
     },
+    HdrPlusMakernote => {
+        ValueConv => 'Image::ExifTool::XMP::DecodeBase64($val)',
+        ValueConvInv => 'Image::ExifTool::XMP::EncodeBase64($val)',
+    },
 );
 
 # Google creations namespace (ref PH)
@@ -2037,6 +2041,37 @@ my %sSubVersion = (
     },
 );
 
+# Google container tags (ref https://developer.android.com/guide/topics/media/platform/hdr-image-format)
+# NOTE: Not included because these namespace prefixes conflict with Google's depth-map Device tags!
+# (see ../pics/GooglePixel8Pro.jpg sample image)
+# %Image::ExifTool::XMP::Container = (
+#     %xmpTableDefaults,
+#     GROUPS => { 1 => 'XMP-Container', 2 => 'Image' },
+#     NAMESPACE => 'Container',
+#     NOTES => 'Google Container namespace.',
+#     Directory => {
+#         Name => 'ContainerDirectory',
+#         FlatName => 'Directory',
+#         List => 'Seq',
+#         Struct => {
+#             STRUCT_NAME => 'Directory',
+#             Item => {
+#                 Namespace => 'Container',
+#                 Struct => {
+#                     STRUCT_NAME => 'Item',
+#                     NAMESPACE => { Item => 'http://ns.google.com/photos/1.0/container/item/'},
+#                     Mime     => { },
+#                     Semantic => { },
+#                     Length   => { Writable => 'integer' },
+#                     Label    => { },
+#                     Padding  => { Writable => 'integer' },
+#                     URI      => { },
+#                 },
+#             },
+#         },
+#     },
+# );
+
 # Getty Images namespace (ref PH)
 %Image::ExifTool::XMP::GettyImages = (
     %xmpTableDefaults,
@@ -2156,6 +2191,15 @@ my %sSubVersion = (
     GROUPS => { 0 => 'SVG', 2 => 'Unknown' },
     LANG_INFO => \&GetLangInfo,
     NAMESPACE => undef, # variable namespace
+    'c2pa:manifest' => {
+        Name => 'JUMBF',
+        Groups => { 0 => 'JUMBF' },
+        RawConv => 'Image::ExifTool::XMP::DecodeBase64($val)',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Jpeg2000::Main',
+            ByteOrder => 'BigEndian',
+        },
+    },
 );
 
 #------------------------------------------------------------------------------
@@ -2193,7 +2237,7 @@ This file contains definitions for less common XMP namespaces.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
