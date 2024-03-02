@@ -25,6 +25,7 @@ LICENSE_3RD_PARTY_PATH = os.path.join(PROGRAM_FOLDER, "LICENSE_3RD_PARTY.txt")
 CJXL_PATH = "cjxl"
 DJXL_PATH = "djxl"
 JXLINFO_PATH = "jxlinfo"
+CJPEGLI_PATH = "cjpegli"
 IMAGE_MAGICK_PATH = "magick"
 AVIFENC_PATH = "avifenc"
 AVIFDEC_PATH = "avifdec"
@@ -39,6 +40,7 @@ if platform.system() == "Windows":
     CJXL_PATH = os.path.join(BASE_PATH, "cjxl.exe")
     DJXL_PATH = os.path.join(BASE_PATH, "djxl.exe")
     JXLINFO_PATH = os.path.join(BASE_PATH, "jxlinfo.exe")
+    CJPEGLI_PATH = os.path.join(BASE_PATH, "cjpegli.exe")
     IMAGE_MAGICK_PATH = os.path.join(BASE_PATH, "magick.exe")
     AVIFENC_PATH = os.path.join(BASE_PATH, "avifenc.exe")
     AVIFDEC_PATH = os.path.join(BASE_PATH, "avifdec.exe")
@@ -55,6 +57,7 @@ elif platform.system() == "Linux":
     CJXL_PATH = f"{BASE_PATH}/cjxl"
     DJXL_PATH = f"{BASE_PATH}/djxl"
     JXLINFO_PATH = f"{BASE_PATH}/jxlinfo"
+    CJPEGLI_PATH = f"{BASE_PATH}/cjpegli"
     IMAGE_MAGICK_PATH = f"{BASE_PATH}/magick"
     AVIFENC_PATH = f"{BASE_PATH}/avifenc"
     AVIFDEC_PATH = f"{BASE_PATH}/avifdec"
@@ -70,6 +73,7 @@ elif platform.system() == "Linux":
 JPEG_ALIASES = ["jpg", "jpeg", "jfif", "jif", "jpe"] # Used by CJXL for JPEG reconstruction, before adding more verify support
 ALLOWED_INPUT_DJXL = ["jxl"]
 ALLOWED_INPUT_CJXL = JPEG_ALIASES + ["png", "apng", "gif"]
+ALLOWED_INPUT_CJPEGLI = JPEG_ALIASES
 ALLOWED_INPUT_IMAGE_MAGICK = JPEG_ALIASES + ["png", "gif", "heif", "heifs", "heic", "heics", "avci", "avcs", "hif", "webp", "jp2", "bmp", "ico"]     # Before adding more, make sure the included ImageMagick works with it. Some formats (like FLIF) seem not to have been included
 ALLOWED_INPUT_AVIFENC = JPEG_ALIASES + ["png"]
 ALLOWED_INPUT_AVIFDEC = ["avif"]
