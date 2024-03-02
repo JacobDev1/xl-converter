@@ -56,8 +56,6 @@ def getArgs(encoder, mode, jpg_to_jxl_lossless = False) -> []:
                     return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
                 else:
                     return []
-            elif encoder in (DJXL_PATH, AVIFDEC_PATH, CJPEGLI_PATH):
-                return []
             elif encoder == IMAGE_MAGICK_PATH:
                 return ["-strip"]
             elif encoder == AVIFENC_PATH:
@@ -65,7 +63,7 @@ def getArgs(encoder, mode, jpg_to_jxl_lossless = False) -> []:
             elif encoder == OXIPNG_PATH:
                 return ["--strip safe"]
             else:
-                raise GenericException("M0", f"[Metadata - getArgs()] Unrecognized encoder ({encoder})")
+                return []   # DJXL, CJPEGLI, AVIFDEC - unavailable or undocumented
         case "Encoder - Preserve":
             return []   # Encoders preserve metadata by default
         case _:
