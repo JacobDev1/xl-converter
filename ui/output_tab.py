@@ -390,13 +390,19 @@ class OutputTab(QWidget):
 
     def resetToDefault(self):
         self.wm.cleanVars()
+        cur_format = self.format_cmb.currentText()
 
-        if self.format_cmb.currentText() == "AVIF":
-            self.quality_sl.setValue(70)
-            self.effort_sb.setValue(6)
-        else:
-            self.quality_sl.setValue(80)
-            self.effort_sb.setValue(7)
+        match cur_format:
+            case "AVIF":
+                self.quality_sl.setValue(70)
+                self.effort_sb.setValue(6)
+            case "JPEG XL":
+                self.quality_sl.setValue(80)
+                self.effort_sb.setValue(7)
+            case "JPG":
+                self.quality_sl.setValue(90)
+            case "WEBP":
+                self.quality_sl.setValue(90)
         
         self.int_effort_cb.setChecked(False)
         self.jxl_mode_cmb.setCurrentIndex(0)
@@ -457,11 +463,11 @@ class OutputTab(QWidget):
                 self.wm.applyVar("avif_quality", "quality_sl", 70)
                 self.wm.applyVar("avif_speed", "effort_sb", 6)
             case "WEBP":
-                self.wm.applyVar("webp_quality", "quality_sl", 80)
+                self.wm.applyVar("webp_quality", "quality_sl", 90)
                 self.wm.applyVar("webp_lossless", "lossless_cb", False)
                 self.wm.applyVar("webp_lossless_if", "lossless_if_cb", False)
             case "JPG":
-                self.wm.applyVar("jpg_quality", "quality_sl", 80)
+                self.wm.applyVar("jpg_quality", "quality_sl", 90)
 
     def saveState(self):
         self.wm.disableAutoSaving([
