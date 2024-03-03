@@ -220,7 +220,7 @@ class Builder():
                 last_built_on.close()
                 
                 if last_platform == f"{platform.system()}_{platform.architecture()}":
-                    print("[Building] Platform matches with previously compiled cache")
+                    print("[Building] Using previously compiled cache")
                 else:
                     print("[Building] Platform mismatch - deleting the cache")
                     rmTree("build") 
