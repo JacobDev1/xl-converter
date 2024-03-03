@@ -16,6 +16,10 @@ The [documentation](https://xl-docs.codepoems.eu)
 Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](https://xl-docs.codepoems.eu/supported-formats)
 
 ## Features
+#### Out of the Box
+
+Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
+
 #### JPG Reconstruction
 
 Losslessly transcode JPG to JPEG XL, reverse the process when needed.
@@ -46,9 +50,9 @@ Optimize `Effort` for smaller sizes.
 
 Easily copy and wipe metadata using encoder parameters or ExifTool.
 
-#### Out of the Box
+#### JPEGLI
 
-Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
+Encode to regular JPG using the highest quality encoder available.
 
 ## Bug Reports
 
