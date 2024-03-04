@@ -49,7 +49,7 @@ class OutputTab(QWidget):
         self.threads_sb.valueChanged.connect(self.onThreadSbChange)
         
         self.duplicates_cmb = self.wm.addWidget("duplicates_cmb", QComboBox())
-        self.duplicates_cmb.addItems(("Replace", "Rename", "Skip"))
+        self.duplicates_cmb.addItems(("Rename", "Replace", "Skip"))
 
         # Conversion - layout
         conv_grp = QGroupBox("Conversion")
@@ -405,7 +405,7 @@ class OutputTab(QWidget):
         self.clear_after_conv_cb.setChecked(False)
         
         self.threads_sl.setValue(self.MAX_THREAD_COUNT - 1 if self.MAX_THREAD_COUNT > 0 else 1)  # -1 because the OS needs some CPU time as well
-        self.duplicates_cmb.setCurrentIndex(1)
+        self.duplicates_cmb.setCurrentIndex(0)
         self.jpg_encoder_cmb.setCurrentIndex(0)
 
         # Lossless
