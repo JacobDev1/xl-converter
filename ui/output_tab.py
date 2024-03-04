@@ -309,41 +309,35 @@ class OutputTab(QWidget):
         
         self.wm.setCheckedByTag("lossless", False)  # Widgets re-enable themselves when you use setChecked() on a disabled widget, so this needs to stay in the beginning
 
-        # Enable Lossless Mode
+        # Lossless
         self.wm.setEnabledByTag("lossless", cur_format in ("JPEG XL", "WEBP"))
+        self.wm.setVisibleByTag("lossless", cur_format not in ("PNG", "JPG", "Smallest Lossless"))
 
         # Effort
         self.int_effort_cb.setEnabled(cur_format == "JPEG XL")
         self.effort_sb.setEnabled(cur_format in ("JPEG XL", "AVIF"))
         self.effort_l.setEnabled(cur_format in ("JPEG XL", "AVIF"))
 
-        if cur_format == "JPEG XL":
-            self.onEffortToggled()  # It's very important to update int_effort_cb to avoid issues when changing formats while it's enabled
-
-        # Special Modes
-        self.wm.setVisibleByTag("jxl_mode", cur_format == "JPEG XL")
-
-        # Disable Quality Slider
-        self.wm.setEnabledByTag("quality_all", not cur_format in ("PNG", "Smallest Lossless"))
-
-        # Quality slider
-        if cur_format in ("JPEG XL", "AVIF"):
-            self.setQualityRange(0, 99)
-        else:
-            self.setQualityRange(1, 100)
-
-        # Quality Slider Range and label
         if cur_format == "AVIF":
             self.effort_sb.setRange(0, 10)
             self.effort_l.setText("Speed")
         else:
-            if cur_format == "JPEG XL":
-                self.setQualityRange(0, 99)
-            else:
-                self.setQualityRange(1, 100)
             self.effort_sb.setRange(1, 9)
-            self.quality_l.setText("Quality")
             self.effort_l.setText("Effort")
+        
+        # Int. Effort
+        if cur_format == "JPEG XL":
+            self.onEffortToggled()  # It's very important to update int_effort_cb to avoid issues when changing formats while it's enabled
+
+        # JPEG XL Lossy Modes
+        self.wm.setVisibleByTag("jxl_mode", cur_format == "JPEG XL")
+
+        # Quality slider
+        self.wm.setEnabledByTag("quality_all", not cur_format in ("PNG", "Smallest Lossless"))
+        if cur_format in ("JPEG XL", "AVIF"):
+            self.setQualityRange(0, 99)
+        else:
+            self.setQualityRange(1, 100)
         
         # Smallest Lossless mode
         is_sm_l = cur_format == "Smallest Lossless"
@@ -354,10 +348,7 @@ class OutputTab(QWidget):
         # JPG
         self.wm.setVisibleByTag("jpg_encoder", cur_format == "JPG")
 
-        # Lossless
-        self.wm.setVisibleByTag("lossless", cur_format not in ("PNG", "JPG", "Smallest Lossless"))
-
-        # Decoding (PNG)
+        # PNG
         if cur_format == "PNG":
             self.reconstruct_jpg_cb.setVisible(True)
             self.wm.setVisibleByTag("lossless", False)
