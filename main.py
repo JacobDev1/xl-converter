@@ -37,6 +37,7 @@ from core.worker import Worker
 from core.utils import clip
 from data import Items
 import data.task_status as task_status
+from data.thread_manager import ThreadManager
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -48,6 +49,7 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
 
         self.threadpool = QThreadPool.globalInstance()
+        self.thread_manager = ThreadManager(self.threadpool)
         self.items = Items()
         self.progress_dialog = ProgressDialog(parent=self, title="Converting...", default_text="Starting the conversion...\n", cancelable=True)
         self.progress_dialog.canceled.connect(task_status.cancel)
@@ -188,14 +190,11 @@ class MainWindow(QMainWindow):
         self.progress_dialog.show()
 
         # Configure Multithreading
-        threads_per_worker = 1
-
-        match params["format"]:
-            case "AVIF":    # Use encoder-based multithreading 
-                threads_per_worker = self.output_tab.getUsedThreadCount()
-                self.threadpool.setMaxThreadCount(1)
-            case _:
-                self.threadpool.setMaxThreadCount(self.output_tab.getUsedThreadCount())
+        self.thread_manager.configure(
+            params["format"],
+            self.items.getItemCount(),
+            self.output_tab.getUsedThreadCount()
+        )
 
         # Start workers
         task_status.reset()
@@ -203,7 +202,13 @@ class MainWindow(QMainWindow):
         mutex = QMutex()
 
         for i in range(self.items.getItemCount()):
-            worker = Worker(i, self.items.getItem(i), params, settings, threads_per_worker, mutex)
+            worker = Worker(i,
+                self.items.getItem(i),
+                params,
+                settings,
+                self.thread_manager.getAvailableThreads(i),
+                mutex
+            )
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)

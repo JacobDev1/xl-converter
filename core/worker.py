@@ -138,7 +138,7 @@ class Worker(QRunnable):
                     args[2] = "--lossless_jpeg=0"
 
                 args[1] = f"-e {self.params['effort']}"
-                args[3] = "--num_threads=0"
+                args[3] = f"--num_threads={self.available_threads}"
 
                 if self.params["intelligent_effort"] and (self.params["lossless"] or self.params["jxl_mode"] == "Modular"):
                     self.params["intelligent_effort"] = False
@@ -448,7 +448,7 @@ class Worker(QRunnable):
             "jxl": [
                 "-q 100",
                 "-e 9" if self.params["max_compression"] else "-e 7",
-                "--num_threads=0"
+                f"--num_threads={self.available_threads}"
             ]
         }
 
