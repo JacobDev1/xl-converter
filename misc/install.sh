@@ -10,15 +10,14 @@ install(){
 
     # Desktop entries
     cp xl-converter.desktop ~/Desktop/
-    cp xl-converter.desktop ~/.local/share/applications
+    cp xl-converter.desktop ~/.local/share/applications/
 
     # Install
     echo "Installing..."
-    sudo cp -r xl-converter /opt
-    sudo chmod -R +x /opt/xl-converter
+    sudo cp -r xl-converter /opt/           # Copy program files
+    sudo chmod -R +x /opt/xl-converter      # Add executable permissions
     
     echo "Installation complete"
-    echo "You will find shortcuts in the start menu and on the desktop"
 }
 
 check_root_permissions(){
@@ -28,10 +27,18 @@ check_root_permissions(){
         exit 1
     fi
 
-    # Get root privileges
+    # Get root privileges (for copying files into /opt/)
     if [ $EUID -ne 0 ]; then
         sudo -v || { echo "Installation canceled, try again."; exit 1; }
     fi
+}
+
+post_install(){
+    # Refresh start menu entries
+    if command -v update-desktop-database &> /dev/null; then
+        update-desktop-database ~/.local/share/applications/
+    fi
+    echo "You will find shortcuts in the start menu and on the desktop"
 }
 
 main(){
@@ -50,6 +57,7 @@ main(){
     if [ $choice == "1" ]; then
         check_root_permissions
         install
+        post_install
         exit 0
     fi
 }
