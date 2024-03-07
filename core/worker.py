@@ -25,12 +25,12 @@ from data.constants import (
 
 from core.proxy import Proxy
 from core.pathing import getUniqueFilePath, getPathGIF, getExtension
-from core.conflicts import Conflicts
 from core.convert import convert, getDecoder, getDecoderArgs, getExtensionJxl, optimize
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
 from core.exceptions import CancellationException, GenericException, FileException
+from core.conflicts import checkForConflicts
 
 class Signals(QObject):
     started = Signal(int)
@@ -47,7 +47,6 @@ class Worker(QRunnable):
 
         # Convert modules
         self.proxy = Proxy()
-        self.conflicts = Conflicts()
 
         # Threading
         self.n = n  # Thread number
@@ -408,20 +407,12 @@ class Worker(QRunnable):
                 raise GenericException("C1", "JPEG XL does not support paths with non-ANSI characters on Windows.")
 
         # Check for conflicts - GIFs and APNGs
-        self.conflicts.checkForConflicts(self.item_ext, self.params["format"], self.params["intelligent_effort"], self.params["effort"], self.params["downscaling"]["enabled"])
+        checkForConflicts(
+            self.item_ext,
+            self.params["format"],
+            self.params["downscaling"]["enabled"],
+        )
         
-        if self.conflicts.conflictOccurred():
-            for i in self.conflicts.getConflictsMsg():
-                self.logException("cf.", i)
-            raise GenericException("C2", "Conflicts occurred")
-        
-        if self.conflicts.jxlConflictOccurred():
-            # Normalize values
-            self.params["effort"] = self.conflicts.jxlGetNormEffort(self.params["effort"])
-            self.params["intelligent_effort"] = self.conflicts.jxlGetNormIntEffort(self.params["intelligent_effort"])
-            for i in self.conflicts.getConflictsMsg():
-                self.logException("cf.", i)
-    
     def smallestLossless(self):
         # Populate path pool
         path_pool = {}
