@@ -26,7 +26,7 @@ from data.constants import (
 from core.proxy import Proxy
 from core.pathing import getUniqueFilePath, getPathGIF, getExtension
 from core.conflicts import Conflicts
-from core.convert import convert, getDecoder, getExtensionJxl, optimize
+from core.convert import convert, getDecoder, getDecoderArgs, getExtensionJxl, optimize
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
@@ -183,6 +183,7 @@ class Worker(QRunnable):
                 encoder = IMAGE_MAGICK_PATH
             case "PNG":
                 encoder = getDecoder(self.item_ext)
+                args = getDecoderArgs(encoder, self.available_threads)
             case _:
                 raise GenericException("C0", f"Unknown Format ({self.params['format']})")
 

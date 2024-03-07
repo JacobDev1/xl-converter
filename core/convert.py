@@ -43,7 +43,7 @@ def parseArgs(args):
         tmp.extend(arg.split())
     return tmp
 
-def getDecoder(ext):
+def getDecoder(ext: str) -> str:
     """Return appropriate decoder path for the specified extension."""
     ext = ext.lower()   # Safeguard in case of a mistake
 
@@ -60,6 +60,14 @@ def getDecoder(ext):
             else:
                 raise GenericException("C4", f"Decoder for {ext} was not found")
                 return None
+
+def getDecoderArgs(decoder_path: str, threads: int) -> list:
+    if decoder_path == AVIFDEC_PATH:
+        return [f"-j {threads}"]
+    elif decoder_path == DJXL_PATH:
+        return [f"--num_threads={threads}"]
+    else:
+        return []
 
 def log(msg, n = None):
     if n == None:
