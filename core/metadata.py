@@ -4,14 +4,10 @@ from data.constants import (
     EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME,
     IMAGE_MAGICK_PATH,
     CJXL_PATH,
-    CJPEGLI_PATH,
-    DJXL_PATH,
     AVIFENC_PATH,
-    AVIFDEC_PATH,
     OXIPNG_PATH
 )
 from core.process import runProcess
-from core.exceptions import GenericException
 
 def _runExifTool(*args):
     """For internal use only."""

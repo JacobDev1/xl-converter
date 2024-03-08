@@ -1,6 +1,5 @@
 from PySide6.QtWidgets import(
     QWidget,
-    QGridLayout,
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
