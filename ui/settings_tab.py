@@ -10,7 +10,6 @@ from PySide6.QtWidgets import(
     QPushButton,
     QLabel,
     QSizePolicy,
-    QComboBox,
 )
 from PySide6.QtCore import(
     Signal,
@@ -27,6 +26,7 @@ class Signals(QObject):
     save_file_list = Signal()
     load_file_list = Signal()
     no_exceptions = Signal(bool)
+    enable_jxl_effort_10 = Signal(bool)
 
 class SettingsTab(QWidget):
     def __init__(self):
@@ -38,53 +38,61 @@ class SettingsTab(QWidget):
         self.wm = WidgetManager("SettingsTab")
         self.signals = Signals()
 
-        # General group
+        # General group - widgets
+        self.dark_theme_cb = self.wm.addWidget("dark_theme_cb", QCheckBox("Dark Theme"))
+        self.dark_theme_cb.toggled.connect(self.setDarkModeEnabled)
+
+        self.disable_downscaling_startup_cb = self.wm.addWidget("disable_downscaling_startup_cb", QCheckBox("Disable Downscaling on Startup"))
+        self.disable_delete_startup_cb = self.wm.addWidget("disable_delete_startup_cb", QCheckBox("Disable Delete Original on Startup"))
+
+        self.no_exceptions_cb = self.wm.addWidget("no_exceptions_cb", QCheckBox("Disable Exception Popups"))
+        self.no_exceptions_cb.toggled.connect(self.signals.no_exceptions)
+
+        self.no_sorting_cb = self.wm.addWidget("no_sorting_cb", QCheckBox("Input - Disable Sorting"))
+        self.no_sorting_cb.toggled.connect(self.signals.disable_sorting)
+
+        # General group - layout
         gen_grp = QGroupBox("General")
         gen_grp_lt = QVBoxLayout()
         gen_grp.setLayout(gen_grp_lt)
 
-        self.dark_theme_cb = self.wm.addWidget("dark_theme_cb", QCheckBox("Dark Theme"))
-        self.dark_theme_cb.toggled.connect(self.setDarkModeEnabled)
         gen_grp_lt.addWidget(self.dark_theme_cb)
-
-        self.disable_downscaling_startup_cb = self.wm.addWidget("disable_downscaling_startup_cb", QCheckBox("Disable Downscaling on Startup"))
         gen_grp_lt.addWidget(self.disable_downscaling_startup_cb)
-        
-        self.disable_delete_startup_cb = self.wm.addWidget("disable_delete_startup_cb", QCheckBox("Disable Delete Original on Startup"))
         gen_grp_lt.addWidget(self.disable_delete_startup_cb)
-
-        self.no_exceptions_cb = self.wm.addWidget("no_exceptions_cb", QCheckBox("Disable Exception Popups"))
-        self.no_exceptions_cb.toggled.connect(self.signals.no_exceptions)
         gen_grp_lt.addWidget(self.no_exceptions_cb)
-
-        self.no_sorting_cb = self.wm.addWidget("no_sorting_cb", QCheckBox("Input - Disable Sorting"))
-        self.no_sorting_cb.toggled.connect(self.signals.disable_sorting)
         gen_grp_lt.addWidget(self.no_sorting_cb)
 
-        # Advanced group
+        # Advanced group - widgets
+        self.enable_jxl_effort_10 = self.wm.addWidget("enable_jxl_effort_10", QCheckBox("JPEG XL - Enable Effort 10 (slow)"))
+        self.enable_jxl_effort_10.clicked.connect(self.signals.enable_jxl_effort_10)
+
+        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("JPEG XL - Disable UTF-8 Check"))
+
+        self.custom_resampling_cb = self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
+        self.custom_resampling_cb.toggled.connect(self.signals.custom_resampling.emit)
+
+        self.file_list_save_btn = QPushButton("Save")
+        self.file_list_load_btn = QPushButton("Load")
+        self.file_list_save_btn.clicked.connect(self.signals.save_file_list)
+        self.file_list_load_btn.clicked.connect(self.signals.load_file_list)
+
+        # Advanced group - layout
         conv_grp = QGroupBox("Advanced")
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
-        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("JPEG XL - Disable UTF-8 Check"))
         if os.name == "nt":
             conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
-
-        self.custom_resampling_cb = self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
-        self.custom_resampling_cb.toggled.connect(self.signals.custom_resampling.emit)
+        
+        conv_grp_lt.addWidget(self.enable_jxl_effort_10)
         conv_grp_lt.addWidget(self.custom_resampling_cb)
-
+        
         file_list_hbox = QHBoxLayout()
         self.file_list_l = QLabel("File List")
-        self.file_list_save_btn = QPushButton("Save")
-        self.file_list_load_btn = QPushButton("Load")
-
-        self.file_list_save_btn.clicked.connect(self.signals.save_file_list)
-        self.file_list_load_btn.clicked.connect(self.signals.load_file_list)
-
         file_list_hbox.addWidget(self.file_list_l)
         file_list_hbox.addWidget(self.file_list_save_btn)
         file_list_hbox.addWidget(self.file_list_load_btn)
+        
         conv_grp_lt.addLayout(file_list_hbox)
 
         # Bottom
@@ -128,12 +136,14 @@ class SettingsTab(QWidget):
             "disable_delete_startup": self.disable_delete_startup_cb.isChecked(),
             "no_exceptions": self.no_exceptions_cb.isChecked(),
             "disable_jxl_utf8_check": self.disable_jxl_utf8_check_cb.isChecked(),
+            "enable_jxl_effort_10": self.enable_jxl_effort_10.isChecked(),
         }
     
     def resetToDefault(self):
         self.dark_theme_cb.setChecked(True)
         self.no_sorting_cb.setChecked(False)
         
+        self.enable_jxl_effort_10.setChecked(False)
         self.custom_resampling_cb.setChecked(False)
         self.disable_downscaling_startup_cb.setChecked(True)
         self.disable_delete_startup_cb.setChecked(True)

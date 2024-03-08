@@ -67,6 +67,7 @@ class MainWindow(QMainWindow):
 
         self.output_tab = OutputTab(self.threadpool.maxThreadCount(), settings)
         self.output_tab.convert.connect(self.convert)
+        self.settings_tab.signals.enable_jxl_effort_10.connect(self.output_tab.setJxlEffort10Enabled)
 
         self.modify_tab = ModifyTab(settings)
         self.modify_tab.convert.connect(self.convert)

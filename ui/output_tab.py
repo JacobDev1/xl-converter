@@ -224,13 +224,15 @@ class OutputTab(QWidget):
         after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Misc
-        self.resetToDefault()
-        self.wm.loadState()
-
         # Apply Settings
         if settings["disable_delete_startup"]:
             self.delete_original_cb.setChecked(False)
+        
+        self.enable_jxl_effort_10 = settings["enable_jxl_effort_10"]
+        
+        # Misc
+        self.resetToDefault()
+        self.wm.loadState()
 
         # Setup widgets' states
         self.onFormatChange()
@@ -322,7 +324,7 @@ class OutputTab(QWidget):
             self.effort_sb.setRange(0, 10)
             self.effort_l.setText("Speed")
         else:
-            self.effort_sb.setRange(1, 9)
+            self.effort_sb.setRange(1, 10 if self.enable_jxl_effort_10 else 9)
             self.effort_l.setText("Effort")
         
         # Int. Effort
@@ -378,6 +380,11 @@ class OutputTab(QWidget):
         self.lossless_if_cb.setEnabled(not lossless_checked)
         
         self.wm.setEnabledByTag("jxl_mode", not (lossless_checked or lossless_if_checked))        
+
+    def setJxlEffort10Enabled(self, enabled):
+        self.enable_jxl_effort_10 = enabled
+        if self.format_cmb.currentText() == "JPEG XL":
+            self.effort_sb.setRange(1, 10 if self.enable_jxl_effort_10 else 9)
 
     def resetToDefault(self):
         self.wm.cleanVars()
