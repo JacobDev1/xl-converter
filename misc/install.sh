@@ -38,6 +38,13 @@ post_install(){
     if command -v update-desktop-database &> /dev/null; then
         update-desktop-database ~/.local/share/applications/
     fi
+
+    # Check if fuse is installed
+    if ! command -v fusermount &> /dev/null; then
+        echo -e "\033[31mAppImage support is missing! Please install fuse.\033[0m"
+        echo -e "    fuse is required by one of the dependencies."
+    fi
+    
     echo "You will find shortcuts in the start menu and on the desktop"
 }
 
