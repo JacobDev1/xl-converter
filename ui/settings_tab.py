@@ -81,10 +81,11 @@ class SettingsTab(QWidget):
         conv_grp_lt = QVBoxLayout()
         conv_grp.setLayout(conv_grp_lt)
 
+        conv_grp_lt.addWidget(self.enable_jxl_effort_10)
+        
         if os.name == "nt":
             conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
         
-        conv_grp_lt.addWidget(self.enable_jxl_effort_10)
         conv_grp_lt.addWidget(self.custom_resampling_cb)
         
         file_list_hbox = QHBoxLayout()
