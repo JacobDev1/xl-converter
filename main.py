@@ -36,6 +36,7 @@ from ui import (
 from core.worker import Worker
 from core.utils import clip
 from data import Items
+from data import fonts
 import data.task_status as task_status
 from data.thread_manager import ThreadManager
 
@@ -47,6 +48,7 @@ class MainWindow(QMainWindow):
 
         self.tabs = QTabWidget(self)
         self.setAcceptDrops(True)
+        self.tabs.setFont(fonts.MAIN_TABS)
 
         self.threadpool = QThreadPool.globalInstance()
         self.thread_manager = ThreadManager(self.threadpool)
@@ -240,6 +242,8 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    fonts.loadFonts()
+    app.setFont(fonts.DEFAULT)
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec())
