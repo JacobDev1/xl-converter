@@ -173,6 +173,20 @@ make build
 
 The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
 
+#### Large Files
+
+Don't forget `--depth 1` when running `git clone`. This repo contains large files.
+
+## Development Build
+
+To access the development build, clone this branch
+
+```bash
+git clone --depth 1 -b unstable https://github.com/JacobDev1/xl-converter.git
+```
+
+Then follow the [building section](#building-from-source)
+
 ## Contributions
 
 Pull requests are ignored to avoid potential legal complications when reusing the code.
