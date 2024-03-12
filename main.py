@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
         self.settings_tab.signals.no_exceptions.connect(self.exception_view.setDontShowAgain)
 
         # Size Policy
-        self.resize(650,300)
+        self.resize(700, 352)
         
         MAX_WIDTH = 825
         MAX_HEIGHT = 320
