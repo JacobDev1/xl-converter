@@ -93,6 +93,11 @@ class MainWindow(QMainWindow):
         self.about_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
 
         # Layout
+        self.tabs.setStyleSheet("""
+            QTabBar::tab { margin-right: 10px; }
+            QTabBar::tab:first { margin-left: 12px; }
+        """)
+
         self.tabs.addTab(self.input_tab, "Input")
         self.tabs.addTab(self.output_tab, "Output")
         self.tabs.addTab(self.modify_tab, "Modify")
