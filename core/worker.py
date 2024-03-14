@@ -449,6 +449,8 @@ class Worker(QRunnable):
         }
 
         # Handle metadata
+        self.jpg_to_jxl_lossless = self.item_ext in JPEG_ALIASES
+
         args["png"].extend(metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
         args["webp"].extend(metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
         args["jxl"].extend(metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"], self.jpg_to_jxl_lossless))
