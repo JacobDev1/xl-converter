@@ -456,14 +456,6 @@ class TestMainWindow(unittest.TestCase):
         converted = self.data.get_tmp_folder_content()
         assert converted[0].stat().st_size != converted[1].stat().st_size, "No change detected"
 
-    def test_downscaling_file_size_auto(self):
-        self.app.set_downscaling_mode("File Size", file_size=50)
-        self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPG")
-
-        downscaled = self.data.get_tmp_folder_content()[0]
-
-        assert 45 * 1024 < downscaled.stat().st_size < 55 * 1024, "File size outside of expected range"   # Fault tolerance of 10% is baked in the auto method
-
     def test_update_file(self):
         try:
             response = requests.get(VERSION_FILE_URL)

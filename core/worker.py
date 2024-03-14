@@ -16,6 +16,7 @@ from send2trash import send2trash
 
 from data.constants import (
     CJXL_PATH,
+    CJPEGLI_PATH,
     JPEG_ALIASES,
     AVIFENC_PATH,
     IMAGE_MAGICK_PATH,
@@ -24,12 +25,12 @@ from data.constants import (
 
 from core.proxy import Proxy
 from core.pathing import getUniqueFilePath, getPathGIF, getExtension
-from core.conflicts import Conflicts
-from core.convert import convert, getDecoder, getExtensionJxl, optimize
+from core.convert import convert, getDecoder, getDecoderArgs, getExtensionJxl, optimize
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
 from core.exceptions import CancellationException, GenericException, FileException
+from core.conflicts import checkForConflicts
 
 class Signals(QObject):
     started = Signal(int)
@@ -46,7 +47,6 @@ class Worker(QRunnable):
 
         # Convert modules
         self.proxy = Proxy()
-        self.conflicts = Conflicts()
 
         # Threading
         self.n = n  # Thread number
@@ -71,6 +71,7 @@ class Worker(QRunnable):
         # Misc.
         self.scl_params = None
         self.skip = False
+        self.jpg_to_jxl_lossless = False
     
     def logException(self, id, msg):
         self.signals.exception.emit(id, msg, self.org_item_abs_path)
@@ -129,6 +130,8 @@ class Worker(QRunnable):
                 if self.params["lossless"]:
                     args[0] = "-q 100"
                     args[2] = "--lossless_jpeg=1"
+                    if self.item_ext in JPEG_ALIASES:
+                        self.jpg_to_jxl_lossless = True
                 else:
                     args[0] = f"-q {self.params['quality']}"
                     args[2] = "--lossless_jpeg=0"
@@ -157,8 +160,12 @@ class Worker(QRunnable):
 
                 encoder = AVIFENC_PATH
             case "JPG":
-                args = [f"-quality {self.params['quality']}"]
-                encoder = IMAGE_MAGICK_PATH
+                if self.params["jpg_encoder"] == "JPEGLI from JPEG XL":
+                    args = [f"-q {self.params['quality']}"]
+                    encoder = CJPEGLI_PATH
+                else:
+                    args = [f"-quality {self.params['quality']}"]
+                    encoder = IMAGE_MAGICK_PATH
             case "WEBP":
                 args = []
 
@@ -175,11 +182,12 @@ class Worker(QRunnable):
                 encoder = IMAGE_MAGICK_PATH
             case "PNG":
                 encoder = getDecoder(self.item_ext)
+                args = getDecoderArgs(encoder, self.available_threads)
             case _:
                 raise GenericException("C0", f"Unknown Format ({self.params['format']})")
 
         # Prepare metadata
-        args.extend(metadata.getArgs(encoder, self.params["misc"]["keep_metadata"]))
+        args.extend(metadata.getArgs(encoder, self.params["misc"]["keep_metadata"], self.jpg_to_jxl_lossless))
 
         # Convert & downscale
         if self.params["downscaling"]["enabled"]:
@@ -289,8 +297,12 @@ class Worker(QRunnable):
                 return
 
         # Create Proxy
-        if self.proxy.isProxyNeeded(self.params["format"], self.item_ext, self.params["downscaling"]["enabled"]):
-
+        if self.proxy.isProxyNeeded(
+            self.params["format"],
+            self.item_ext,
+            self.params["jpg_encoder"] == "JPEGLI from JPEG XL",
+            self.params["downscaling"]["enabled"]
+        ):
             if not self.proxy.generate(self.item_abs_path, self.item_ext, self.output_dir, self.item_name, self.n):
                 raise FileException("S1", f"Proxy could not be generated to {self.proxy.getPath()}")
             
@@ -399,20 +411,12 @@ class Worker(QRunnable):
                 raise GenericException("C1", "JPEG XL does not support paths with non-ANSI characters on Windows.")
 
         # Check for conflicts - GIFs and APNGs
-        self.conflicts.checkForConflicts(self.item_ext, self.params["format"], self.params["intelligent_effort"], self.params["effort"], self.params["downscaling"]["enabled"])
+        checkForConflicts(
+            self.item_ext,
+            self.params["format"],
+            self.params["downscaling"]["enabled"],
+        )
         
-        if self.conflicts.conflictOccurred():
-            for i in self.conflicts.getConflictsMsg():
-                self.logException("cf.", i)
-            raise GenericException("C2", "Conflicts occurred")
-        
-        if self.conflicts.jxlConflictOccurred():
-            # Normalize values
-            self.params["effort"] = self.conflicts.jxlGetNormEffort(self.params["effort"])
-            self.params["intelligent_effort"] = self.conflicts.jxlGetNormIntEffort(self.params["intelligent_effort"])
-            for i in self.conflicts.getConflictsMsg():
-                self.logException("cf.", i)
-    
     def smallestLossless(self):
         # Populate path pool
         path_pool = {}
@@ -445,9 +449,11 @@ class Worker(QRunnable):
         }
 
         # Handle metadata
+        self.jpg_to_jxl_lossless = self.item_ext in JPEG_ALIASES
+
         args["png"].extend(metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
         args["webp"].extend(metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
-        args["jxl"].extend(metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"]))
+        args["jxl"].extend(metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"], self.jpg_to_jxl_lossless))
 
         # Generate files
         for key in path_pool:

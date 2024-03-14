@@ -1,7 +1,12 @@
 import os
 import logging
 
-from data.constants import ALLOWED_INPUT_CJXL, ALLOWED_INPUT_AVIFENC, ALLOWED_INPUT_IMAGE_MAGICK
+from data.constants import (
+    ALLOWED_INPUT_CJXL,
+    ALLOWED_INPUT_CJPEGLI,
+    ALLOWED_INPUT_AVIFENC,
+    ALLOWED_INPUT_IMAGE_MAGICK,
+)
 from core.pathing import getUniqueFilePath
 from core.convert import convert, getDecoder
 
@@ -9,7 +14,7 @@ class Proxy():
     def __init__(self):
         self.proxy_path = None
 
-    def isProxyNeeded(self, _format, src_ext, downscaling_enabled=False):
+    def isProxyNeeded(self, _format, src_ext, jpegli=False, downscaling_enabled=False):
         if _format == "PNG":
             return False
 
@@ -30,12 +35,16 @@ class Proxy():
                 if src_ext in ALLOWED_INPUT_IMAGE_MAGICK:
                     return False
             case "JPG":
-                if src_ext in ALLOWED_INPUT_IMAGE_MAGICK:
-                    return False
+                if jpegli:
+                    if src_ext in ALLOWED_INPUT_CJPEGLI:
+                        return False
+                else:
+                    if src_ext in ALLOWED_INPUT_IMAGE_MAGICK:
+                        return False
             case "Smallest Lossless":
                 return True
             case _:
-                logging.error(f"[Proxy - isProxyNeeded()] Unrecognized format ({src_ext})")
+                logging.error(f"[Proxy] Unrecognized format ({src_ext})")
         
         return True
 

@@ -4,13 +4,10 @@ from data.constants import (
     EXIFTOOL_PATH, EXIFTOOL_FOLDER_PATH, EXIFTOOL_BIN_NAME,
     IMAGE_MAGICK_PATH,
     CJXL_PATH,
-    DJXL_PATH,
     AVIFENC_PATH,
-    AVIFDEC_PATH,
     OXIPNG_PATH
 )
 from core.process import runProcess
-from core.exceptions import GenericException
 
 def _runExifTool(*args):
     """For internal use only."""
@@ -41,7 +38,7 @@ def runExifTool(src, dst, mode):
         case "ExifTool - Unsafe Wipe":
             deleteMetadataUnsafe(dst)
 
-def getArgs(encoder, mode) -> []:
+def getArgs(encoder, mode, jpg_to_jxl_lossless = False) -> []:
     """Return metadata arguments for the specified encoder.
 
     Example Usage:
@@ -51,11 +48,10 @@ def getArgs(encoder, mode) -> []:
     match mode:
         case "Encoder - Wipe":
             if encoder == CJXL_PATH:
-                return []
-                # return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
-                # return ["-x exif=", "-x xmp=", "-x jumbf="]
-            elif encoder in (DJXL_PATH, AVIFDEC_PATH):
-                return []
+                if not jpg_to_jxl_lossless:
+                    return ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"]    
+                else:
+                    return []
             elif encoder == IMAGE_MAGICK_PATH:
                 return ["-strip"]
             elif encoder == AVIFENC_PATH:
@@ -63,7 +59,7 @@ def getArgs(encoder, mode) -> []:
             elif encoder == OXIPNG_PATH:
                 return ["--strip safe"]
             else:
-                raise GenericException("M0", f"[Metadata - getArgs()] Unrecognized encoder ({encoder})")
+                return []   # DJXL, CJPEGLI, AVIFDEC - unavailable or undocumented
         case "Encoder - Preserve":
             return []   # Encoders preserve metadata by default
         case _:

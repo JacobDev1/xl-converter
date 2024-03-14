@@ -16,6 +16,10 @@ The [documentation](https://xl-docs.codepoems.eu)
 Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](https://xl-docs.codepoems.eu/supported-formats)
 
 ## Features
+#### Out of the Box
+
+Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
+
 #### JPG Reconstruction
 
 Losslessly transcode JPG to JPEG XL, reverse the process when needed.
@@ -46,9 +50,9 @@ Optimize `Effort` for smaller sizes.
 
 Easily copy and wipe metadata using encoder parameters or ExifTool.
 
-#### Out of the Box
+#### JPEGLI
 
-Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
+Encode to regular JPG using the highest quality encoder available.
 
 ## Bug Reports
 
@@ -67,7 +71,7 @@ Prerequisites:
 Clone the repo.
 
 ```cmd
-git clone -b v0.9.7 --depth 1 https://github.com/JacobDev1/xl-converter.git
+git clone -b stable --depth 1 https://github.com/JacobDev1/xl-converter.git
 cd xl-converter
 ```
 
@@ -106,7 +110,7 @@ sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev 
 Clone and set up the repo.
 
 ```bash
-git clone -b v0.9.7 --depth 1 https://github.com/JacobDev1/xl-converter.git
+git clone -b stable --depth 1 https://github.com/JacobDev1/xl-converter.git
 chmod -R +x xl-converter
 cd xl-converter
 ```
@@ -168,6 +172,20 @@ make build
 #### Python Version on Linux
 
 The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
+
+#### Large Files
+
+Don't forget `--depth 1` when running `git clone`. This repo contains large files.
+
+## Development Build
+
+To access the development build, clone this branch
+
+```bash
+git clone --depth 1 -b unstable https://github.com/JacobDev1/xl-converter.git
+```
+
+Then follow the [building section](#building-from-source)
 
 ## Contributions
 
