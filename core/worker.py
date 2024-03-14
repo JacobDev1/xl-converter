@@ -297,8 +297,12 @@ class Worker(QRunnable):
                 return
 
         # Create Proxy
-        if self.proxy.isProxyNeeded(self.params["format"], self.item_ext, self.params["downscaling"]["enabled"]):
-
+        if self.proxy.isProxyNeeded(
+            self.params["format"],
+            self.item_ext,
+            self.params["jpg_encoder"] == "JPEGLI from JPEG XL",
+            self.params["downscaling"]["enabled"]
+        ):
             if not self.proxy.generate(self.item_abs_path, self.item_ext, self.output_dir, self.item_name, self.n):
                 raise FileException("S1", f"Proxy could not be generated to {self.proxy.getPath()}")
             

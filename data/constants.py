@@ -73,7 +73,7 @@ elif platform.system() == "Linux":
 JPEG_ALIASES = ["jpg", "jpeg", "jfif", "jif", "jpe"] # Used by CJXL for JPEG reconstruction, before adding more verify support
 ALLOWED_INPUT_DJXL = ["jxl"]
 ALLOWED_INPUT_CJXL = JPEG_ALIASES + ["png", "apng", "gif", "jxl"]
-ALLOWED_INPUT_CJPEGLI = JPEG_ALIASES
+ALLOWED_INPUT_CJPEGLI = JPEG_ALIASES + ["png"]
 ALLOWED_INPUT_IMAGE_MAGICK = JPEG_ALIASES + ["png", "gif", "heif", "heifs", "heic", "heics", "avci", "avcs", "hif", "webp", "jp2", "bmp", "ico"]     # Before adding more, make sure the included ImageMagick works with it. Some formats (like FLIF) seem not to have been included
 ALLOWED_INPUT_AVIFENC = JPEG_ALIASES + ["png"]
 ALLOWED_INPUT_AVIFDEC = ["avif"]
