@@ -16,7 +16,7 @@ use Image::ExifTool::Exif;
 use Image::ExifTool::XMP;
 use Image::ExifTool::GPS;
 
-$VERSION = '1.08';
+$VERSION = '1.09';
 
 sub ProcessDJIInfo($$$);
 
@@ -143,9 +143,10 @@ my %convFloat2 = (
         PrintConv    => 'Image::ExifTool::GPS::ToDMS($self, $val, 1, "N")',
         PrintConvInv => 'Image::ExifTool::GPS::ToDegrees($val, 1, "lat")',
     },
-    GpsLongtitude => { # (sic)
+    GpsLongtitude => { # [sic] (misspelt in DJI original file)
         Name => 'GPSLongtitude',
         Writable => 'real',
+        Avoid => 1, # (in case someone tries to write "GPSLong*")
         PrintConv    => 'Image::ExifTool::GPS::ToDMS($self, $val, 1, "E")',
         PrintConvInv => 'Image::ExifTool::GPS::ToDegrees($val, 1, "lon")',
     },
@@ -236,7 +237,7 @@ the maker notes in images from some DJI Phantom drones.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

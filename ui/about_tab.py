@@ -1,6 +1,5 @@
 from PySide6.QtWidgets import(
     QWidget,
-    QGridLayout,
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
@@ -17,6 +16,7 @@ from PySide6.QtGui import(
 
 from data.constants import VERSION, LICENSE_PATH, LICENSE_3RD_PARTY_PATH
 from ui.update_checker import UpdateChecker
+from data import fonts
 
 class AboutTab(QWidget):
     def __init__(self):
@@ -27,22 +27,34 @@ class AboutTab(QWidget):
         self.update_checker = UpdateChecker()
 
         # Label
-        text_vb = QVBoxLayout()
-        headers_l = QLabel(f"""
-            <h3><a href=\"https://codepoems.eu/xl-converter\">XL Converter</a></h3>
-            <h4>Version {VERSION}</h4>
-        """)
+        title_l = QLabel(f"XL Converter")
+        version_l = QLabel(f"Version {VERSION}")
         credits_l = QLabel(f"""
+            <div style='line-height: 120%;'>
             <a href=\"mailto:contact@codepoems.eu\">contact@codepoems.eu</a><br>
             XL Converter is licensed under <a href=\"{QUrl.fromLocalFile(LICENSE_PATH).toString()}\">GPL v3</a><br>
             <a href=\"{QUrl.fromLocalFile(LICENSE_3RD_PARTY_PATH).toString()}\">3rd party licenses</a>
+            </div>
         """)
 
-        headers_l.setOpenExternalLinks(True)
+        title_l.setOpenExternalLinks(True)
         credits_l.setOpenExternalLinks(True)
-        headers_l.setAlignment(Qt.AlignCenter)
+
+        ## Label - styles
+        title_l.setFont(fonts.ABOUT_TITLE)
+        version_l.setFont(fonts.ABOUT_VERSION)
+        credits_l.setFont(fonts.ABOUT_DESC)
+
+        title_l.setStyleSheet("padding-bottom: 3px;")
+        version_l.setStyleSheet("padding-bottom: 5px;")
+
+        title_l.setAlignment(Qt.AlignCenter)
+        version_l.setAlignment(Qt.AlignCenter)
         credits_l.setAlignment(Qt.AlignCenter)
-        text_vb.addWidget(headers_l)
+        
+        text_vb = QVBoxLayout()
+        text_vb.addWidget(title_l)
+        text_vb.addWidget(version_l)
         text_vb.addWidget(credits_l)
         tab_lt.addLayout(text_vb)
 

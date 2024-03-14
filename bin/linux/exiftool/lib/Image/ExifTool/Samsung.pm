@@ -22,7 +22,7 @@ use vars qw($VERSION %samsungLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.54';
+$VERSION = '1.56';
 
 sub WriteSTMN($$$);
 sub ProcessINFO($$$);
@@ -904,9 +904,10 @@ my %formatMinMax = (
         Name => 'SamsungSvss',
         SubDirectory => { TagTable => 'Image::ExifTool::Samsung::svss' },
     },
+    mdln => 'SamsungModel', #PH (Samsung SM-A136U, etc)
     # swtr - 4 bytes, all zero
     # scid - 8 bytes, all zero
-    # saut - 4 bytes, all zero
+    # saut - 4 or 6 bytes, all zero
 );
 
 # Samsung MP4 svss information (PH - from SM-C101 sample)
@@ -1545,7 +1546,7 @@ sub ProcessSamsung($$$)
     my ($buff, $buf2, $index, $offsetPos, $audioNOff, $audioSize);
 
     unless ($raf) {
-        $raf = new File::RandomAccess($$dirInfo{DataPt});
+        $raf = File::RandomAccess->new($$dirInfo{DataPt});
         $et->VerboseDir('SamsungTrailer');
     }
     return 0 unless $raf->Seek(-6-$offset, 2) and $raf->Read($buff, 6) == 6 and
@@ -1674,7 +1675,7 @@ SamBlock:
                 # add a fixup so the calling routine can apply further shifts if necessary
                 require Image::ExifTool::Fixup;
                 my $fixup = $$dirInfo{Fixup};
-                $fixup or $fixup = $$dirInfo{Fixup} = new Image::ExifTool::Fixup;
+                $fixup or $fixup = $$dirInfo{Fixup} = Image::ExifTool::Fixup->new;
                 $fixup->AddFixup(length($buff) - $offsetPos);
                 $fixup->AddFixup(length($buff) - $offsetPos + 4);
             }
@@ -1696,7 +1697,7 @@ sub WriteSTMN($$$)
 {
     my ($et, $dirInfo, $tagTablePtr) = @_;
     # create a Fixup for the PreviewImage
-    $$dirInfo{Fixup} = new Image::ExifTool::Fixup;
+    $$dirInfo{Fixup} = Image::ExifTool::Fixup->new;
     my $val = Image::ExifTool::WriteBinaryData($et, $dirInfo, $tagTablePtr);
     # force PreviewImage into the trailer even if it fits in EXIF segment
     $$et{PREVIEW_INFO}{IsTrailer} = 1 if $$et{PREVIEW_INFO};
@@ -1722,7 +1723,7 @@ Samsung maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

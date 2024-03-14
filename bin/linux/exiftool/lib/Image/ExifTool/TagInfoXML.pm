@@ -15,7 +15,7 @@ use vars qw($VERSION @ISA $makeMissing);
 use Image::ExifTool qw(:Utils :Vars);
 use Image::ExifTool::XMP;
 
-$VERSION = '1.35';
+$VERSION = '1.36';
 @ISA = qw(Exporter);
 
 # set this to a language code to generate Lang module with 'MISSING' entries
@@ -74,7 +74,7 @@ sub Write(;$$%)
 {
     local ($_, *PTIFILE);
     my ($file, $group, %opts) = @_;
-    my $et = new Image::ExifTool;
+    my $et = Image::ExifTool->new;
     my ($fp, $tableName, %langInfo, @langs, $defaultLang, @groups);
     @groups = split ':', $group if $group;
 
@@ -650,7 +650,7 @@ and values.
 
 ~head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
@@ -834,7 +834,7 @@ Number of modules updated, or negative on error.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

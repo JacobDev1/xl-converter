@@ -178,7 +178,9 @@ class Builder():
             "LICENSE_3RD_PARTY.txt"
         )
 
+        # Assets
         self.icon_svg_path = "icons/logo.svg"
+        self.fonts_path = "fonts"
 
         # Linux
         self.desktop_entry_path = "misc/xl-converter.desktop"
@@ -220,7 +222,7 @@ class Builder():
                 last_built_on.close()
                 
                 if last_platform == f"{platform.system()}_{platform.architecture()}":
-                    print("[Building] Platform matches with previously compiled cache")
+                    print("[Building] Using previously compiled cache")
                 else:
                     print("[Building] Platform mismatch - deleting the cache")
                     rmTree("build") 
@@ -268,11 +270,12 @@ class Builder():
             copy(self.desktop_entry_path, self.dst_dir)
     
     def _appendMisc(self):
-        print("[Building] Appending an icon and license files")
+        print("[Building] Appending assets")
         for i in self.misc_path:
             copy(i, self.internal_dir)
         makedirs(f"{self.internal_dir}/icons")
         copy(self.icon_svg_path, f"{self.internal_dir}/icons/{os.path.basename(self.icon_svg_path)}")
+        copyTree(self.fonts_path, f"{self.internal_dir}/fonts")
 
     def _appendRedistributable(self):
         if platform.system() != "Windows":

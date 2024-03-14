@@ -128,7 +128,7 @@ sub SaveMakerNotes($)
     delete $$et{MAKER_NOTE_INFO};
     my $dirEntries = $makerInfo->{Entries};
     my $numEntries = scalar(keys %$dirEntries);
-    my $fixup = new Image::ExifTool::Fixup;
+    my $fixup = Image::ExifTool::Fixup->new;
     return unless $numEntries;
     # build the MakerNotes directory
     my $makerNotes = Set16u($numEntries);
@@ -142,7 +142,6 @@ sub SaveMakerNotes($)
     }
     # save position of maker notes for pointer fixups
     $fixup->{Shift} += length($makerNotes);
-    $$et{MAKER_NOTE_FIXUP} = $fixup;
     $$et{MAKER_NOTE_BYTE_ORDER} = GetByteOrder();
     # add value data
     $makerNotes .= $makerInfo->{ValBuff};
@@ -150,7 +149,8 @@ sub SaveMakerNotes($)
     my $tagTablePtr = Image::ExifTool::GetTagTable('Image::ExifTool::Exif::Main');
     my $tagInfo = $et->GetTagInfo($tagTablePtr, 0x927c, \$makerNotes);
     # save the MakerNotes
-    $et->FoundTag($tagInfo, $makerNotes);
+    my $key = $et->FoundTag($tagInfo, $makerNotes);
+    $$et{TAG_EXTRA}{$key}{Fixup} = $fixup;
     # save the garbage collection some work later
     delete $makerInfo->{Entries};
     delete $makerInfo->{ValBuff};
@@ -630,7 +630,7 @@ JPEG files, and would lead to far fewer problems with corrupted metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

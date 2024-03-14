@@ -25,11 +25,10 @@ $VERSION = '1.04';
         Although basic text files contain no metadata, the following tags are
         determined from a simple analysis of the data in TXT and CSV files. 
         Statistics are generated only for 8-bit encodings, but the L<FastScan|../ExifTool.html#FastScan> (-fast)
-        option may be used to limit processing to the first 64 kB in which case some
-        tags are not produced.  To avoid long processing delays, ExifTool will issue
-        a minor warning and process only the first 64 kB of any file larger than 20
-        MB unless the L<IgnoreMinorErrors|../ExifTool.html#IgnoreMinorErrors> (-m)
-        option is used.
+        option may be used to limit processing to the first 64 KiB in which case
+        some tags are not produced.  To avoid long processing delays, ExifTool will
+        issue a minor warning and process only the first 64 KiB of any file larger
+        than 20 MiB unless the L<IgnoreMinorErrors|../ExifTool.html#IgnoreMinorErrors> (-m) option is used.
     },
     MIMEEncoding => { Groups => { 2 => 'Other' } },
     Newlines => {
@@ -222,7 +221,7 @@ characteristics of TXT and CSV files.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -1,3 +1,5 @@
+import logging
+
 import requests
 from PySide6.QtCore import(
     QObject,
@@ -29,7 +31,8 @@ class Worker(QObject):
         try:
             response = requests.get(VERSION_FILE_URL)
         except requests.ConnectionError as err:
-            self.misc_error.emit(f"Couldn't connect to the server.\n{err}")
+            self.misc_error.emit(f"Couldn't connect to the server.")
+            logging.error(f"[UpdateChecker] {err}")
             self.finished.emit()
             return
 

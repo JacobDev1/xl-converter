@@ -36,7 +36,9 @@ from ui import (
 from core.worker import Worker
 from core.utils import clip
 from data import Items
+from data import fonts
 import data.task_status as task_status
+from data.thread_manager import ThreadManager
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -46,8 +48,10 @@ class MainWindow(QMainWindow):
 
         self.tabs = QTabWidget(self)
         self.setAcceptDrops(True)
+        self.tabs.setFont(fonts.MAIN_TABS)
 
         self.threadpool = QThreadPool.globalInstance()
+        self.thread_manager = ThreadManager(self.threadpool)
         self.items = Items()
         self.progress_dialog = ProgressDialog(parent=self, title="Converting...", default_text="Starting the conversion...\n", cancelable=True)
         self.progress_dialog.canceled.connect(task_status.cancel)
@@ -65,6 +69,7 @@ class MainWindow(QMainWindow):
 
         self.output_tab = OutputTab(self.threadpool.maxThreadCount(), settings)
         self.output_tab.convert.connect(self.convert)
+        self.settings_tab.signals.enable_jxl_effort_10.connect(self.output_tab.setJxlEffort10Enabled)
 
         self.modify_tab = ModifyTab(settings)
         self.modify_tab.convert.connect(self.convert)
@@ -78,7 +83,7 @@ class MainWindow(QMainWindow):
         self.settings_tab.signals.no_exceptions.connect(self.exception_view.setDontShowAgain)
 
         # Size Policy
-        self.resize(650,300)
+        self.resize(700, 352)
         
         MAX_WIDTH = 825
         MAX_HEIGHT = 320
@@ -88,6 +93,11 @@ class MainWindow(QMainWindow):
         self.about_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
 
         # Layout
+        self.tabs.setStyleSheet("""
+            QTabBar::tab { margin-right: 10px; }
+            QTabBar::tab:first { margin-left: 12px; }
+        """)
+
         self.tabs.addTab(self.input_tab, "Input")
         self.tabs.addTab(self.output_tab, "Output")
         self.tabs.addTab(self.modify_tab, "Modify")
@@ -188,14 +198,11 @@ class MainWindow(QMainWindow):
         self.progress_dialog.show()
 
         # Configure Multithreading
-        threads_per_worker = 1
-
-        match params["format"]:
-            case "AVIF":    # Use encoder-based multithreading 
-                threads_per_worker = self.output_tab.getUsedThreadCount()
-                self.threadpool.setMaxThreadCount(1)
-            case _:
-                self.threadpool.setMaxThreadCount(self.output_tab.getUsedThreadCount())
+        self.thread_manager.configure(
+            params["format"],
+            self.items.getItemCount(),
+            self.output_tab.getUsedThreadCount()
+        )
 
         # Start workers
         task_status.reset()
@@ -203,7 +210,13 @@ class MainWindow(QMainWindow):
         mutex = QMutex()
 
         for i in range(self.items.getItemCount()):
-            worker = Worker(i, self.items.getItem(i), params, settings, threads_per_worker, mutex)
+            worker = Worker(i,
+                self.items.getItem(i),
+                params,
+                settings,
+                self.thread_manager.getAvailableThreads(i),
+                mutex
+            )
             worker.signals.started.connect(self.start)
             worker.signals.completed.connect(self.complete)
             worker.signals.canceled.connect(self.cancel)
@@ -234,6 +247,8 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    fonts.loadFonts()
+    app.setFont(fonts.DEFAULT)
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec())

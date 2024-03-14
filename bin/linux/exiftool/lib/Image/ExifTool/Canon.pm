@@ -88,7 +88,7 @@ sub ProcessCTMD($$$);
 sub ProcessExifInfo($$$);
 sub SwapWords($);
 
-$VERSION = '4.69';
+$VERSION = '4.74';
 
 # Note: Removed 'USM' from 'L' lenses since it is redundant - PH
 # (or is it?  Ref 32 shows 5 non-USM L-type lenses)
@@ -203,7 +203,8 @@ $VERSION = '4.69';
     52 => 'Canon EF-S 18-55mm f/3.5-5.6 IS II', #PH
     53 => 'Canon EF-S 18-55mm f/3.5-5.6 III', #Jon Charnas
     54 => 'Canon EF-S 55-250mm f/4-5.6 IS II', #47
-    60 => 'Irix 11mm f/4', #50
+    60 => 'Irix 11mm f/4 or 15mm f/2.4', #50
+    60.1 => 'Irix 15mm f/2.4', #forum15655
     63 => 'Irix 30mm F1.4 Dragonfly', #IB
     80 => 'Canon TS-E 50mm f/2.8L Macro', #42
     81 => 'Canon TS-E 90mm f/2.8L Macro', #42
@@ -611,22 +612,24 @@ $VERSION = '4.69';
    '61182.35' => 'Canon RF 600mm F4L IS USM', #GiaZopatti
    '61182.36' => 'Canon RF 600mm F4L IS USM + RF1.4x', #42
    '61182.37' => 'Canon RF 600mm F4L IS USM + RF2x', #42
-   '61182.38' => 'Canon RF 15-30mm F4.5-6.3 IS STM', #42
-   '61182.39' => 'Canon RF 800mm F5.6L IS USM', #42
-   '61182.40' => 'Canon RF 800mm F5.6L IS USM + RF1.4x', #42
-   '61182.41' => 'Canon RF 800mm F5.6L IS USM + RF2x', #42
-   '61182.42' => 'Canon RF 1200mm F8L IS USM', #42
-   '61182.43' => 'Canon RF 1200mm F8L IS USM + RF1.4x', #42
-   '61182.44' => 'Canon RF 1200mm F8L IS USM + RF2x', #42
-   '61182.45' => 'Canon RF 135mm F1.8 L IS USM', #42
-   '61182.46' => 'Canon RF 24-50mm F4.5-6.3 IS STM', #42
-   '61182.47' => 'Canon RF-S 55-210mm F5-7.1 IS STM', #42
-   '61182.48' => 'Canon RF 100-300mm F2.8L IS USM', #42
-   '61182.49' => 'Canon RF 100-300mm F2.8L IS USM + RF1.4x', #42
-   '61182.50' => 'Canon RF 100-300mm F2.8L IS USM + RF2x', #42
-   '61182.51' => 'Canon RF 28mm F2.8 STM', #42
-    # we need the RFLensType values for the following...
-   '61182.52' => 'Canon RF 5.2mm F2.8L Dual Fisheye 3D VR', #PH (NC)
+   '61182.38' => 'Canon RF 800mm F5.6L IS USM', #42
+   '61182.39' => 'Canon RF 800mm F5.6L IS USM + RF1.4x', #42
+   '61182.40' => 'Canon RF 800mm F5.6L IS USM + RF2x', #42
+   '61182.41' => 'Canon RF 1200mm F8L IS USM', #42
+   '61182.42' => 'Canon RF 1200mm F8L IS USM + RF1.4x', #42
+   '61182.43' => 'Canon RF 1200mm F8L IS USM + RF2x', #42
+   '61182.44' => 'Canon RF 5.2mm F2.8L Dual Fisheye 3D VR', #PH
+   '61182.45' => 'Canon RF 15-30mm F4.5-6.3 IS STM', #42
+   '61182.46' => 'Canon RF 135mm F1.8 L IS USM', #42
+   '61182.47' => 'Canon RF 24-50mm F4.5-6.3 IS STM', #42
+   '61182.48' => 'Canon RF-S 55-210mm F5-7.1 IS STM', #42
+   '61182.49' => 'Canon RF 100-300mm F2.8L IS USM', #42
+   '61182.50' => 'Canon RF 100-300mm F2.8L IS USM + RF1.4x', #42
+   '61182.51' => 'Canon RF 100-300mm F2.8L IS USM + RF2x', #42
+   '61182.52' => 'Canon RF 10-20mm F4 L IS STM', #42
+   '61182.53' => 'Canon RF 28mm F2.8 STM', #42
+   '61182.54' => 'Canon RF 24-105mm F2.8 L IS USM Z', #42
+   '61182.55' => 'Canon RF-S 10-18mm F4.5-6.3 IS STM', #42
     65535 => 'n/a',
 );
 
@@ -1392,8 +1395,13 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
         },
         {
             Name => 'CanonCameraInfoR6',
-            Condition => '$$self{Model} =~ /\bEOS R6$/',
+            Condition => '$$self{Model} =~ /\bEOS R[56]$/',
             SubDirectory => { TagTable => 'Image::ExifTool::Canon::CameraInfoR6' },
+        },
+        {
+            Name => 'CanonCameraInfoG5XII',
+            Condition => '$$self{Model} =~ /\bG5 X Mark II$/',
+            SubDirectory => { TagTable => 'Image::ExifTool::Canon::CameraInfoG5XII' },
         },
         {
             Name => 'CanonCameraInfoPowerShot',
@@ -2199,8 +2207,9 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
             6 => 'Manual Focus (6)',
            16 => 'Pan Focus', #PH
            # 137 - Single?
-           256 => 'AF + MF', #PH (NC, EOS M)
-           257 => 'Live View', #forum12082
+           256 => 'One-shot AF (Live View)', #PH/forum15637
+           257 => 'AI Servo AF (Live View)', #PH/forum15637
+           258 => 'AI Focus AF (Live View)', #PH/forum15637
            512 => 'Movie Snap Focus', #48
            519 => 'Movie Servo AF', #PH (NC, EOS M)
         },
@@ -4707,10 +4716,50 @@ my %ciMaxFocal = (
     PRIORITY => 0,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     NOTES => 'CameraInfo tags for the EOS R6.',
-    0x0af1 => { #forum15210
+    0x0af1 => { #forum15210/15579
         Name => 'ShutterCount',
         Format => 'int32u',
         Notes => 'includes electronic + mechanical shutter',
+    },
+);
+
+# ref https://exiftool.org/forum/index.php?topic=15356.0
+%Image::ExifTool::Canon::CameraInfoG5XII = (
+    %binaryDataAttrs,
+    FIRST_ENTRY => 0,
+    PRIORITY => 0,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    NOTES => 'CameraInfo tags for the PowerShot G5 X Mark II.',
+    0x0293 => {
+        Name => 'ShutterCount',
+        Condition => '$$self{FileType} eq "JPEG"',
+        Format => 'int32u',
+        Notes => 'includes electronic + mechanical shutter',
+        # - advances by 1 for each photo file, regardless of mechanical or electronic shutter
+        # - does not advance for regular video files
+        # - advances for time lapse video files
+        # - creating a new directory or resetting the counter from the menu doesn't affect this shutter count
+    },
+    0x0a95 => {
+        Name => 'ShutterCount',
+        Condition => '$$self{FileType} eq "CR3"',
+        Format => 'int32u',
+        Notes => 'includes electronic + mechanical shutter',
+    },
+    0x0b21 => {
+        Name => 'DirectoryIndex',
+        Condition => '$$self{FileType} eq "JPEG"',
+        Groups => { 2 => 'Image' },
+        Format => 'int32u',
+    },
+    0x0b2d => {
+        Name => 'FileIndex',
+        Condition => '$$self{FileType} eq "JPEG"',
+        Format => 'int32u',
+        Groups => { 2 => 'Image' },
+        Format => 'int32u',
+        ValueConv => '$val + 1',
+        ValueConvInv => '$val - 1',
     },
 );
 
@@ -6898,6 +6947,7 @@ my %ciMaxFocal = (
             298 => 'Canon RF 1200mm F8L IS USM', #42
             299 => 'Canon RF 1200mm F8L IS USM + RF1.4x', #42
             300 => 'Canon RF 1200mm F8L IS USM + RF2x', #42
+            301 => 'Canon RF 5.2mm F2.8L Dual Fisheye 3D VR', #PH
             302 => 'Canon RF 15-30mm F4.5-6.3 IS STM', #42
             303 => 'Canon RF 135mm F1.8 L IS USM', #42
             304 => 'Canon RF 24-50mm F4.5-6.3 IS STM', #42
@@ -6905,7 +6955,13 @@ my %ciMaxFocal = (
             306 => 'Canon RF 100-300mm F2.8L IS USM', #42
             307 => 'Canon RF 100-300mm F2.8L IS USM + RF1.4x', #42
             308 => 'Canon RF 100-300mm F2.8L IS USM + RF2x', #42
+            309 => 'Canon RF 200-800mm F6.3-9 IS USM', #42
+            310 => 'Canon RF 200-800mm F6.3-9 IS USM + RF1.4x', #42
+            311 => 'Canon RF 200-800mm F6.3-9 IS USM + RF2x', #42
+            312 => 'Canon RF 10-20mm F4 L IS STM', #42
             313 => 'Canon RF 28mm F2.8 STM', #42
+            314 => 'Canon RF 24-105mm F2.8 L IS USM Z', #42
+            315 => 'Canon RF-S 10-18mm F4.5-6.3 IS STM', #42
             # Note: add new RF lenses to %canonLensTypes with ID 61182
         },
     },
@@ -7422,7 +7478,7 @@ my %ciMaxFocal = (
         RawConv => '$$self{ColorDataVersion} = $val',
         PrintConv => {
             2 => '2 (1DmkIII)',
-            3 => '3 (40D)',
+            3 => '3 (40D)', # (doesn't record SpecularWhiteLevel, ref github#233)
             4 => '4 (1DSmkIII)',
             5 => '5 (450D/1000D)',
             6 => '6 (50D/5DmkII)',
@@ -7732,9 +7788,14 @@ my %ciMaxFocal = (
         SubDirectory => { TagTable => 'Image::ExifTool::Canon::ColorCalib2' }
     },
     0x108=> { #IB
-        Name => 'PerChannelBlackLevel',
+        Name => 'PerChannelBlackLevel', # (or perhaps AverageBlackLevel?, ref github#232)
         Condition => '$$self{ColorDataVersion} == -3',
         Format => 'int16s[4]',
+    },
+    0x296 => { #github#232
+        Name => 'SpecularWhiteLevel',
+        Condition => '$$self{ColorDataVersion} == -3',
+        Format => 'int16u',
     },
     0x14d=> { #IB
         Name => 'PerChannelBlackLevel',
@@ -8650,7 +8711,7 @@ my %ciMaxFocal = (
     },
 );
 
-# Auto Lighting Optimizater information (MakerNotes tag 0x4018) (ref PH)
+# Auto Lighting Optimizer information (MakerNotes tag 0x4018) (ref PH)
 %Image::ExifTool::Canon::LightingOpt = (
     %binaryDataAttrs,
     FORMAT => 'int32s',
@@ -8701,6 +8762,10 @@ my %ciMaxFocal = (
             1 => 'Stanard',
             2 => 'High',
         },
+    },
+    11 => { #forum15445
+        Name => 'DualPixelRaw',
+        PrintConv => \%offOn,
     },
 );
 
@@ -9100,8 +9165,14 @@ my %filterConv = (
     CMT3 => { # (CR3 files)
         Name => 'MakerNoteCanon',
         PreservePadding => 1,
+        Writable => 'undef', # (writable directory!)
+        # (note that ExifTool 12.68 and earlier lacked the ability to write this as a block,
+        #  and would instead add the maker notes the the CMT2 ExifIFD.  To remove these
+        #  incorrectly-placed maker notes, use "exiftool -exififd:makernotes= FILE")
+        MakerNotes => 1,
         SubDirectory => {
             TagTable => 'Image::ExifTool::Canon::Main',
+            DirName => 'MakerNotes', # (necessary for mechanism that prevents these from being deleted)
             ProcessProc => \&ProcessCMT3,
             WriteProc => \&Image::ExifTool::WriteTIFF,
         },
@@ -10254,7 +10325,7 @@ Canon maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

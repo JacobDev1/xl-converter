@@ -35,7 +35,7 @@ use Image::ExifTool::Sony;
 use Image::ExifTool::Validate;
 use Image::ExifTool::MacOS;
 
-$VERSION = '3.52';
+$VERSION = '3.54';
 @ISA = qw(Exporter);
 
 sub NumbersFirst($$);
@@ -219,7 +219,8 @@ writable directly, but is written automatically by ExifTool (often when a
 corresponding L<Composite|Image::ExifTool::TagNames/Composite Tags> or
 L<Extra|Image::ExifTool::TagNames/Extra Tags> tag is written). A colon
 (C<:>) indicates a I<Mandatory> tag which may be added automatically when
-writing.  Normally MakerNotes tags may not be deleted individually, but a
+writing (use the API L<NoMandatory|../ExifTool.html#NoMandatory> option to avoid creating mandatory EXIF
+tags).  Normally MakerNotes tags may not be deleted individually, but a
 caret (C<^>) indicates a I<Deletable> MakerNotes tag.
 
 The HTML version of these tables also lists possible B<Values> for
@@ -679,7 +680,7 @@ L<Image::ExifTool::BuildTagLookup|Image::ExifTool::BuildTagLookup>.
 
 ~head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
@@ -796,7 +797,7 @@ sub new
     }
 
     my $tableNum = 0;
-    my $et = new Image::ExifTool;
+    my $et = Image::ExifTool->new;
     my ($tableName, $tag);
     # create lookup for short table names
     foreach $tableName (@tableNames) {
@@ -1641,7 +1642,7 @@ sub WriteTagLookup($$)
                     } else {
                         my $quot = "'";
                         # escape non-printable characters in tag ID if necessary
-                        $quot = '"' if s/[\x00-\x1f,\x7f-\xff]/sprintf('\\x%.2x',ord($&))/ge;
+                        $quot = '"' if s/([\x00-\x1f,\x7f-\xff])/sprintf('\\x%.2x',ord($1))/ge;
                         $_ = $quot . $_ . $quot;
                     }
                 }
@@ -1654,7 +1655,7 @@ sub WriteTagLookup($$)
             } else {
                 my $quot = "'";
                 # escape non-printable characters in tag ID if necessary
-                $quot = '"' if $tagID =~ s/[\x00-\x1f,\x7f-\xff]/sprintf('\\x%.2x',ord($&))/ge;
+                $quot = '"' if $tagID =~ s/([\x00-\x1f,\x7f-\xff])/sprintf('\\x%.2x',ord($1))/ge;
                 $entry = "$quot${tagID}$quot";
             }
             my $wrNum = $wrNum{$tableNum};
@@ -1726,12 +1727,12 @@ sub WriteTagLookup($$)
 }
 
 #------------------------------------------------------------------------------
-# Sort numbers first numerically, then strings alphabetically (case insensitive)
+# Sort numbers first numerically, then strings alphabetically
+# - case-insensitive sorting set by global variable $caseInsensitive
 # - two global variables are used to change the sort algorithm:
 #   $numbersFirst: -1 = put numbers after other strings
 #                   1 = put numbers before other strings
 #                   2 = put numbers first, but negative numbers last
-#   $caseInsensitive: flag set for case-insensitive sorting
 sub NumbersFirst($$)
 {
     my ($a, $b) = @_;
@@ -2741,7 +2742,7 @@ validation and consistency checks on the tag tables.
 
   use Image::ExifTool::BuildTagLookup;
 
-  $builder = new Image::ExifTool::BuildTagLookup;
+  $builder = Image::ExifTool::BuildTagLookup->new;
 
   # update Image::ExifTool::TagLookup
   $ok = $builder->WriteTagLookup('lib/Image/ExifTool/TagLookup.pm');
@@ -2779,7 +2780,7 @@ Returned list of writable pseudo tags.
 
 =head1 AUTHOR
 
-Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
