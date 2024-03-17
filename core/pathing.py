@@ -4,23 +4,6 @@ import os
 from pathlib import Path
 import logging
 
-def stripPathToFilename(path):
-    """Dissect path into its parts.
-    
-    argument:
-        path - D:/images/image.png
-    returns:
-        0 - image
-        1 - png
-        2 - D:/images
-        3 - D:/images/image.png
-    """
-    f_dir = os.path.split(path)[0]
-    f_name = Path(path).stem
-    f_ext = Path(path).suffix
-
-    return (f_name, f_ext[1:], f_dir, os.path.abspath(path))
-
 def getUniqueFilePath(dir, file_name: str, ext: str, add_rnd = False):
     """Get a unique file name within a directory."""
 
