@@ -40,12 +40,11 @@ class Items():
         return self.item_count
     
     def getCommonPath(self) -> Path:
-        """Computation heavy, use with caution. Returns Path or None."""
+        """Computation heavy, use with caution. Returns None when there is no common path."""
         items_str = [str(path) for path in self.items]
         try:
             commonpath = Path(os.path.commonpath(items_str))
         except Exception as e:
-            logging.error(f"[Items] {e}")
             return None
 
         return commonpath

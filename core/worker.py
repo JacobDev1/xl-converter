@@ -1,5 +1,6 @@
 import os
 import shutil
+import platform
 import copy
 from pathlib import Path
 from typing import Dict
@@ -275,8 +276,23 @@ class Worker(QRunnable):
                     tmp_rel_path = Path(self.org_item_abs_path).relative_to(self.commonpath)
                     self.output_dir = os.path.join(self.output_dir, str(tmp_rel_path.parent))
                 except Exception as e:
-                    self.logException("S2", f"Could not calculate path, falling back to absolute path ({e})")
+                    self.logException("S2", f"Failed to calculate relative path, reverting to absolute path. {e}")
                     self.output_dir = self.params["custom_output_dir_path"]     # Here the dst is always absolute (because self.commonpath is not None)
+            elif self.params["keep_dir_struct"] and self.commonpath is None:       # Multiple drives / dirs with no common path
+                try:
+                    if platform.system() == "Linux":
+                        tmp_rel_path = Path(self.org_item_abs_path).relative_to(Path(self.org_item_abs_path).anchor)
+                    elif platform.system() == "Windows":
+                        tmp_rel_path = Path(self.org_item_abs_path).parent.relative_to(Path(self.org_item_abs_path).drive)
+                        tmp_rel_path = tmp_rel_path.relative_to(Path("/"))  # Remove "/"
+                    else:
+                        raise GenericException("S4", f"keep_dir_struct not implemented for {platform.system()}")
+
+                    self.output_dir = os.path.join(self.output_dir, str(tmp_rel_path))
+                    
+                except Exception as e:
+                    self.logException("S3", f"Failed to calculate relative path, reverting to absolute path. {e}")
+                    self.output_dir = self.params["custom_output_dir_path"]
 
             else:       # If path relative
                 if not os.path.isabs(self.output_dir):
