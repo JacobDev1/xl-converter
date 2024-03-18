@@ -39,7 +39,15 @@ class Signals(QObject):
     exception = Signal(str, str, str)
 
 class Worker(QRunnable):
-    def __init__(self, n: int, item_path: Path, params: Dict, settings: Dict, available_threads: int, mutex: QMutex):
+    def __init__(self,
+            n: int,
+            item_path: Path,
+            commonpath: Path,
+            params: Dict,
+            settings: Dict,
+            available_threads: int,
+            mutex: QMutex
+        ):
         super().__init__()
         self.signals = Signals()
         self.params = copy.deepcopy(params)
@@ -72,6 +80,7 @@ class Worker(QRunnable):
         self.scl_params = None
         self.skip = False
         self.jpg_to_jxl_lossless = False
+        self.commonpath = commonpath        # keep_dir_struct
     
     def logException(self, id, msg):
         self.signals.exception.emit(id, msg, self.org_item_abs_path)
@@ -259,10 +268,19 @@ class Worker(QRunnable):
         # Choose Output Dir           
         self.output_dir = ""
         if self.params["custom_output_dir"]:
-            self.output_dir = self.params["custom_output_dir_path"]
+            self.output_dir = self.params["custom_output_dir_path"]     # Handle absolute path
 
-            if not os.path.isabs(self.output_dir):   # If path relative
-                self.output_dir = os.path.join(self.item_dir, self.output_dir)
+            if self.params["keep_dir_struct"] and self.commonpath is not None:
+                try:
+                    tmp_rel_path = Path(self.org_item_abs_path).relative_to(self.commonpath)
+                    self.output_dir = os.path.join(self.output_dir, str(tmp_rel_path.parent))
+                except Exception as e:
+                    self.logException("S2", f"Could not calculate path, falling back to absolute path ({e})")
+                    self.output_dir = self.params["custom_output_dir_path"]     # Here the dst is always absolute (because self.commonpath is not None)
+
+            else:       # If path relative
+                if not os.path.isabs(self.output_dir):
+                    self.output_dir = os.path.join(self.item_dir, self.output_dir)
 
             try:
                 os.makedirs(self.output_dir, exist_ok=True)

@@ -92,6 +92,7 @@ class OutputTab(QWidget):
         self.choose_output_ct_rb = self.wm.addWidget("choose_output_ct_rb", QRadioButton("Custom"))
         self.choose_output_ct_le = self.wm.addWidget("choose_output_ct_le", QLineEdit(), "output_ct")
         self.choose_output_ct_btn = self.wm.addWidget("choose_output_ct_btn", QPushButton("..."), "output_ct")
+        self.keep_dir_struct_cb = self.wm.addWidget("keep_dir_struct_cb", QCheckBox("Keep Folder Structure"))
 
         self.choose_output_ct_btn.clicked.connect(self.chooseOutput)        
         self.choose_output_ct_rb.toggled.connect(self.onOutputToggled)
@@ -109,6 +110,7 @@ class OutputTab(QWidget):
 
         output_grp_lt.addWidget(self.choose_output_src_rb)
         output_grp_lt.addLayout(output_hb)
+        output_grp_lt.addWidget(self.keep_dir_struct_cb)
 
         # Format - widgets
         self.format_cmb = self.wm.addWidget("format_cmb", QComboBox())
@@ -257,6 +259,7 @@ class OutputTab(QWidget):
             "if_file_exists": self.duplicates_cmb.currentText(),
             "custom_output_dir": self.choose_output_ct_rb.isChecked(),
             "custom_output_dir_path": self.choose_output_ct_le.text(),
+            "keep_dir_struct": self.keep_dir_struct_cb.isChecked(),
             "delete_original": self.delete_original_cb.isChecked(),
             "delete_original_mode": self.delete_original_cmb.currentText(),
             "smallest_format_pool": {
@@ -302,6 +305,7 @@ class OutputTab(QWidget):
     def onOutputToggled(self):
         src_checked = self.choose_output_src_rb.isChecked()
         self.wm.setEnabledByTag("output_ct", not src_checked)
+        self.keep_dir_struct_cb.setEnabled(not src_checked)
         
     def onFormatChange(self):
         self.saveFormatState()
@@ -406,6 +410,7 @@ class OutputTab(QWidget):
         self.jxl_mode_cmb.setCurrentIndex(0)
 
         self.choose_output_src_rb.setChecked(True)
+        self.keep_dir_struct_cb.setChecked(False)
 
         self.delete_original_cb.setChecked(False)
         self.delete_original_cmb.setCurrentIndex(0)

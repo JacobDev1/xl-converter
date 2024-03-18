@@ -159,6 +159,10 @@ class MainWindow(QMainWindow):
                 except OSError as err:
                     self.n.notifyDetailed("Access Error", f"Make sure the path is accessible\nand that you have write permissions.", str(err))
                     return False
+            else:
+                if params["keep_dir_struct"]:
+                    self.n.notify("Path Conflict", "A relative path cannot be combined with \"Keep Folder Structure\".\nEnter an absolute path (or choose one by clicking on the button with 3 dots).")
+                    return False
 
         # Check If Format Pool Empty
         if params["format"] == "Smallest Lossless" and self.output_tab.smIsFormatPoolEmpty():
@@ -193,6 +197,12 @@ class MainWindow(QMainWindow):
         if self.items.getItemCount() == 0:
             return
         
+        # Setup commonpath
+        if params["keep_dir_struct"] and params["custom_output_dir"]:
+            commonpath = self.items.getCommonPath()
+        else:
+            commonpath = None
+
         # Set progress dialog
         self.progress_dialog.setRange(0, self.items.getItemCount())
         self.progress_dialog.show()
@@ -212,6 +222,7 @@ class MainWindow(QMainWindow):
         for i in range(self.items.getItemCount()):
             worker = Worker(i,
                 self.items.getItem(i),
+                commonpath,
                 params,
                 settings,
                 self.thread_manager.getAvailableThreads(i),

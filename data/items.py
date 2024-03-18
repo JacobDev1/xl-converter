@@ -1,5 +1,6 @@
 from statistics import mean
 from pathlib import Path
+import os
 import logging
 
 from data.constants import ALLOWED_INPUT
@@ -38,10 +39,21 @@ class Items():
     def getItemCount(self) -> int:
         return self.item_count
     
-    def getCompletedItemCount(self):
+    def getCommonPath(self) -> Path:
+        """Computation heavy, use with caution. Returns Path or None."""
+        items_str = [str(path) for path in self.items]
+        try:
+            commonpath = Path(os.path.commonpath(items_str))
+        except Exception as e:
+            logging.error(f"[Items] {e}")
+            return None
+
+        return commonpath
+
+    def getCompletedItemCount(self) -> int:
         return len(self.completed_items)
     
-    def getTimeRemainingText(self):
+    def getTimeRemainingText(self) -> str:
         completed_len = self.getCompletedItemCount()
         if completed_len < 2:
             return "Time left: <calculating>"
