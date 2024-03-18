@@ -22,7 +22,7 @@ def copyMetadata(src, dst):
 
 def deleteMetadata(dst):
     """Delete all metadata except color profile from a file."""
-    _runExifTool("-all=", "--icc_profile:all", "-tagsFromFile", "@", "-ColorSpace", "-overwrite_original", dst)
+    _runExifTool("-all=", "-tagsFromFile", "@", "--icc_profile:all", "--ColorSpace:all", "-overwrite_original", dst)
 
 def deleteMetadataUnsafe(dst):
     """Delete every last bit of metadata, even color profile. May mess up an image. Potentially destructive."""
