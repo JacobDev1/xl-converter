@@ -226,15 +226,16 @@ class OutputTab(QWidget):
         after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Apply Settings
-        if settings["disable_delete_startup"]:
-            self.delete_original_cb.setChecked(False)
-        
+        # Load Settings
         self.enable_jxl_effort_10 = settings["enable_jxl_effort_10"]
         
         # Misc
         self.resetToDefault()
         self.wm.loadState()
+        
+        # Apply Settings
+        if settings["disable_delete_startup"]:
+            self.delete_original_cb.setChecked(False)
 
         # Setup widgets' states
         self.onFormatChange()
