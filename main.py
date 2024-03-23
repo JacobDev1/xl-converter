@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import logging
+from pathlib import Path
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -64,8 +65,6 @@ class MainWindow(QMainWindow):
         self.input_tab = InputTab(settings)
         self.input_tab.convert.connect(self.convert)
         self.settings_tab.signals.disable_sorting.connect(self.input_tab.disableSorting)
-        self.settings_tab.signals.save_file_list.connect(self.input_tab.saveFileList)
-        self.settings_tab.signals.load_file_list.connect(self.input_tab.loadFileList)
 
         self.output_tab = OutputTab(self.threadpool.maxThreadCount(), settings)
         self.output_tab.convert.connect(self.convert)
@@ -153,11 +152,12 @@ class MainWindow(QMainWindow):
 
         # Check Permissions
         if params["custom_output_dir"]:
-            if os.path.isabs(params["custom_output_dir_path"]): # Relative paths are handled in the Worker
+            custom_dir_path = Path(params["custom_output_dir_path"]) 
+            if custom_dir_path.is_absolute(): # Relative paths are handled in the Worker
                 try:
-                    os.makedirs(params["custom_output_dir_path"], exist_ok=True)
+                    os.makedirs(custom_dir_path, exist_ok=True)
                 except OSError as err:
-                    self.n.notifyDetailed("Access Error", f"Make sure the path is accessible\nand that you have write permissions.", str(err))
+                    self.n.notifyDetailed("Access Error", f"Make sure the output path is accessible\nand you have write permissions to it.", str(err))
                     return False
             else:
                 if params["keep_dir_struct"]:
@@ -193,15 +193,9 @@ class MainWindow(QMainWindow):
             self.modify_tab.getReportData(),
         )
         self.items.clear()
-        self.items.parseData(*self.input_tab.file_view.getItemPaths())
+        self.items.parseData(*self.input_tab.getItems())
         if self.items.getItemCount() == 0:
             return
-        
-        # Setup commonpath
-        if params["keep_dir_struct"] and params["custom_output_dir"]:
-            commonpath = self.items.getCommonPath()
-        else:
-            commonpath = None
 
         # Set progress dialog
         self.progress_dialog.setRange(0, self.items.getItemCount())
@@ -220,9 +214,11 @@ class MainWindow(QMainWindow):
         mutex = QMutex()
 
         for i in range(self.items.getItemCount()):
-            worker = Worker(i,
-                self.items.getItem(i),
-                commonpath,
+            abs_path, anchor_path = self.items.getItem(i)
+            worker = Worker(
+                i,
+                abs_path,
+                anchor_path,
                 params,
                 settings,
                 self.thread_manager.getAvailableThreads(i),

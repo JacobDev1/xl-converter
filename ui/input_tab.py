@@ -1,4 +1,6 @@
 from pathlib import Path
+import logging
+from typing import List, Tuple
 
 from PySide6.QtWidgets import(
     QWidget,
@@ -64,21 +66,38 @@ class InputTab(QWidget):
         input_l.addWidget(self.convert_btn,1,3,1,2)
         input_l.addWidget(self.file_view,0,0,1,0)
 
-    def _addItems(self, file_paths):
-        """Internal method for adding items to the file list.""" 
-        if not file_paths:
+    # Items
+    def getItems(self):
+        return self.file_view.getItems()
+    
+    def _addItems(self, items: List[Tuple[Path, Path]]) -> None:
+        """
+        Adds items to the file list.
+        
+        Params:
+            items - a list of tuples containing the following fields
+                - absolute path
+                - anchor path
+        """ 
+        if not items:
             return
         
-        items = []
-        for path in file_paths:
-            path = Path(path)
-            ext = path.suffix[1:]
+        tmp = []
+        for abs_path, anchor_path in items:
+            ext = abs_path.suffix[1:]
 
             if ext.lower() in ALLOWED_INPUT:
-                items.append((path.stem, ext, str(path.resolve())))
+                tmp.append(
+                    (
+                        abs_path.stem,
+                        ext,
+                        str(abs_path),
+                        anchor_path,
+                    )
+                )
         
         self.file_view.startAddingItems()
-        self.file_view.addItems(items)
+        self.file_view.addItems(tmp)
         self.file_view.finishAddingItems()
 
     def addFiles(self):
@@ -88,7 +107,15 @@ class InputTab(QWidget):
         dlg.setNameFilter(listToFilter("Images", ALLOWED_INPUT))
 
         if dlg.exec():
-            file_paths = dlg.selectedFiles()
+            # Add items
+            file_paths = []
+            for i in dlg.selectedFiles():
+                file_paths.append(
+                    (
+                        Path(i),
+                        Path(i).parent,
+                    )
+                )
             self._addItems(file_paths)
 
     def addFolder(self):
@@ -97,50 +124,21 @@ class InputTab(QWidget):
         dlg.setFileMode(QFileDialog.Directory)
 
         if dlg.exec():
-            file_paths = scanDir(dlg.selectedFiles()[0])
-            self._addItems(file_paths)
-
-    def saveFileList(self):
-        item_count = self.file_view.topLevelItemCount()
-        
-        if item_count == 0:
-            self.notify.notify("Empty List", "File list is empty, there is nothing to save.")
-            return
-
-        dlg, _ = QFileDialog.getSaveFileUrl(
-            self,
-            "Save File List",
-            QUrl.fromLocalFile("File List.txt"),
-            "Text File (*.txt);;All Files (*)"
-        )   # Options can be added
-
-        if not dlg.isValid():
-            return
-
-        try:
-            with open(dlg.toLocalFile(), "w", encoding="utf-8") as file:
-                for row in range(item_count):
-                    path = self.file_view.topLevelItem(row).text(2)
-                    if path is not None:
-                        file.write(f"{path}\n")
-        except Exception as err:
-            self.notify.notifyDetailed("File Error", "Saving file list failed", str(err))
-
-
-    def loadFileList(self):
-        dlg, _ = QFileDialog.getOpenFileUrl(self, "Load File List")
-
-        if not dlg.isValid():
-            return
+            selected_dir = dlg.selectedFiles()[0]
+            file_paths = scanDir(selected_dir)
             
-        try:
-            paths = []
-            with open(dlg.toLocalFile(), "r", encoding="utf-8") as file:
-                paths = [line.replace('\n', '') for line in file.readlines()]
-            self._addItems(paths)
-        except Exception as err:
-            self.notify.notifyDetailed("File Error", "Loading file list failed", str(err))
+            # Add items
+            tmp = []
+            for i in file_paths:
+                tmp.append(
+                    (
+                        Path(i),
+                        Path(selected_dir),
+                    )
+                )
+            self._addItems(tmp)
     
+    # Misc.
     def clearInput(self):
         self.file_view.clear()
     

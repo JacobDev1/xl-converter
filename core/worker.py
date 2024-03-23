@@ -25,7 +25,7 @@ from data.constants import (
 )
 
 from core.proxy import Proxy
-from core.pathing import getUniqueFilePath, getPathGIF, getExtension
+from core.pathing import getUniqueFilePath, getPathGIF, getExtension, getOutputDir
 from core.convert import convert, getDecoder, getDecoderArgs, getExtensionJxl, optimize
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
@@ -42,8 +42,8 @@ class Signals(QObject):
 class Worker(QRunnable):
     def __init__(self,
             n: int,
-            item_path: Path,
-            commonpath: Path,
+            abs_path: Path,
+            anchor_path: Path,
             params: Dict,
             settings: Dict,
             available_threads: int,
@@ -63,13 +63,13 @@ class Worker(QRunnable):
         self.mutex = mutex
         
         # Item info - always points to the original file
-        self.org_item_abs_path = str(item_path)         # path -> str cast is done for legacy reasons
+        self.org_item_abs_path = str(abs_path)         # path -> str cast is done for legacy reasons
         
         # Item info - can be (carefully) reassigned
-        self.item_name = item_path.stem
-        self.item_ext = item_path.suffix[1:].lower()
-        self.item_dir = str(item_path.parent)
-        self.item_abs_path = str(item_path)
+        self.item_name = abs_path.stem
+        self.item_ext = abs_path.suffix[1:].lower()
+        self.item_dir = str(abs_path.parent)
+        self.item_abs_path = str(abs_path)
 
         # Destination
         self.output = None          # tmp, gets renamed to final_output
@@ -81,7 +81,7 @@ class Worker(QRunnable):
         self.scl_params = None
         self.skip = False
         self.jpg_to_jxl_lossless = False
-        self.commonpath = commonpath        # keep_dir_struct
+        self.anchor_path = anchor_path        # keep_dir_struct
     
     def logException(self, id, msg):
         self.signals.exception.emit(id, msg, self.org_item_abs_path)
@@ -266,44 +266,19 @@ class Worker(QRunnable):
                 raise FileException("C3", err)
 
     def setupConversion(self):
-        # Choose Output Dir           
-        self.output_dir = ""
-        if self.params["custom_output_dir"]:
-            self.output_dir = self.params["custom_output_dir_path"]     # Handle absolute path
+        # Choose Output Dir
+        self.output_dir = getOutputDir(
+            self.item_dir,
+            self.anchor_path,
+            self.params["custom_output_dir"],
+            self.params["custom_output_dir_path"],
+            self.params["keep_dir_struct"]
+        )
 
-            if self.params["keep_dir_struct"] and self.commonpath is not None:
-                try:
-                    tmp_rel_path = Path(self.org_item_abs_path).relative_to(self.commonpath)
-                    self.output_dir = os.path.join(self.output_dir, str(tmp_rel_path.parent))
-                except Exception as e:
-                    self.logException("S2", f"Failed to calculate relative path, reverting to absolute path. {e}")
-                    self.output_dir = self.params["custom_output_dir_path"]     # Here the dst is always absolute (because self.commonpath is not None)
-            elif self.params["keep_dir_struct"] and self.commonpath is None:       # Multiple drives / dirs with no common path
-                try:
-                    if platform.system() == "Linux":
-                        tmp_rel_path = Path(self.org_item_abs_path).relative_to(Path(self.org_item_abs_path).anchor)
-                    elif platform.system() == "Windows":
-                        tmp_rel_path = Path(self.org_item_abs_path).parent.relative_to(Path(self.org_item_abs_path).drive)
-                        tmp_rel_path = tmp_rel_path.relative_to(Path("/"))  # Remove "/"
-                    else:
-                        raise GenericException("S4", f"keep_dir_struct not implemented for {platform.system()}")
-
-                    self.output_dir = os.path.join(self.output_dir, str(tmp_rel_path))
-                    
-                except Exception as e:
-                    self.logException("S3", f"Failed to calculate relative path, reverting to absolute path. {e}")
-                    self.output_dir = self.params["custom_output_dir_path"]
-
-            else:       # If path relative
-                if not os.path.isabs(self.output_dir):
-                    self.output_dir = os.path.join(self.item_dir, self.output_dir)
-
-            try:
-                os.makedirs(self.output_dir, exist_ok=True)
-            except OSError as err:
-                raise FileException("S0", f"Failed to create output directory. {err}")
-        else:
-            self.output_dir = self.item_dir
+        try:
+            os.makedirs(self.output_dir, exist_ok=True)
+        except OSError as err:
+            raise FileException("S0", f"Failed to create output directory. {err}")
 
         # Assign output paths
         self.output_ext = getExtension(self.params["format"])

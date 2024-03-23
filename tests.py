@@ -140,10 +140,24 @@ class Interact:
         self.root = self.main_window.input_tab.file_view.invisibleRootItem()
 
     def add_item(self, path):
-        self.main_window.input_tab._addItems([path])
-
+        path = Path(path)
+        self.main_window.input_tab._addItems(
+            [
+                (path, path.parent)
+            ]
+        )
+        
     def add_items(self, paths):
-        self.main_window.input_tab._addItems(paths)
+        tmp = []
+        for i in paths:
+            path = Path(i)
+            tmp.append(
+                (
+                    path,
+                    path.parent,
+                )
+            )
+        self.main_window.input_tab._addItems(tmp)
 
     def get_items(self):
         return [self.root.child(i).text(2) for i in range(self.root.childCount())]

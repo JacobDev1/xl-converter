@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+import logging
+from typing import List, Tuple
 
 from PySide6.QtWidgets import(
     QTreeWidget,
@@ -37,7 +39,27 @@ class FileView(QTreeWidget):
 
     # Adding items
     def addItems(self, items):
-        self.invisibleRootItem().addChildren([QTreeWidgetItem(None, (fields[0],fields[1],fields[2])) for fields in items])
+        """Fast way of adding items.
+        Params:
+            items - array of
+                item[0]: str - file name
+                item[1]: str - file extensions
+                item[2]: str - absolute path
+                item[3]: Path - directory the file was added from
+        """
+        new_items = []
+        for name, ext, abs_path, anchor_path in items:
+            item = QTreeWidgetItem(
+                None,
+                (
+                    name,
+                    ext,
+                    abs_path,
+                )
+            )
+            item.setData(0, Qt.UserRole, anchor_path)
+            new_items.append(item)
+        self.invisibleRootItem().addChildren(new_items)
 
     def startAddingItems(self):
         """Run before adding items"""
@@ -66,8 +88,16 @@ class FileView(QTreeWidget):
         self.setting_sorting_disabled = disabled
         self.setSortingEnabled(not disabled)
 
-    def getItemPaths(self):
-        return [self.invisibleRootItem().child(i).text(2) for i in range(self.invisibleRootItem().childCount())]
+    def getItems(self):
+        items = []
+        for i in range(self.invisibleRootItem().childCount()):
+            items.append(
+                (
+                    self.invisibleRootItem().child(i).text(2),
+                    self.invisibleRootItem().child(i).data(0, Qt.UserRole),
+                )
+            )
+        return items
 
     # Events
     def dragEnterEvent(self, event):
@@ -84,23 +114,41 @@ class FileView(QTreeWidget):
             return
 
         items = []
+        preserve_parent = len(event.mimeData().urls()) > 1
+
         for url in event.mimeData().urls():
             if url.isLocalFile():
                 path = str(url.toLocalFile())
                 if os.path.isdir(path):     # Directory
                     files = scanDir(path)
+
                     for file in files:
-                        pure_path = Path(file)
-                        ext = pure_path.suffix[1:]
+                        file_path = Path(file)
+                        ext = file_path.suffix[1:]
 
                         if ext.lower() in ALLOWED_INPUT:
-                            items.append((pure_path.stem, ext, str(pure_path.resolve())))
+                            items.append(
+                                (
+                                    file_path.stem,
+                                    ext,
+                                    str(file_path),
+                                    Path(path).parent if preserve_parent else Path(path),
+                                )
+                            )
+
                 elif os.path.isfile(path):  # Single file
-                    pure_path = Path(path)
-                    ext = pure_path.suffix[1:]
+                    file_path = Path(path)
+                    ext = file_path.suffix[1:]
 
                     if ext.lower() in ALLOWED_INPUT:
-                        items.append((pure_path.stem, ext, str(pure_path.resolve())))
+                        items.append(
+                            (
+                                file_path.stem,
+                                ext,
+                                str(file_path),
+                                Path(file_path).parent,
+                            )
+                        )
 
         self.startAddingItems()
         self.addItems(items)

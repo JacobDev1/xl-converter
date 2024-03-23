@@ -23,8 +23,6 @@ from .widget_manager import WidgetManager
 class Signals(QObject):
     custom_resampling = Signal(bool)
     disable_sorting = Signal(bool)
-    save_file_list = Signal()
-    load_file_list = Signal()
     no_exceptions = Signal(bool)
     enable_jxl_effort_10 = Signal(bool)
 
@@ -71,11 +69,6 @@ class SettingsTab(QWidget):
         self.custom_resampling_cb = self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
         self.custom_resampling_cb.toggled.connect(self.signals.custom_resampling.emit)
 
-        self.file_list_save_btn = QPushButton("Save")
-        self.file_list_load_btn = QPushButton("Load")
-        self.file_list_save_btn.clicked.connect(self.signals.save_file_list)
-        self.file_list_load_btn.clicked.connect(self.signals.load_file_list)
-
         # Advanced group - layout
         conv_grp = QGroupBox("Advanced")
         conv_grp_lt = QVBoxLayout()
@@ -87,14 +80,6 @@ class SettingsTab(QWidget):
             conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
         
         conv_grp_lt.addWidget(self.custom_resampling_cb)
-        
-        file_list_hbox = QHBoxLayout()
-        self.file_list_l = QLabel("File List")
-        file_list_hbox.addWidget(self.file_list_l)
-        file_list_hbox.addWidget(self.file_list_save_btn)
-        file_list_hbox.addWidget(self.file_list_load_btn)
-        
-        conv_grp_lt.addLayout(file_list_hbox)
 
         # Bottom
         self.restore_defaults_btn = QPushButton("Reset to Default")

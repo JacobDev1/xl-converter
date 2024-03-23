@@ -54,3 +54,29 @@ def getExtension(_format):
             return None
         case _:
             logging.error(f"[Pathing - getExtension()] No extension declared for {_format}")
+
+def getOutputDir(
+        item_dir_path: str,
+        item_anchor_path: Path,
+        custom_dir: bool,
+        custom_dir_path: str,
+        keep_dir_struct: bool
+    ) -> str:
+    """Used in Worker exclusively. Returns output directory. Does not create any dirs on its own."""
+    if custom_dir:
+        custom_dir_path = str(Path(custom_dir_path))
+
+        if keep_dir_struct:
+            try:
+                rel_path = Path(item_dir_path).relative_to(item_anchor_path)
+                return os.path.join(custom_dir_path, rel_path)
+            except Exception as e:
+                logging.error(f"[Pathing] Failed to calculate relative path. {e}")
+                return custom_dir_path
+        else:
+            if os.path.isabs(custom_dir_path):  # absolute
+                return custom_dir_path
+            else:                               # relative
+                return os.path.join(item_dir_path, custom_dir_path)
+    else:
+        return item_dir_path

@@ -18,18 +18,24 @@ class Items():
 
     def parseData(self, *items):
         """Populate the structure with proper data."""
-        for item in items:
-            try:
-                path = Path(item).resolve()
-                ext = path.suffix[1:]
-            except Exception as e:
-                logging.error(f"[Items] Error parsing item: {e}")
+        for abs_path, anchor_path in items:
+            abs_path = Path(abs_path)
+            ext = abs_path.suffix[1:]
+    
+            if ext.lower() not in ALLOWED_INPUT:
+                logging.info(f"[Items] File not allowed for current format. {ext}")
                 continue
 
-            if ext.lower() in ALLOWED_INPUT:
-                self.items.append(path)
-            else:
-                logging.info(f"[Items] File not allowed for current format ({ext})")
+            if not isinstance(anchor_path, Path):
+                logging.info(f"[Items] anchor_path is not Path object. {ext}")
+                continue
+
+            self.items.append(
+                (
+                    abs_path,
+                    anchor_path,
+                )
+            )
         
         self.item_count = len(self.items)
 
