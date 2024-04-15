@@ -60,6 +60,12 @@ You can submit a bug report in 2 ways
 - \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
 - \[private\] Email me at contact@codepoems.eu
 
+## Contributions
+
+Pull requests are ignored to avoid licensing issues when reusing the code.
+
+Feel free to make bug reports as contributions.
+
 ## Building from Source
 
 ### Windows 10
@@ -74,6 +80,8 @@ Clone the repo.
 git clone -b stable --depth 1 https://github.com/JacobDev1/xl-converter.git
 cd xl-converter
 ```
+
+[Provide tool binaries](#providing-tool-binaries).
 
 Setup `venv`.
 
@@ -115,6 +123,8 @@ chmod -R +x xl-converter
 cd xl-converter
 ```
 
+[Provide tool binaries](#providing-tool-binaries).
+
 Create and activate a virtual environment.
 
 ```bash
@@ -144,51 +154,88 @@ Extra building modes:
 - `make build-7z` - package to a 7z file (with an installer) (requires `p7zip-full`)
 - `make build-appimage` - package as an AppImage (requires `fuse`)
 
-### Troubleshooting Build Issues
+### Providing Tool Binaries
 
-#### Building on Linux
+To build XL Converter, you need to provide various binaries. This can be quite challenging.
 
-The build may not be generated successfully, because `PyInstaller` sometimes clashes with virtual environments on Linux.
+Binaries needed:
+- [libjxl](https://github.com/libjxl/libjxl) 0.10.2
+    - cjxl
+    - djxl
+    - jxlinfo
+    - cjpegli
+- [libavif](https://github.com/AOMediaCodec/libavif) 1.0.3 (**AVIF_CODEC_AOM**)
+    - avifenc
+    - avifdec
+- [imagemagick](https://imagemagick.org/) 7.1.1-15 Q16-HDRI
+    - magick - AppImage for Linux
+    - magick.exe - Windows
+- [exiftool](https://exiftool.org/) 12.77
+    - exiftool.exe - Windows
+    - exiftool - standalone Perl build
+- [oxipng](https://github.com/shssoichiro/oxipng) 0.8.0
 
-If the executable doesn't launch do the following.
+Place them in the following directories:
+- `xl-converter\bin\win` for Windows (x86_64) 
+- `xl-converter/bin/linux` for Linux (x86_64) 
 
-Deactivate the virtual environment.
+All binaries are built statically. The version numbers should match. Binaries on Windows have an `.exe` extension.
 
-```bash
-deactivate
-```
+See the official [XL Converter builds](https://github.com/JacobDev1/xl-converter/releases) for examples.
 
-Install packages globally.
-```bash
-pip install -r requirements.txt
-```
+## Info
 
-Try again.
+### Python Version
 
-```bash
-make build
-```
+The project runs on Python `3.11.6`. It should also work on a slightly older version. `3.12` and newer are not supported.
 
-#### Python Version on Linux
-
-The project runs on Python `3.11.6`. The one in your repo should work, but If it doesn't use `pyenv` to get this one specifically. 
-
-#### Large Files
+### Large Files
 
 Don't forget `--depth 1` when running `git clone`. This repo contains large files.
 
-## Development Build
+### Development Branch
 
-To access the development build, clone this branch
+The dev branch can be accessed with
 
 ```bash
-git clone --depth 1 -b unstable https://github.com/JacobDev1/xl-converter.git
+git clone -b unstable --depth 1 https://github.com/JacobDev1/xl-converter.git
 ```
 
-Then follow the [building section](#building-from-source)
+## Unit Testing
 
-## Contributions
+Unit tests are currently being reworked.
 
-Pull requests are ignored to avoid potential legal complications when reusing the code.
+### Running
 
-Forward your code and feature suggestions to my email at contact@codepoems.eu
+[Setup repo](#building-from-source).
+
+Create a test environment.
+
+```bash
+python3 -m venv env_test
+source env/bin/activate
+pip install -r requirements.txt
+pip install -r requirements_test.txt
+```
+
+Run tests (Linux)
+
+```bash
+make test
+```
+
+Run tests (Windows)
+
+```cmd
+python test.py
+```
+
+### Deprecated
+
+`tests_old.py` is a deprecated, but still accessible test suite.
+
+To run them, put any image with a varying aspect ratio inside a `sample_img` folder in the project's directory.
+
+```bash
+python tests_old.py
+```

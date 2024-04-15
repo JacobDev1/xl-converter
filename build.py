@@ -106,7 +106,7 @@ class Downloader():
             return
 
         # Download the file
-        print(f"[Downloading] Downloading \"{dst.name}\"")
+        print(f"[Downloading] Downloading {dst.name}")
         response = requests.get(url)
         if response.status_code == 200:
             with open(Path(dst), 'wb') as f:
@@ -189,6 +189,28 @@ class Builder():
 
         # Windows
         self.redist_path = "misc/VC_redist.x64.exe"     # Needed for ImageMagick to work
+
+        # Binary tools
+        self.tools_win = [
+            "cjxl.exe",
+            "djxl.exe",
+            "jxlinfo.exe",
+            "cjpegli.exe",
+            "avifenc.exe",
+            "avifdec.exe",
+            "exiftool.exe",
+            "magick.exe",
+        ]
+        self.tools_linux = [
+            "cjxl",
+            "djxl",
+            "jxlinfo",
+            "cjpegli",
+            "avifenc",
+            "avifdec",
+            "exiftool",
+            "magick",
+        ]
         
         # Build Names
         self.build_inno_name = f"xl-converter-win-{VERSION}-x86_64"
@@ -196,6 +218,7 @@ class Builder():
         self.build_appimage_name = f"xl-converter-linux-{VERSION}-x86_64.AppImage"
     
     def build(self):
+        self._verifyTools()
         self._prepare()
         self._buildBinaries()
         self._copyDependencies()
@@ -225,7 +248,7 @@ class Builder():
                     print("[Building] Using previously compiled cache")
                 else:
                     print("[Building] Platform mismatch - deleting the cache")
-                    rmTree("build") 
+                    rmTree("build")
                     rmTree("__pycache__")
             else:
                 print("[Building] \"last_built_on\" not found - deleting the cache")
@@ -334,6 +357,19 @@ class Builder():
         move(f"{self.dst_dir}/{os.path.basename(self.installer_path['Linux'])}", dst)
         move(f"{self.dst_dir}/{os.path.basename(self.desktop_entry_path)}", dst)
         subprocess.run(("7z", "a", f"{dst_direct}.7z", dst_direct), cwd=self.dst_dir)
+    
+    def _verifyTools(self):
+        match platform.system():
+            case "Windows":
+                for i in self.tools_win:
+                    if not os.path.exists(os.path.join(PROGRAM_FOLDER, "bin", "win", i)):
+                        print(f"[Error] /bin/win/{i} is missing")
+            case "Linux":
+                for i in self.tools_linux:
+                    if not os.path.exists(os.path.join(PROGRAM_FOLDER, "bin", "linux", i)):
+                        print(f"[Error] /bin/linux/{i} is missing")
+            case _:
+                raise Exception("Unrecognized platform (_verifyTools)")
 
 if __name__ == '__main__':
     try:

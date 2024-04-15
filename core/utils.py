@@ -2,22 +2,16 @@ import os
 from pathlib import Path
 from typing import List, Any
 
-import qdarktheme
+def scanDir(path: str) -> list:
+    """Recursively scan a directory for files. Returns paths or raises FileNotFoundError If a directory was not found."""
+    if not os.path.exists(path):
+        raise FileNotFoundError(path)
 
-def scanDir(path):
-    """Recursively scan a directory for files"""
     files = []
     for i in Path(path).rglob("*"):
         if os.path.isdir(i) == False:
             files.append(os.path.abspath(i))    # Convert POSIX path to str
-    return files    # table
-
-def setTheme(theme="dark"):
-    match theme:
-        case "dark":
-            qdarktheme.setup_theme(corner_shape="sharp", custom_colors={"primary":"#F18000"})
-        case "light":
-            qdarktheme.setup_theme("light", corner_shape="sharp", custom_colors={"primary":"#EF7202"})
+    return files
 
 def removeDuplicates(data: List[Any]):
     new_data = []
@@ -26,6 +20,9 @@ def removeDuplicates(data: List[Any]):
 
 def listToFilter(title: str, ext: List[str]):
     """Convert a list of extensions into a name filter for file dialogs."""
+    if len(ext) == 0:
+        return f"All Files (*)"
+    
     last_idx = len(ext) - 1
 
     output = f"{title} ("
@@ -36,7 +33,7 @@ def listToFilter(title: str, ext: List[str]):
     return output
 
 def dictToList(data: dict):
-    """Convert a dictionary into a list."""
+    """Convert a dictionary into a list of tuples."""
     result = []
     for k, v in data.items():
         if isinstance(v, dict):

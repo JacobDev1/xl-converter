@@ -1,6 +1,10 @@
 import os
 import logging
 
+from PySide6.QtCore import (
+    QMutexLocker,
+)
+
 from data.constants import (
     ALLOWED_INPUT_CJXL,
     ALLOWED_INPUT_CJPEGLI,
@@ -48,9 +52,11 @@ class Proxy():
         
         return True
 
-    def generate(self, src, src_ext, dst_dir, file_name, n):
+    def generate(self, src, src_ext, dst_dir, file_name, n, mutex):
         """Generate a proxy image."""
-        self.proxy_path = getUniqueFilePath(dst_dir, file_name, "png", True)
+        with QMutexLocker(mutex):
+            self.proxy_path = getUniqueFilePath(dst_dir, file_name, "png", True)
+    
         convert(getDecoder(src_ext), src, self.proxy_path, [], n)
 
         if not os.path.isfile(self.proxy_path):

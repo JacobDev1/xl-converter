@@ -1,4 +1,4 @@
-.PHONY: run clean build build-appimage build-7z src-full src-min test
+.PHONY: run clean build build-appimage build-7z src-full src-min test test-old coverage test-slowest test-no-cache
 
 clean:
 	rm -rf dist
@@ -18,20 +18,28 @@ build-appimage:
 build-7z:
 	python3 build.py -p
 
-src-full: clean
+src: clean
 	mkdir -p dist/src
-	rsync -a --exclude-from=.gitignore ./ dist/src/
+	
+	cp .gitignore .rsync-exclude
+	sed -i '/^\/bin\//d; /^\/misc\//d' .rsync-exclude
+	rsync -a --exclude-from=.rsync-exclude --exclude=.git --exclude=screenshots ./ dist/src/
+	rm .rsync-exclude
 
-src-min: clean
-	mkdir -p dist/src
-	rsync -a --include=misc/* --exclude-from=.gitignore --exclude=.git --exclude=screenshots --exclude=.github --exclude=.pytest_cache ./ dist/src/
-
-src: src-min
 	cd dist && 7z a src_`date +%Y%m%d_%H%M%S`.zip src/
 
 test:
-ifdef n
-	python3 -m unittest tests.TestMainWindow.$(n)
-else
-	python3 tests.py
-endif
+	python3 test.py
+
+test-slowest:
+	export PYTHONPATH=$$PYTHONPATH:. && pytest --durations=10 --durations-min=0.02 tests/
+
+test-no-cache:
+	export PYTHONPATH=$$PYTHONPATH:. && pytest --cache-clear tests/
+
+test-old:
+	python tests_old.py
+
+coverage:
+	export PYTHONPATH=$$PYTHONPATH:. && pytest --cov=core --cov=ui --cov=main --cov=data --cov=build --cov-report term-missing tests/
+	coverage html

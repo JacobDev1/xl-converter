@@ -9,7 +9,14 @@ from PySide6.QtCore import(
 
 from data.constants import VERSION_FILE_URL, VERSION
 
-SIMULATE_SERVER = False     # For debugging
+# For debugging
+SIMULATE_SERVER = False
+SIMULATE_SERVER_JSON = {
+    "latest_version": VERSION,
+    "download_url": "https://codepoems.eu/xl-converter",
+    "message": "",
+    "message_url": ""
+}
 
 class Worker(QObject):
     status_code_error = Signal(int)
@@ -19,19 +26,14 @@ class Worker(QObject):
 
     def run(self):
         if SIMULATE_SERVER:
-            self.json.emit({
-                "latest_version": VERSION,
-                "download_url": "https://codepoems.eu/xl-converter",
-                "message": "",
-                "message_url": ""
-            })
+            self.json.emit(SIMULATE_SERVER_JSON)
             self.finished.emit()
             return
         
         try:
             response = requests.get(VERSION_FILE_URL)
         except requests.ConnectionError as err:
-            self.misc_error.emit(f"Couldn't connect to the server.")
+            self.misc_error.emit("Couldn't connect to the server.")
             logging.error(f"[UpdateChecker] {err}")
             self.finished.emit()
             return
@@ -52,13 +54,15 @@ class Worker(QObject):
         self.finished.emit()
 
 class Runner(QObject):
-    """Runs online operation."""
+    """Runs online operations."""
     error = Signal(str)
     json = Signal(dict)
     finished = Signal()
 
     def __init__(self, parent = None):
         super().__init__(parent)
+        self.worker = None
+        self.thread = None
 
     def run(self):
         """Sets up the worker thread and connects its signals."""
@@ -88,10 +92,16 @@ class Runner(QObject):
 
     def handleFinish(self):
         """Cleans up the thread and worker."""
-        if self.thread.isRunning():
-            self.thread.requestInterruption()
-            self.thread.quit()
-            self.thread.wait()
-        self.worker.deleteLater()
-        self.thread.deleteLater()
+        if self.thread is not None:
+            if self.thread.isRunning():
+                self.thread.requestInterruption()
+                self.thread.quit()
+                self.thread.wait()
+            self.thread.deleteLater()
+            self.thread = None
+
+        if self.worker is not None:
+            self.worker.deleteLater()
+            self.worker = None
+
         self.finished.emit()

@@ -9,20 +9,13 @@ from data.constants import (
 )
 from core.process import runProcess
 
-def _runExifTool(*args):
-    """For internal use only."""
-    if platform.system() == "Windows":
-        runProcess(EXIFTOOL_PATH, *args)
-    elif platform.system() == "Linux":  # Relative path needed for Brotli dependency to work on Linux
-        runProcess("./" + EXIFTOOL_BIN_NAME, *args, cwd=EXIFTOOL_FOLDER_PATH)
-
 def copyMetadata(src, dst):
     """Copy all metadata from one file onto another."""
     _runExifTool('-tagsfromfile', src, '-overwrite_original', dst)
 
 def deleteMetadata(dst):
     """Delete all metadata except color profile from a file."""
-    _runExifTool("-all=", "--icc_profile:all", "-tagsFromFile", "@", "-ColorSpace", "-overwrite_original", dst)
+    _runExifTool("-all=", "-tagsFromFile", "@", "--icc_profile:all", "--ColorSpace:all", "-overwrite_original", dst)
 
 def deleteMetadataUnsafe(dst):
     """Delete every last bit of metadata, even color profile. May mess up an image. Potentially destructive."""
@@ -38,7 +31,14 @@ def runExifTool(src, dst, mode):
         case "ExifTool - Unsafe Wipe":
             deleteMetadataUnsafe(dst)
 
-def getArgs(encoder, mode, jpg_to_jxl_lossless = False) -> []:
+def _runExifTool(*args):
+    """For internal use only."""
+    if platform.system() == "Windows":
+        runProcess(EXIFTOOL_PATH, *args)
+    elif platform.system() == "Linux":  # Relative path needed for Brotli dependency to work on Linux
+        runProcess("./" + EXIFTOOL_BIN_NAME, *args, cwd=EXIFTOOL_FOLDER_PATH)
+
+def getArgs(encoder, mode, jpg_to_jxl_lossless=False) -> list:
     """Return metadata arguments for the specified encoder.
 
     Example Usage:

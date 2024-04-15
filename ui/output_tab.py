@@ -92,6 +92,7 @@ class OutputTab(QWidget):
         self.choose_output_ct_rb = self.wm.addWidget("choose_output_ct_rb", QRadioButton("Custom"))
         self.choose_output_ct_le = self.wm.addWidget("choose_output_ct_le", QLineEdit(), "output_ct")
         self.choose_output_ct_btn = self.wm.addWidget("choose_output_ct_btn", QPushButton("..."), "output_ct")
+        self.keep_dir_struct_cb = self.wm.addWidget("keep_dir_struct_cb", QCheckBox("Keep Folder Structure"))
 
         self.choose_output_ct_btn.clicked.connect(self.chooseOutput)        
         self.choose_output_ct_rb.toggled.connect(self.onOutputToggled)
@@ -109,6 +110,7 @@ class OutputTab(QWidget):
 
         output_grp_lt.addWidget(self.choose_output_src_rb)
         output_grp_lt.addLayout(output_hb)
+        output_grp_lt.addWidget(self.keep_dir_struct_cb)
 
         # Format - widgets
         self.format_cmb = self.wm.addWidget("format_cmb", QComboBox())
@@ -217,22 +219,25 @@ class OutputTab(QWidget):
         output_page_lt.addWidget(conv_grp,1,0)
         output_page_lt.addWidget(after_conv_grp,1,1)
         
+        # Size policy
         output_page_lt.setAlignment(Qt.AlignTop)
+        output_page_lt.setRowMinimumHeight(0, 150)
 
         format_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Apply Settings
-        if settings["disable_delete_startup"]:
-            self.delete_original_cb.setChecked(False)
-        
+        # Load Settings
         self.enable_jxl_effort_10 = settings["enable_jxl_effort_10"]
         
         # Misc
         self.resetToDefault()
         self.wm.loadState()
+        
+        # Apply Settings
+        if settings["disable_delete_startup"]:
+            self.delete_original_cb.setChecked(False)
 
         # Setup widgets' states
         self.onFormatChange()
@@ -257,6 +262,7 @@ class OutputTab(QWidget):
             "if_file_exists": self.duplicates_cmb.currentText(),
             "custom_output_dir": self.choose_output_ct_rb.isChecked(),
             "custom_output_dir_path": self.choose_output_ct_le.text(),
+            "keep_dir_struct": self.keep_dir_struct_cb.isChecked(),
             "delete_original": self.delete_original_cb.isChecked(),
             "delete_original_mode": self.delete_original_cmb.currentText(),
             "smallest_format_pool": {
@@ -302,65 +308,50 @@ class OutputTab(QWidget):
     def onOutputToggled(self):
         src_checked = self.choose_output_src_rb.isChecked()
         self.wm.setEnabledByTag("output_ct", not src_checked)
+        self.keep_dir_struct_cb.setEnabled(not src_checked)
         
     def onFormatChange(self):
         self.saveFormatState()
         
         cur_format = self.format_cmb.currentText()
         self.prev_format = cur_format
-        
-        self.wm.setCheckedByTag("lossless", False)  # Widgets re-enable themselves when you use setChecked() on a disabled widget, so this needs to stay in the beginning
 
-        # Lossless
-        self.wm.setEnabledByTag("lossless", cur_format in ("JPEG XL", "WEBP"))
-        self.wm.setVisibleByTag("lossless", cur_format not in ("PNG", "JPG", "Smallest Lossless"))
+        # Visible
+        self.wm.setVisibleByTag("quality_all", not cur_format in ("PNG", "Smallest Lossless"))
+        self.int_effort_cb.setVisible(cur_format == "JPEG XL")
+        self.effort_sb.setVisible(cur_format in ("JPEG XL", "AVIF"))
+        self.effort_l.setVisible(cur_format in ("JPEG XL", "AVIF"))
+        self.wm.setVisibleByTag("jxl_mode", cur_format == "JPEG XL")
+        self.wm.setVisibleByTag("lossless", cur_format in ("JPEG XL", "WEBP"))
+        self.wm.setVisibleByTag("jpg_encoder", cur_format == "JPG")
+        self.reconstruct_jpg_cb.setVisible(cur_format == "PNG")
+        self.wm.setVisibleByTag("format_pool", cur_format == "Smallest Lossless")
+        self.max_compression_cb.setVisible(cur_format == "Smallest Lossless")
 
-        # Effort
-        self.int_effort_cb.setEnabled(cur_format == "JPEG XL")
-        self.effort_sb.setEnabled(cur_format in ("JPEG XL", "AVIF"))
-        self.effort_l.setEnabled(cur_format in ("JPEG XL", "AVIF"))
-
+        # Params
         if cur_format == "AVIF":
             self.effort_sb.setRange(0, 10)
             self.effort_l.setText("Speed")
-        else:
+        elif cur_format == "JPEG XL":
             self.effort_sb.setRange(1, 10 if self.enable_jxl_effort_10 else 9)
             self.effort_l.setText("Effort")
-        
-        # Int. Effort
-        if cur_format == "JPEG XL":
-            self.onEffortToggled()  # It's very important to update int_effort_cb to avoid issues when changing formats while it's enabled
 
-        # JPEG XL Lossy Modes
-        self.wm.setVisibleByTag("jxl_mode", cur_format == "JPEG XL")
-
-        # Quality slider
-        self.wm.setEnabledByTag("quality_all", not cur_format in ("PNG", "Smallest Lossless"))
         if cur_format in ("JPEG XL", "AVIF"):
             self.setQualityRange(0, 99)
         else:
             self.setQualityRange(1, 100)
         
-        # Smallest Lossless mode
-        is_sm_l = cur_format == "Smallest Lossless"
-        self.wm.setVisibleByTag("effort", not is_sm_l)
-        self.wm.setVisibleByTag("format_pool", is_sm_l)
-        self.max_compression_cb.setVisible(is_sm_l)
+        # Update states
+        self.wm.setCheckedByTag("lossless", False)
+        self.effort_sb.setEnabled(cur_format in ("JPEG XL", "AVIF"))
         
-        # JPG
-        self.wm.setVisibleByTag("jpg_encoder", cur_format == "JPG")
-
-        # PNG
-        if cur_format == "PNG":
-            self.reconstruct_jpg_cb.setVisible(True)
-            self.wm.setVisibleByTag("lossless", False)
-        else:
-            self.reconstruct_jpg_cb.setVisible(False)
+        if cur_format == "JPEG XL":
+            self.onEffortToggled()  # It's very important to update int_effort_cb to avoid issues when changing formats while it's enabled
 
         self.loadFormatState()
         
     def onQualitySlChanged(self):
-        self.quality_sb.setValue(abs(self.quality_sl.value()))
+        self.quality_sb.setValue(self.quality_sl.value())
 
     def onQualitySbChanged(self):
         self.quality_sl.setValue(self.quality_sb.value())
@@ -406,6 +397,7 @@ class OutputTab(QWidget):
         self.jxl_mode_cmb.setCurrentIndex(0)
 
         self.choose_output_src_rb.setChecked(True)
+        self.keep_dir_struct_cb.setChecked(False)
 
         self.delete_original_cb.setChecked(False)
         self.delete_original_cmb.setCurrentIndex(0)

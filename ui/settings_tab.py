@@ -17,14 +17,12 @@ from PySide6.QtCore import(
     Qt,
 )
 
-from core.utils import setTheme
+from ui.theme import setTheme
 from .widget_manager import WidgetManager
 
 class Signals(QObject):
     custom_resampling = Signal(bool)
     disable_sorting = Signal(bool)
-    save_file_list = Signal()
-    load_file_list = Signal()
     no_exceptions = Signal(bool)
     enable_jxl_effort_10 = Signal(bool)
 
@@ -63,18 +61,15 @@ class SettingsTab(QWidget):
         gen_grp_lt.addWidget(self.no_sorting_cb)
 
         # Advanced group - widgets
-        self.enable_jxl_effort_10 = self.wm.addWidget("enable_jxl_effort_10", QCheckBox("JPEG XL - Enable Effort 10 (slow)"))
+        self.enable_jxl_effort_10 = self.wm.addWidget("enable_jxl_effort_10", QCheckBox("JPEG XL - Enable Effort 10"))
         self.enable_jxl_effort_10.clicked.connect(self.signals.enable_jxl_effort_10)
 
-        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("JPEG XL - Disable UTF-8 Check"))
+        self.disable_jxl_utf8_check_cb = self.wm.addWidget("disable_jxl_utf8_check_cb", QCheckBox("libjxl - Disable UTF-8 Check"))
+
+        self.disable_progressive_jpegli_cb = self.wm.addWidget("disable_progressive_jpegli_cb", QCheckBox("JPEGLI - Disable Progressive Scan"))
 
         self.custom_resampling_cb = self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling"))
         self.custom_resampling_cb.toggled.connect(self.signals.custom_resampling.emit)
-
-        self.file_list_save_btn = QPushButton("Save")
-        self.file_list_load_btn = QPushButton("Load")
-        self.file_list_save_btn.clicked.connect(self.signals.save_file_list)
-        self.file_list_load_btn.clicked.connect(self.signals.load_file_list)
 
         # Advanced group - layout
         conv_grp = QGroupBox("Advanced")
@@ -87,14 +82,8 @@ class SettingsTab(QWidget):
             conv_grp_lt.addWidget(self.disable_jxl_utf8_check_cb)
         
         conv_grp_lt.addWidget(self.custom_resampling_cb)
-        
-        file_list_hbox = QHBoxLayout()
-        self.file_list_l = QLabel("File List")
-        file_list_hbox.addWidget(self.file_list_l)
-        file_list_hbox.addWidget(self.file_list_save_btn)
-        file_list_hbox.addWidget(self.file_list_load_btn)
-        
-        conv_grp_lt.addLayout(file_list_hbox)
+
+        conv_grp_lt.addWidget(self.disable_progressive_jpegli_cb)
 
         # Bottom
         self.restore_defaults_btn = QPushButton("Reset to Default")
@@ -138,15 +127,17 @@ class SettingsTab(QWidget):
             "no_exceptions": self.no_exceptions_cb.isChecked(),
             "disable_jxl_utf8_check": self.disable_jxl_utf8_check_cb.isChecked(),
             "enable_jxl_effort_10": self.enable_jxl_effort_10.isChecked(),
+            "disable_progressive_jpegli": self.disable_progressive_jpegli_cb.isChecked(),
         }
     
     def resetToDefault(self):
         self.dark_theme_cb.setChecked(True)
         self.no_sorting_cb.setChecked(False)
-        
-        self.enable_jxl_effort_10.setChecked(False)
-        self.custom_resampling_cb.setChecked(False)
         self.disable_downscaling_startup_cb.setChecked(True)
         self.disable_delete_startup_cb.setChecked(True)
         self.no_exceptions_cb.setChecked(False)
+        
+        self.enable_jxl_effort_10.setChecked(False)
+        self.custom_resampling_cb.setChecked(False)
         self.disable_jxl_utf8_check_cb.setChecked(False)
+        self.disable_progressive_jpegli_cb.setChecked(False)

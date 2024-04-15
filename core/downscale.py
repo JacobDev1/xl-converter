@@ -12,20 +12,6 @@ from core.convert import convert, getDecoder
 from core.exceptions import CancellationException, GenericException, FileException
 
 # ------------------------------------------------------------
-#                           Helper
-# ------------------------------------------------------------
-
-def _downscaleToPercent(src, dst, amount=90, resample="Default", n=None):
-    amount = clip(amount, 1, 100)
-
-    args = []
-    if resample != "Default" and resample in ALLOWED_RESAMPLING:
-        args.append(f"-filter {resample}")  # Needs to come first
-    args.extend([f"-resize {amount}%"])
-
-    convert(IMAGE_MAGICK_PATH, src, dst, args, n)
-
-# ------------------------------------------------------------
 #                           Math
 # ------------------------------------------------------------
 
@@ -58,6 +44,20 @@ def _extrapolateScale(sample_points, desired_size) -> int:
     y_new = slope * x_new + intercept
 
     return int(y_new)
+
+# ------------------------------------------------------------
+#                           Helper
+# ------------------------------------------------------------
+
+def _downscaleToPercent(src, dst, amount=90, resample="Default", n=None):
+    amount = clip(amount, 1, 100)
+
+    args = []
+    if resample != "Default" and resample in ALLOWED_RESAMPLING:
+        args.append(f"-filter {resample}")  # Needs to come first
+    args.extend([f"-resize {amount}%"])
+
+    convert(IMAGE_MAGICK_PATH, src, dst, args, n)
 
 def cancelCheck(*tmp_files):
     """Checks if the task was canceled and removes temporary files."""
@@ -203,7 +203,7 @@ def _downscaleManualModes(params):
         case "Percent":
             args.append(f"-resize {params['percent']}%")
         case "Resolution":
-            args.append(f"-resize {params['width']}x{params['height']}")
+            args.append(f"-resize {params['width']}x{params['height']}>")
         case "Shortest Side":
             args.append(f"-resize {params['shortest_side']}x{params['shortest_side']}^>")
         case "Longest Side":

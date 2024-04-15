@@ -17,18 +17,24 @@ class Items():
 
     def parseData(self, *items):
         """Populate the structure with proper data."""
-        for item in items:
-            try:
-                path = Path(item).resolve()
-                ext = path.suffix[1:]
-            except Exception as e:
-                logging.error(f"[Items] Error parsing item: {e}")
+        for abs_path, anchor_path in items:
+            abs_path = Path(abs_path)
+            ext = abs_path.suffix[1:]
+    
+            if ext.lower() not in ALLOWED_INPUT:
+                logging.error(f"[Items] Extension not allowed ({ext})")
                 continue
 
-            if ext.lower() in ALLOWED_INPUT:
-                self.items.append(path)
-            else:
-                logging.info(f"[Items] File not allowed for current format ({ext})")
+            if not isinstance(anchor_path, Path):
+                logging.error(f"[Items] anchor_path is not a Path object ({type(anchor_path)})")
+                continue
+
+            self.items.append(
+                (
+                    abs_path,
+                    anchor_path,
+                )
+            )
         
         self.item_count = len(self.items)
 
@@ -37,11 +43,11 @@ class Items():
 
     def getItemCount(self) -> int:
         return self.item_count
-    
-    def getCompletedItemCount(self):
+
+    def getCompletedItemCount(self) -> int:
         return len(self.completed_items)
     
-    def getTimeRemainingText(self):
+    def getTimeRemainingText(self) -> str:
         completed_len = self.getCompletedItemCount()
         if completed_len < 2:
             return "Time left: <calculating>"

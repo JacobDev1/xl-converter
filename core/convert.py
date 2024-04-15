@@ -38,6 +38,7 @@ def getExtensionJxl(src_path):
         return "png"
 
 def parseArgs(args):
+    """Splits arguments by spaces and flattens them into a list."""
     tmp = []
     for arg in args:
         tmp.extend(arg.split())
@@ -68,7 +69,7 @@ def getDecoderArgs(decoder_path: str, threads: int) -> list:
     else:
         return []
 
-def log(msg, n = None):
+def log(msg, n=None):
     if n == None:
         logging.info(f"[Convert] {msg}")
     else:

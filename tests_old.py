@@ -4,7 +4,6 @@ import shutil
 import hashlib
 from pathlib import Path
 
-import requests
 from PySide6.QtGui import (
     QDropEvent,
 )
@@ -140,10 +139,24 @@ class Interact:
         self.root = self.main_window.input_tab.file_view.invisibleRootItem()
 
     def add_item(self, path):
-        self.main_window.input_tab._addItems([path])
-
+        path = Path(path)
+        self.main_window.input_tab._addItems(
+            [
+                (path, path.parent)
+            ]
+        )
+        
     def add_items(self, paths):
-        self.main_window.input_tab._addItems(paths)
+        tmp = []
+        for i in paths:
+            path = Path(i)
+            tmp.append(
+                (
+                    path,
+                    path.parent,
+                )
+            )
+        self.main_window.input_tab._addItems(tmp)
 
     def get_items(self):
         return [self.root.child(i).text(2) for i in range(self.root.childCount())]
@@ -455,26 +468,6 @@ class TestMainWindow(unittest.TestCase):
 
         converted = self.data.get_tmp_folder_content()
         assert converted[0].stat().st_size != converted[1].stat().st_size, "No change detected"
-
-    def test_update_file(self):
-        try:
-            response = requests.get(VERSION_FILE_URL)
-        except requests.ConnectionError as err:
-            assert True, "Couldn't connect to the server"
-
-        assert response.status_code == 200, f"Retrieving file failed ({response.status_code})"
-        assert response.status_code != 404, "Update file not found on the server"
-
-        parsed_json = None
-        try:
-            parsed_json = response.json()
-        except:
-            assert False, "Failed to parse JSON"
-
-        assert "latest_version" in parsed_json 
-        assert "download_url" in parsed_json 
-        assert "message" in parsed_json 
-        assert "message_url" in parsed_json 
 
 if __name__ == "__main__":
     unittest.main(failfast=True)

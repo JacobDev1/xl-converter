@@ -29,6 +29,8 @@ class ExceptionView(QDialog):
 
     def __init__(self, settings, parent=None):
         super(ExceptionView, self).__init__(parent)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
+        
         self.notifications = Notifications()
         self.report_data = {}
 
@@ -42,7 +44,6 @@ class ExceptionView(QDialog):
         self.table = QTableWidget(0, len(headers))
         self.table.setHorizontalHeaderLabels(headers)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.table.horizontalHeader().setStretchLastSection(True)
         self.table.verticalHeader().setVisible(False)
         self.table.setSortingEnabled(False)
         self.table.setShowGrid(False)
@@ -72,7 +73,11 @@ class ExceptionView(QDialog):
 
         self.table.setStyleSheet("""
             QTableWidget, QHeaderView { background-color: #202124; }
-            """)
+            QTableWidget::item:focus {
+                border: none;
+                outline: none;
+            }
+        """)
         self.table.viewport().setStyleSheet("background-color: #202124;")
 
         # Apply settings
@@ -84,7 +89,7 @@ class ExceptionView(QDialog):
 
         self._setItem(row_pos, 0, _id, Qt.AlignCenter)
         self._setItem(row_pos, 1, exception)
-        self._setItem(row_pos, 2, source)
+        self._setItem(row_pos, 2, source, Qt.AlignCenter)
 
     def _setItem(self, row, col, value, align = Qt.AlignVCenter | Qt.AlignLeft):
         item = QTableWidgetItem()
@@ -150,8 +155,9 @@ class ExceptionView(QDialog):
     def resizeToContent(self):
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        # self.table.setColumnWidth(1, 450)
+        self.table.resizeRowsToContents()
 
     def setDontShowAgain(self, checked):
         self.blockSignals(True)
