@@ -225,7 +225,7 @@ class Builder():
         self._appendInstaller()
         self._appendDesktopEntry()
         self._appendMisc()
-        self._appendRedistributable()
+        self._downloadRedistributable()
         self._appendUpdateFile()
         self._finish()
 
@@ -300,15 +300,11 @@ class Builder():
         copy(self.icon_svg_path, f"{self.internal_dir}/icons/{os.path.basename(self.icon_svg_path)}")
         copyTree(self.fonts_path, f"{self.internal_dir}/fonts")
 
-    def _appendRedistributable(self):
+    def _downloadRedistributable(self):
         if platform.system() != "Windows":
             return
 
         self.downloader.downloadRedistributable()
-        print("[Building] Appending redistributable")
-        redist_dst = f"{self.dst_dir}/{self.project_name}/redist"
-        makedirs(redist_dst)
-        copy(self.redist_path, redist_dst)
     
     def _appendUpdateFile(self):
         print("[Building] Appending an update file (to place on a server)")

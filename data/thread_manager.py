@@ -6,21 +6,23 @@ class ThreadManager:
     def __init__(self, threadpool: QThreadPool) -> None:
         self.threadpool = threadpool
     
-        self.fixed_threads = 1
+        self.threads_per_worker = 1
         self.burst_threadpool = []
     
     def configure(self, format: str, item_count: int, used_thread_count: int) -> None:
-        if format == "AVIF":    # Use encoder-based multithreading 
-            self.fixed_threads = used_thread_count
-            self.burst_threadpool = []
-            self.threadpool.setMaxThreadCount(1)
-        else:
-            self.fixed_threads = 1
-            self.burst_threadpool = self._getBurstThreadPool(
-                item_count,
-                used_thread_count,
-            )
-            self.threadpool.setMaxThreadCount(used_thread_count)  
+        # if format == "AVIF":    # Use encoder-based multithreading 
+        #     self.threads_per_worker = used_thread_count
+        #     self.burst_threadpool = []
+        #     self.threadpool.setMaxThreadCount(1)
+        # else:
+            # self.threads_per_worker = 1
+            # ...
+            
+        self.burst_threadpool = self._getBurstThreadPool(
+            item_count,
+            used_thread_count,
+        )
+        self.threadpool.setMaxThreadCount(used_thread_count)  
 
     def getAvailableThreads(self, index: int) -> int:
         if self.burst_threadpool:
@@ -28,9 +30,9 @@ class ThreadManager:
                 available_threads = self.burst_threadpool[index]
             except IndexError:
                 logging.error("[ThreadManager] getAvailableThreads - IndexError")
-                available_threads = self.fixed_threads
+                available_threads = self.threads_per_worker
         else:
-            available_threads = self.fixed_threads
+            available_threads = self.threads_per_worker
         
         return available_threads
 

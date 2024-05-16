@@ -292,7 +292,4 @@ class ModifyTab(QWidget):
 
     def toggleCustomResampling(self, enabled=False):
         self.resample_visible = enabled
-        if enabled:
-            self.wm.setVisibleByTag("resample", True)
-        else:
-            self.wm.setVisibleByTag("resample", False)
+        self.wm.setVisibleByTag("resample", enabled)

@@ -1,5 +1,6 @@
 import os
 import logging
+import re
 
 from PySide6.QtCore import (
     QMutexLocker,
@@ -10,9 +11,12 @@ from data.constants import (
     ALLOWED_INPUT_CJPEGLI,
     ALLOWED_INPUT_AVIFENC,
     ALLOWED_INPUT_IMAGE_MAGICK,
+    IMAGE_MAGICK_PATH,
 )
 from core.pathing import getUniqueFilePath
 from core.convert import convert, getDecoder
+from core.process import runProcessOutput
+from core.exceptions import FileException
 
 class Proxy():
     def __init__(self):
@@ -54,6 +58,16 @@ class Proxy():
 
     def generate(self, src, src_ext, dst_dir, file_name, n, mutex):
         """Generate a proxy image."""
+        if src_ext in ("tif", "tiff"):
+            try:
+                layers_re = re.search(r"\d+", runProcessOutput(IMAGE_MAGICK_PATH, "identify", "-format", "%n\n", src).decode("utf-8"))
+                layers_n = int(layers_re.group(0))
+            except Exception:
+                raise FileException("Proxy_0", "Cannot detect the number of pages.")
+
+            if layers_n != 1:
+                raise FileException("Proxy_1", "TIFFs with multiple pages are not supported.")
+        
         with QMutexLocker(mutex):
             self.proxy_path = getUniqueFilePath(dst_dir, file_name, "png", True)
     

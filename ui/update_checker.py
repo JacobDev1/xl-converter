@@ -63,6 +63,10 @@ class Dialog(QDialog):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
+    def openUrl(self, url):
+        QDesktopServices.openUrl(QUrl(url))
+        self.close()
+
     def show(self, message, url = None, url_text = None, resize_to_content = False):
         self.text_l.setText(message)
         if url:
@@ -71,7 +75,7 @@ class Dialog(QDialog):
                 self.link_btn.clicked.disconnect()
             except:
                 pass
-            self.link_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
+            self.link_btn.clicked.connect(lambda: self.openUrl(url))
 
         self.link_btn.setVisible(url is not None)
 

@@ -19,13 +19,13 @@ from PySide6.QtCore import (
     QUrl,
     QPoint
 )
+from PIL import Image, ImageDraw
 
 from main import MainWindow
 from data.constants import *
 
 # CONFIG
-SAMPLE_IMG_FOLDER = Path(".").resolve() / "sample_img"    # Put some images in there, cannot have 1:1 aspect ratio
-
+SAMPLE_IMG_FOLDER = Path(".").resolve() / "sample_img"
 TMP_IMG_FOLDER = Path(".").resolve() / "unit_tests_tmp"
 app = QApplication(sys.argv)
 
@@ -76,6 +76,25 @@ def test_dict(data):
                 return False
     
     return True
+
+def create_sample_img():
+    sample_img_path = SAMPLE_IMG_FOLDER / "sample_img.png"
+
+    if sample_img_path.exists():
+        return
+
+    w, h = 1920, 1080
+    img = Image.new("RGB", (w, h))
+    draw = ImageDraw.Draw(img)
+
+    for i in range(h):
+        r = int(32 + (241 - 32) * i / h)
+        g = int(33 + (128 - 33) * i / h)
+        b = int(36 + (0 - 36) * i / h)
+        draw.line([(0, i), (w, i)], fill=(r, g, b))
+    
+    SAMPLE_IMG_FOLDER.mkdir(exist_ok=True)
+    img.save(sample_img_path)
 
 class Data:
     """Sample data and tmp folder management system."""
@@ -470,4 +489,5 @@ class TestMainWindow(unittest.TestCase):
         assert converted[0].stat().st_size != converted[1].stat().st_size, "No change detected"
 
 if __name__ == "__main__":
+    create_sample_img()
     unittest.main(failfast=True)

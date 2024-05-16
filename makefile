@@ -38,7 +38,7 @@ test-no-cache:
 	export PYTHONPATH=$$PYTHONPATH:. && pytest --cache-clear tests/
 
 test-old:
-	python tests_old.py
+	python test_old.py
 
 coverage:
 	export PYTHONPATH=$$PYTHONPATH:. && pytest --cov=core --cov=ui --cov=main --cov=data --cov=build --cov-report term-missing tests/

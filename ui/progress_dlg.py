@@ -10,24 +10,26 @@ from data.constants import ICON_SVG
 class ProgressDialog(QObject):
     canceled = Signal()
 
-    def __init__(self, parent=None, title = "XL Converter", minimum = 0, maximum = 100, default_text = "Default text label", cancelable = True):
+    def __init__(self, parent=None, title="XL Converter", minimum=0, maximum=100, cancelable=True):
         QObject.__init__(self)
         self.dlg = None
         self.title = title
         self.minimum = minimum
         self.maximum = maximum
-        self.default_text = default_text
         self.cancelable = cancelable
         self.parent = parent
 
+        self.label_line_1_cached = None
+        self.label_line_2_cached = None
+
     def show(self):
-        """Creates a new progress dialog and shows it."""
+        """Creates a new progress dialog and shows it. Call before setting any values."""
         if self.dlg is not None:
             self.dlg.show()
             return
 
         self.dlg = QProgressDialog(
-            self.default_text,
+            "",
             "Cancel" if self.cancelable else None,
             self.minimum,
             self.maximum,
@@ -38,6 +40,7 @@ class ProgressDialog(QObject):
         self.dlg.canceled.connect(self.canceled.emit)
 
         self.dlg.setMinimumWidth(350)
+        self.dlg.setMinimumHeight(115)
         self.dlg.show()
 
     def finished(self):
@@ -49,6 +52,8 @@ class ProgressDialog(QObject):
         self.dlg.close()
         self.dlg.deleteLater()
         self.dlg = None
+        self.label_line_1_cached = None
+        self.label_line_2_cached = None
 
     def setValue(self, value):
         if self.dlg is None:
@@ -67,6 +72,24 @@ class ProgressDialog(QObject):
             return
         
         self.dlg.setLabelText(text)
+
+    def setLabelTextLine1(self, text):
+        self.label_line_1_cached = text
+        self._updateLabelTextLines()
+    
+    def setLabelTextLine2(self, text):
+        self.label_line_2_cached = text
+        self._updateLabelTextLines()
+
+    def _updateLabelTextLines(self):
+        out = ""
+        if self.label_line_1_cached:
+            out += self.label_line_1_cached
+        
+        if self.label_line_2_cached:
+            out += f"\n{self.label_line_2_cached}"
+        
+        self.setLabelText(out)
 
     def wasCanceled(self):
         if self.dlg is None:

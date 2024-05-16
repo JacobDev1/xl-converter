@@ -132,26 +132,6 @@ class Worker(QRunnable):
         if os.path.isfile(self.org_item_abs_path) == False:
             raise FileException("C0", "File not found")
 
-        # Check for non-ANSI characters
-        if (
-            os.name == "nt" and
-            not self.settings["disable_jxl_utf8_check"] and
-            (
-                self.params["format"] == "JPEG XL" or
-                self.item_ext == "jxl" or
-                (
-                    self.params["format"] == "Smallest Lossless" and
-                    self.params["smallest_format_pool"]["jxl"]
-                ) or
-                (
-                    self.params["format"] == "JPG" and
-                    self.params["jpg_encoder"] == "JPEGLI from JPEG XL"
-                )
-            )
-        ):
-            if not isANSICompatible(self.org_item_abs_path):
-                raise GenericException("C1", "libjxl tools do not support paths with non-ANSI characters on Windows.")
-
         # Check for conflicts - GIFs and APNGs
         checkForConflicts(
             self.item_ext,
@@ -255,16 +235,13 @@ class Worker(QRunnable):
                 args[1] = f"-e {self.params['effort']}"
                 args[3] = f"--num_threads={self.available_threads}"
 
-                if self.params["intelligent_effort"] and (self.params["lossless"] or self.params["jxl_mode"] == "Modular"):
+                if self.params["intelligent_effort"] and (self.params["lossless"] or self.params["jxl_modular"]):
                     self.params["intelligent_effort"] = False
                     args[1] = "-e 9"
 
                 if not self.params["lossless"]:
-                    if self.params["jxl_mode"] == "VarDCT":
-                        args.append("--modular=0")
-                    elif self.params["jxl_mode"] == "Modular":
+                    if self.params["jxl_modular"]:
                         args.append("--modular=1")
-                    # Encoder decides by itself when no arguments are passed
 
                 encoder = CJXL_PATH
             case "AVIF":
@@ -273,6 +250,8 @@ class Worker(QRunnable):
                     f"-s {self.params['effort']}",
                     f"-j {self.available_threads}"
                 ]
+                if self.params["avif_chroma_subsampling"] != "Default":
+                    args.append(f"-y {self.params['avif_chroma_subsampling'].replace(':', '')}")
 
                 encoder = AVIFENC_PATH
             case "JPG":
@@ -280,9 +259,15 @@ class Worker(QRunnable):
                     args = [f"-q {self.params['quality']}"]
                     if self.settings["disable_progressive_jpegli"]:
                         args.append("-p 0")
+                    if self.params["jpegli_chroma_subsampling"] != "Default":
+                        args.append(f"--chroma_subsampling={self.params['jpegli_chroma_subsampling'].replace(':', '')}")
+
                     encoder = CJPEGLI_PATH
                 else:
                     args = [f"-quality {self.params['quality']}"]
+                    if self.params["jpg_chroma_subsampling"] != "Default":
+                        args.append(f"-sampling-factor {self.params['jpg_chroma_subsampling']}")
+                    
                     encoder = IMAGE_MAGICK_PATH
             case "WEBP":
                 args = []
@@ -294,7 +279,7 @@ class Worker(QRunnable):
                 
                 args.extend([
                     f"-define webp:thread-level={1 if self.available_threads > 1 else 0}",
-                    "-define webp:method=6"
+                    f"-define webp:method={self.settings['webp_method']}"
                 ])
 
                 encoder = IMAGE_MAGICK_PATH
@@ -306,6 +291,21 @@ class Worker(QRunnable):
 
         # Prepare metadata
         args.extend(metadata.getArgs(encoder, self.params["misc"]["keep_metadata"], self.jpg_to_jxl_lossless))
+
+        # Custom arguments
+        if self.settings["enable_custom_args"]:
+            if encoder == AVIFENC_PATH:
+                if self.settings["avifenc_args"]:
+                    args.append(self.settings["avifenc_args"])
+            elif encoder == CJXL_PATH:
+                if self.settings["cjxl_args"]:
+                    args.append(self.settings["cjxl_args"])
+            elif encoder == CJPEGLI_PATH:
+                if self.settings["cjpegli_args"]:
+                    args.append(self.settings["cjpegli_args"])
+            elif encoder == IMAGE_MAGICK_PATH:
+                if self.settings["im_args"]:
+                    args.append(self.settings["im_args"])
 
         # Convert & downscale
         if self.params["downscaling"]["enabled"]:
@@ -349,30 +349,6 @@ class Worker(QRunnable):
             else:   # Regular conversion
                 convert(encoder, self.item_abs_path, self.output, args, self.n)
         
-        # Lossless If smaller
-        if self.params["lossless_if_smaller"] and format in ("JPEG XL", "WEBP"):
-            match format:
-                case "WEBP":
-                    args[0] = "-define webp:lossless=true"
-                case "JPEG XL":
-                    args[0] = "-q 100"
-                    if self.params["intelligent_effort"]:
-                        args[1] = "-e 9"
-            
-            with QMutexLocker(self.mutex):
-                lossless_path = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, True)
-            
-            convert(encoder, self.item_abs_path, lossless_path, args, self.n)
-
-            try:
-                if os.path.getsize(lossless_path) < os.path.getsize(self.output):
-                    os.remove(self.output)
-                    os.rename(lossless_path, self.output)
-                else:
-                    os.remove(lossless_path)
-            except OSError as err:
-                raise FileException("C3", err)
-
     def finishConversion(self):
         if self.proxy.proxyExists():
             try:

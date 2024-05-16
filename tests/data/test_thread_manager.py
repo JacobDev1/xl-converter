@@ -13,17 +13,15 @@ def thread_manager():
     return ThreadManager(pool)
 
 def test_configure_fixed(thread_manager):
-    thread_manager.configure("AVIF", 5, 10)
+    thread_manager.configure("JPEG XL", 20, 10)
 
-    assert thread_manager.fixed_threads == 10
     assert thread_manager.burst_threadpool == []
-    assert thread_manager.getAvailableThreads(0) == 10
-    thread_manager.threadpool.setMaxThreadCount.assert_called_once_with(1)
+    assert thread_manager.getAvailableThreads(0) == 1
+    thread_manager.threadpool.setMaxThreadCount.assert_called_once_with(10)
 
 def test_configure_dynamic(thread_manager):
     thread_manager.configure("JPEG XL", 5, 11)
 
-    assert thread_manager.fixed_threads == 1
     assert thread_manager.burst_threadpool == [3, 2, 2, 2, 2]
     assert thread_manager.getAvailableThreads(0) == 3
     assert thread_manager.getAvailableThreads(1) == 2
@@ -34,12 +32,6 @@ def test_getAvailableThreads_burst(thread_manager):
     
     for i in range(5):
         assert thread_manager.getAvailableThreads(i) == 2
-
-def test_getAvailableThreads_fixed(thread_manager):
-    thread_manager.configure("AVIF", 5, 10)
-    
-    assert thread_manager.getAvailableThreads(0) == 10
-    assert thread_manager.getAvailableThreads(5) == 10
 
 def test_getAvailableThreads_index_error(thread_manager, caplog):
     thread_manager.configure("JPEG XL", 5, 10)

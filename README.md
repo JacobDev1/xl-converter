@@ -1,6 +1,5 @@
-<p align="center">
+<div align="center">
     <img src="icons/logo.svg" width="20%">
-</p>
 <h3 align="center">XL Converter</h3>
 
 Powerful image converter for the latest formats with support for multithreading, drag 'n drop, and downscaling.
@@ -9,7 +8,8 @@ Available for Windows and Linux.
 
 ![](misc/screenshots/screenshot_0.png)
 
-The [documentation](https://xl-docs.codepoems.eu)
+Read the [Manual](https://xl-docs.codepoems.eu)
+</div>
 
 ## Supported Formats
 
@@ -20,13 +20,13 @@ Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](htt
 
 Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
 
+#### Parallel Encoding
+
+Encode images in parallel to speed up the process. Control how much CPU to use during encoding.
+
 #### JPG Reconstruction
 
-Losslessly transcode JPG to JPEG XL, reverse the process when needed.
-
-#### Multithreading
-
-Use as many CPU cores as you want.
+Losslessly transcode JPG to JPEG XL, and reverse the process when needed.
 
 #### Image Proxy
 
@@ -52,7 +52,7 @@ Easily copy and wipe metadata using encoder parameters or ExifTool.
 
 #### JPEGLI
 
-Encode to regular JPG using the highest quality encoder available.
+Generate the highest quality (regular old) JPGs with JPEGLI. 
 
 ## Bug Reports
 
@@ -68,10 +68,13 @@ Feel free to make bug reports as contributions.
 
 ## Building from Source
 
+> [!NOTE]
+> The recommended way of using XL Converter is through the [official binary releases](https://codepoems.eu/xl-converter). The building process is time-consuming and tedious.
+
 ### Windows 10
 
-Prerequisites:
-- Python `3.11.6` (with `pip`)
+Install:
+- Python `3.11.9` (with `pip`)
 - `git`
 
 Clone the repo.
@@ -111,8 +114,28 @@ Install packages.
 
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip python3-venv git
-sudo apt install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+sudo apt install git make
+```
+
+Install [xcb QPA](https://doc.qt.io/qt-6/linux-requirements.html) dependencies.
+
+```bash
+sudo apt install '^libxcb.*-dev' libfontconfig1-dev libfreetype6-dev libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+```
+
+Install [pyenv](https://github.com/pyenv/pyenv) via [Automatic installer](https://github.com/pyenv/pyenv?tab=readme-ov-file#automatic-installer) then [add it to shell](https://github.com/pyenv/pyenv?tab=readme-ov-file#set-up-your-shell-environment-for-pyenv)
+
+Install Python build packages.
+
+```bash
+sudo apt install wget build-essential libreadline-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev liblzma-dev
+```
+
+Build and setup Python `3.11.9`.
+
+```bash
+pyenv install 3.11.9
+pyenv local 3.11.9
 ```
 
 Clone and set up the repo.
@@ -159,21 +182,21 @@ Extra building modes:
 To build XL Converter, you need to provide various binaries. This can be quite challenging.
 
 Binaries needed:
-- [libjxl](https://github.com/libjxl/libjxl) 0.10.2
+- [libjxl](https://github.com/libjxl/libjxl) `0.10.2` ([with this patch on Windows](https://github.com/JacobDev1/libjxl-utf8))
     - cjxl
     - djxl
     - jxlinfo
     - cjpegli
-- [libavif](https://github.com/AOMediaCodec/libavif) 1.0.3 (**AVIF_CODEC_AOM**)
+- [libavif](https://github.com/AOMediaCodec/libavif) `1.0.4` (AOM `3.8.2`)
     - avifenc
     - avifdec
-- [imagemagick](https://imagemagick.org/) 7.1.1-15 Q16-HDRI
+- [imagemagick](https://imagemagick.org/) `7.1.1-15 Q16-HDRI`
     - magick - AppImage for Linux
     - magick.exe - Windows
-- [exiftool](https://exiftool.org/) 12.77
+- [exiftool](https://exiftool.org/) `12.77`
     - exiftool.exe - Windows
     - exiftool - standalone Perl build
-- [oxipng](https://github.com/shssoichiro/oxipng) 0.8.0
+- [oxipng](https://github.com/shssoichiro/oxipng) `0.9.0`
 
 Place them in the following directories:
 - `xl-converter\bin\win` for Windows (x86_64) 
@@ -181,29 +204,18 @@ Place them in the following directories:
 
 All binaries are built statically. The version numbers should match. Binaries on Windows have an `.exe` extension.
 
-See the official [XL Converter builds](https://github.com/JacobDev1/xl-converter/releases) for examples.
+> [!TIP]
+> See the official [XL Converter builds](https://github.com/JacobDev1/xl-converter/releases) for examples.
 
 ## Info
 
-### Python Version
+> [!IMPORTANT]
+> This project runs on Python `3.11`. Other versions are not supported.
 
-The project runs on Python `3.11.6`. It should also work on a slightly older version. `3.12` and newer are not supported.
-
-### Large Files
-
-Don't forget `--depth 1` when running `git clone`. This repo contains large files.
-
-### Development Branch
-
-The dev branch can be accessed with
-
-```bash
-git clone -b unstable --depth 1 https://github.com/JacobDev1/xl-converter.git
-```
+> [!NOTE]
+> Don't forget `--depth 1` when running `git clone` to avoid large files.
 
 ## Unit Testing
-
-Unit tests are currently being reworked.
 
 ### Running
 
@@ -218,13 +230,7 @@ pip install -r requirements.txt
 pip install -r requirements_test.txt
 ```
 
-Run tests (Linux)
-
-```bash
-make test
-```
-
-Run tests (Windows)
+Run tests
 
 ```cmd
 python test.py
@@ -232,10 +238,8 @@ python test.py
 
 ### Deprecated
 
-`tests_old.py` is a deprecated, but still accessible test suite.
-
-To run them, put any image with a varying aspect ratio inside a `sample_img` folder in the project's directory.
+`test_old.py` is a deprecated, but still accessible test suite focusing on the conversion results.
 
 ```bash
-python tests_old.py
+python test_old.py
 ```

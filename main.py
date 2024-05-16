@@ -40,6 +40,7 @@ from data import Items
 from data import fonts
 import data.task_status as task_status
 from data.thread_manager import ThreadManager
+from data.time_left import TimeLeft
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -53,10 +54,14 @@ class MainWindow(QMainWindow):
 
         self.threadpool = QThreadPool.globalInstance()
         self.thread_manager = ThreadManager(self.threadpool)
-        self.items = Items()
-        self.progress_dialog = ProgressDialog(parent=self, title="Converting...", default_text="Starting the conversion...\n", cancelable=True)
-        self.progress_dialog.canceled.connect(task_status.cancel)
         self.n = Notifications()
+        
+        self.items = Items()
+        self.progress_dialog = ProgressDialog(parent=self, title="Converting...", cancelable=True)
+        self.progress_dialog.canceled.connect(task_status.cancel)
+        
+        self.time_left = TimeLeft()
+        self.time_left.update_time_left.connect(self.progress_dialog.setLabelTextLine2)
 
         # Tabs
         self.settings_tab = SettingsTab()
@@ -120,11 +125,12 @@ class MainWindow(QMainWindow):
         if self.progress_dialog.wasCanceled():
             self.setUIEnabled(True)
             self.progress_dialog.finished()
+            self.time_left.stopCounting()
             return
 
-        self.items.appendCompletedItem(n)
-        self.items.appendCompletionTime(time.time())
-        self.progress_dialog.setLabelText(self.items.getStatusText())
+        self.items.addCompletedItem()
+        self.time_left.addCompletedItem()
+        self.progress_dialog.setLabelTextLine1(f"Converted {self.items.getCompletedItemCount()} out of {self.items.getItemCount()} images")
         self.progress_dialog.setValue(self.items.getCompletedItemCount())
 
         logging.debug(f"Active Threads: {self.threadpool.activeThreadCount()}")
@@ -132,6 +138,7 @@ class MainWindow(QMainWindow):
         if self.items.getCompletedItemCount() == self.items.getItemCount():
             self.setUIEnabled(True)
             self.progress_dialog.finished()
+            self.time_left.stopCounting()
 
             # Post conversion routines
             if not self.exception_view.isEmpty() and not self.settings_tab.getSettings()["no_exceptions"]:
@@ -196,10 +203,14 @@ class MainWindow(QMainWindow):
         self.items.parseData(*self.input_tab.getItems())
         if self.items.getItemCount() == 0:
             return
-
+        
         # Set progress dialog
         self.progress_dialog.setRange(0, self.items.getItemCount())
         self.progress_dialog.show()
+        self.progress_dialog.setLabelTextLine1("Starting the conversion...")
+        
+        # Misc.
+        self.time_left.startCounting(self.items.getItemCount())
 
         # Configure Multithreading
         self.thread_manager.configure(

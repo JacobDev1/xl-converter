@@ -258,6 +258,8 @@ class FileView(QTreeWidget):
         if cur_idx.isValid() and cur_idx.row() < self.model().rowCount(cur_idx.parent()) - 1:
             new_idx = self.model().index(cur_idx.row() + 1, cur_idx.column())
             self.setCurrentIndex(new_idx)
+        elif not cur_idx.isValid():
+            self.setCurrentIndex(self.indexFromItem(self.topLevelItem(0)))
     
     def moveIndexUp(self):
         cur_idx = self.currentIndex()
@@ -265,6 +267,8 @@ class FileView(QTreeWidget):
         if cur_idx.isValid() and cur_idx.row() > 0:
             new_idx = self.model().index(cur_idx.row() - 1, cur_idx.column())
             self.setCurrentIndex(new_idx)
+        elif not cur_idx.isValid():
+            self.setCurrentIndex(self.indexFromItem(self.topLevelItem(0)))
 
     def moveIndexToTop(self):
         self.setCurrentIndex(self.model().index(0, 0))
