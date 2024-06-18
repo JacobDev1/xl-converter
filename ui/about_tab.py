@@ -32,8 +32,8 @@ class AboutTab(QWidget):
         credits_l = QLabel(f"""
             <div style='line-height: 120%;'>
             <a href=\"mailto:contact@codepoems.eu\">contact@codepoems.eu</a><br>
-            XL Converter is licensed under <a href=\"{QUrl.fromLocalFile(LICENSE_PATH).toString()}\">GPL v3</a><br>
-            <a href=\"{QUrl.fromLocalFile(LICENSE_3RD_PARTY_PATH).toString()}\">3rd party licenses</a>
+            <a href=\"{QUrl.fromLocalFile(LICENSE_PATH).toString()}\">license</a> / 
+            <a href=\"{QUrl.fromLocalFile(LICENSE_3RD_PARTY_PATH).toString()}\">3rd party</a>
             </div>
         """)
 

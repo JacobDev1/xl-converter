@@ -3,7 +3,7 @@ import json
 import logging
 from typing import Any
 
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QWidget, QLineEdit, QComboBox, QTextEdit, QCheckBox, QRadioButton, QSlider, QSpinBox
 
 from data.constants import CONFIG_LOCATION, VERSION
 
@@ -98,7 +98,7 @@ class WidgetManager():
             return
 
         for widget in self.getWidgetsByTag(tag):
-            if widget.__class__.__name__ in ("QCheckBox", "QRadioBox"):
+            if self._getWidgetSubclass(widget) in ("QCheckBox", "QRadioBox"):
                 widget.setChecked(checked)
 
     # VARIABLES
@@ -143,7 +143,7 @@ class WidgetManager():
             self.error(f"Widget not found ({_id})", "_applyValue")
             return
         
-        widget_class = widget.__class__.__name__
+        widget_class = self._getWidgetSubclass(widget)
 
         # Verify value type
         val_mismatch = False
@@ -183,6 +183,14 @@ class WidgetManager():
             case _:
                 self.error(f"Unsupported widget class ({widget_class})", "_applyValue")
 
+    def _getWidgetSubclass(self, widget) -> str:
+        supported_widgets = (QCheckBox, QSpinBox, QComboBox, QTextEdit, QSlider, QRadioButton, QLineEdit)     # Sorted by popularity
+        
+        for w in supported_widgets:
+            if isinstance(widget, w):
+                return w.__name__
+        return widget.__class__.__name__
+
     # SAVING
 
     def disableAutoSaving(self, *ids: str):
@@ -202,7 +210,7 @@ class WidgetManager():
             if key in self.exceptions:
                 continue
             
-            match self.widgets[key].__class__.__name__:
+            match self._getWidgetSubclass(self.widgets[key]):
                 case "QCheckBox":
                     widget_states[key] = self.widgets[key].isChecked()
                 case "QSlider":

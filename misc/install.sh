@@ -5,7 +5,7 @@ VERSION="0.9"
 install(){
     # Remove older version
     if [ -d "/opt/xl-converter" ]; then
-        sudo rm -rf "/opt/xl-converter"
+        sudo rm -rf "/opt/xl-converter/"
     fi
 
     # Desktop entries
@@ -61,7 +61,7 @@ main(){
 
     read -p "Choice: " choice
 
-    if [ $choice == "1" ]; then
+    if [ "$choice" == "1" ]; then
         check_root_permissions
         install
         post_install

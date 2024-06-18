@@ -2,7 +2,7 @@
     <img src="icons/logo.svg" width="20%">
 <h3 align="center">XL Converter</h3>
 
-Powerful image converter for the latest formats with support for multithreading, drag 'n drop, and downscaling.
+Easy-to-use image converter for modern formats. Supports multithreading, drag 'n drop, and downscaling.
 
 Available for Windows and Linux.
 
@@ -13,52 +13,44 @@ Read the [Manual](https://xl-docs.codepoems.eu)
 
 ## Supported Formats
 
-Encode to **JPEG XL, AVIF, WEBP, and JPG**. Convert from **HEIF** and [more](https://xl-docs.codepoems.eu/supported-formats)
+Encode to **JPEG XL, AVIF, WebP, and JPEG**. Convert from **HEIF, TIFF,** and [more](https://xl-docs.codepoems.eu/supported-formats)
 
 ## Features
 #### Out of the Box
 
 Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
 
+#### JPEGLI
+
+Generate fully compatible JPEGs with up to [35% better compression ratio](https://opensource.googleblog.com/2024/04/introducing-jpegli-new-jpeg-coding-library.html).
+
+#### JPEG XL and AVIF
+
+Achieve exceptional quality at a modest size with JPEG XL and AVIF.
+
 #### Parallel Encoding
 
 Encode images in parallel to speed up the process. Control how much CPU to use during encoding.
 
-#### JPG Reconstruction
+#### Lossless JPEG Recompression
 
-Losslessly transcode JPG to JPEG XL, and reverse the process when needed.
-
-#### Image Proxy
-
-Avoid picky encoders. A proxy is generated when an encoder doesn't support a specific format.
-
-For example, this enables HEIF -> JPEG XL conversion.
+Losslessly transcode JPEG to JPEG XL, and reverse the process when needed.
 
 #### Downscaling
 
-Scale down images to resolution, percent, shortest (and longest) side, or file size.
-
-#### Smallest Lossless
-
-Utilize multiple formats to achieve the smallest size.
-
-#### Intelligent Effort
-
-Optimize `Effort` for smaller sizes.
-
-#### Metadata
-
-Easily copy and wipe metadata using encoder parameters or ExifTool.
-
-#### JPEGLI
-
-Generate the highest quality (regular old) JPGs with JPEGLI. 
+Scale down images to resolution, percent, shortest (and longest) side, or even file size.
 
 ## Bug Reports
 
 You can submit a bug report in 2 ways
 - \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
 - \[private\] Email me at contact@codepoems.eu
+
+### Sharing Files
+
+You can share logs and images with me when making a bug report.
+
+Upload files to a service like [Disroot Lufi](https://upload.disroot.org/) and send me a download link to contact@codepoems.eu
 
 ## Contributions
 
@@ -114,7 +106,7 @@ Install packages.
 
 ```bash
 sudo apt update
-sudo apt install git make
+sudo apt install git make curl
 ```
 
 Install [xcb QPA](https://doc.qt.io/qt-6/linux-requirements.html) dependencies.
@@ -135,7 +127,7 @@ Build and setup Python `3.11.9`.
 
 ```bash
 pyenv install 3.11.9
-pyenv local 3.11.9
+pyenv global 3.11.9
 ```
 
 Clone and set up the repo.
@@ -164,18 +156,14 @@ pip install -r requirements.txt
 Now, you can run it.
 
 ```bash
-make run
+python main.py
 ```
 
-...or build it.
+or build it.
 
 ```bash
-make build
+python build.py
 ```
-
-Extra building modes:
-- `make build-7z` - package to a 7z file (with an installer) (requires `p7zip-full`)
-- `make build-appimage` - package as an AppImage (requires `fuse`)
 
 ### Providing Tool Binaries
 
@@ -190,7 +178,7 @@ Binaries needed:
 - [libavif](https://github.com/AOMediaCodec/libavif) `1.0.4` (AOM `3.8.2`)
     - avifenc
     - avifdec
-- [imagemagick](https://imagemagick.org/) `7.1.1-15 Q16-HDRI`
+- [imagemagick](https://imagemagick.org/) `7.* Q16-HDRI`
     - magick - AppImage for Linux
     - magick.exe - Windows
 - [exiftool](https://exiftool.org/) `12.77`
@@ -202,7 +190,7 @@ Place them in the following directories:
 - `xl-converter\bin\win` for Windows (x86_64) 
 - `xl-converter/bin/linux` for Linux (x86_64) 
 
-All binaries are built statically. The version numbers should match. Binaries on Windows have an `.exe` extension.
+All binaries should be statically linked.
 
 > [!TIP]
 > See the official [XL Converter builds](https://github.com/JacobDev1/xl-converter/releases) for examples.
@@ -236,9 +224,11 @@ Run tests
 python test.py
 ```
 
+You can control which tests to run. Learn more with `python test.py --help`.
+
 ### Deprecated
 
-`test_old.py` is a deprecated, but still accessible test suite focusing on the conversion results.
+`test_old.py` is a deprecated, but still accessible test suite focusing on conversion results.
 
 ```bash
 python test_old.py

@@ -1,6 +1,5 @@
 import os
 import shutil
-import platform
 import copy
 from pathlib import Path
 from typing import Dict
@@ -17,6 +16,7 @@ from send2trash import send2trash
 
 from data.constants import (
     CJXL_PATH,
+    DJXL_PATH,
     CJPEGLI_PATH,
     JPEG_ALIASES,
     AVIFENC_PATH,
@@ -25,13 +25,14 @@ from data.constants import (
 )
 
 from core.proxy import Proxy
-from core.pathing import getUniqueFilePath, getPathGIF, getExtension, getOutputDir, isANSICompatible
+from core.pathing import getUniqueFilePath, getExtension, getOutputDir
 from core.convert import convert, getDecoder, getDecoderArgs, getExtensionJxl, optimize
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
 from core.exceptions import CancellationException, GenericException, FileException
-from core.conflicts import checkForConflicts
+import core.conflicts as conflicts
+from core.utils import getFreeSpaceLeft
 
 class Signals(QObject):
     started = Signal(int)
@@ -81,9 +82,10 @@ class Worker(QRunnable):
         self.scl_params = None
         self.skip = False
         self.jpg_to_jxl_lossless = False
+        self.jpeg_rec_data_found = False      # Reconstruction data found
         self.anchor_path = anchor_path        # keep_dir_struct
     
-    def logException(self, id, msg):
+    def logException(self, id: str, msg: str):
         self.signals.exception.emit(id, msg, str(Path(self.item_abs_path).name))
 
     @Slot()
@@ -102,10 +104,15 @@ class Worker(QRunnable):
                 self.signals.completed.emit(self.n)
                 return
             
-            if self.params["format"] == "Smallest Lossless":
-                self.smallestLossless()
-            else:
-                self.convert()
+            match self.params["format"]:
+                case "Lossless JPEG Recompression":
+                    self.losslesslyRecompressJPEG()
+                case "JPEG Reconstruction":
+                    self.reconstructJPEG()
+                case "Smallest Lossless":
+                    self.smallestLossless()
+                case _:
+                    self.convert()
             
             self.finishConversion()
             self.postConversionRoutines()
@@ -132,15 +139,19 @@ class Worker(QRunnable):
         if os.path.isfile(self.org_item_abs_path) == False:
             raise FileException("C0", "File not found")
 
-        # Check for conflicts - GIFs and APNGs
-        checkForConflicts(
+        # Compatibility
+        conflicts.checkForConflicts(
             self.item_ext,
             self.params["format"],
             self.params["downscaling"]["enabled"],
         )
+        conflicts.checkForMultipage(
+            self.item_ext,
+            self.org_item_abs_path,
+        )
 
     def setupConversion(self):
-        # Choose Output Dir
+        # Get Output Dir
         self.output_dir = getOutputDir(
             self.item_dir,
             self.anchor_path,
@@ -154,28 +165,42 @@ class Worker(QRunnable):
         except OSError as err:
             raise FileException("S0", f"Failed to create output directory. {err}")
 
-        # Assign output paths
-        self.output_ext = getExtension(self.params["format"])
-        if self.params["format"] == "PNG" and self.item_ext == "jxl" and self.params["reconstruct_jpg"]:
-            self.output_ext = getExtensionJxl(self.item_abs_path)  # Reverse JPG reconstruction
+        # Check available space left
+        try:
+            input_size = os.path.getsize(self.org_item_abs_path)
+        except OSError as e:
+            raise FileException("S1", f"Geting file size failed. {e}")
+
+        buffer_space = 10 * 1024 ** 2
+        free_space_left = getFreeSpaceLeft(self.output_dir)
+        if free_space_left <= input_size * 2 + buffer_space and free_space_left != -1:
+            raise FileException("S2", "No space left on device.")
+
+        # Assign output extension
+        if self.params["format"] == "JPEG Reconstruction":
+            if self.item_ext != "jxl":
+                raise FileException("S3", "Only JPEG XL images are allowed.")
+            
+            self.output_ext = getExtensionJxl(self.item_abs_path)
+            self.jpeg_rec_data_found = self.output_ext == "jpg"
+            if not self.jpeg_rec_data_found and not self.params["jxl_png_fallback"]:
+                raise FileException("S4", "Reconstruction data not found.")
+        elif self.params["format"] == "Lossless JPEG Recompression":
+            if self.item_ext not in JPEG_ALIASES:
+                raise FileException("S5", "Only JPEG images are allowed.")
+            self.output_ext = "jxl"
+        else:
+            self.output_ext = getExtension(self.params["format"])
         
-        self.output = None
+        # Assign output path
         with QMutexLocker(self.mutex):
-            self.output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, True)        # Initial self.output
-        self.final_output = os.path.join(self.output_dir, f"{self.item_name}.{self.output_ext}")           # After conversion: self.output -> self.final_output 
-
-        # If file exists - for decoding GIF only
-        if self.item_ext == "gif" and self.params["format"] == "PNG":
-            if self.params["if_file_exists"] == "Skip":
-                self.skip = True
-                return
-
-            self.output = getPathGIF(self.output_dir, self.item_name, self.params["if_file_exists"])
-            self.final_output = self.output
+            self.output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, True)
+        
+        self.final_output = os.path.join(self.output_dir, f"{self.item_name}.{self.output_ext}")
 
         # Skip If needed
         if self.params["if_file_exists"] == "Skip":
-            if os.path.isfile(self.final_output) and self.params["format"] not in ("Smallest Lossless"):
+            if os.path.isfile(self.final_output) and self.params["format"] != "Smallest Lossless":
                 self.skip = True
                 return
 
@@ -183,17 +208,14 @@ class Worker(QRunnable):
         if self.proxy.isProxyNeeded(
             self.params["format"],
             self.item_ext,
-            self.params["jpg_encoder"] == "JPEGLI from JPEG XL",
+            self.settings["jpg_encoder"] == "JPEGLI",
             self.params["downscaling"]["enabled"]
         ):
-            if not self.proxy.generate(self.item_abs_path, self.item_ext, self.output_dir, self.item_name, self.n, self.mutex):
-                raise FileException("S1", f"Proxy could not be generated to {self.proxy.getPath()}")
-            
-            self.item_abs_path = self.proxy.getPath()     # Redirect the source
+            self.item_abs_path = self.proxy.generate(self.item_abs_path, self.item_ext, self.output_dir, self.item_name, self.n, self.mutex)    # Redirect the source
 
         # Setup downscaling params
         if self.params["downscaling"]["enabled"]:
-            self.scl_params = {    # "None" values are assigned later on
+            self.scl_params = {
                 "mode": self.params["downscaling"]["mode"],
                 "enc": None,
                 "format": self.params["format"],    # To recognize intelligent effort
@@ -221,13 +243,16 @@ class Worker(QRunnable):
         # Prepare args
         match format:
             case "JPEG XL":
-                args = ["" for i in range(4)]   # Legacy reasons
+                args = ["" for i in range(4)]   # Legacy
 
                 if self.params["lossless"]:
                     args[0] = "-q 100"
-                    args[2] = "--lossless_jpeg=1"
-                    if self.item_ext in JPEG_ALIASES:
-                        self.jpg_to_jxl_lossless = True
+                    if self.settings["jxl_lossless_jpeg"]:
+                        args[2] = "--lossless_jpeg=1"
+                        if self.item_ext in JPEG_ALIASES:
+                            self.jpg_to_jxl_lossless = True
+                    else:
+                        args[2] = "--lossless_jpeg=0"
                 else:
                     args[0] = f"-q {self.params['quality']}"
                     args[2] = "--lossless_jpeg=0"
@@ -239,9 +264,8 @@ class Worker(QRunnable):
                     self.params["intelligent_effort"] = False
                     args[1] = "-e 9"
 
-                if not self.params["lossless"]:
-                    if self.params["jxl_modular"]:
-                        args.append("--modular=1")
+                if not self.params["lossless"] and self.params["jxl_modular"]:
+                    args.append("--modular=1")
 
                 encoder = CJXL_PATH
             case "AVIF":
@@ -254,8 +278,8 @@ class Worker(QRunnable):
                     args.append(f"-y {self.params['avif_chroma_subsampling'].replace(':', '')}")
 
                 encoder = AVIFENC_PATH
-            case "JPG":
-                if self.params["jpg_encoder"] == "JPEGLI from JPEG XL":
+            case "JPEG":
+                if self.settings["jpg_encoder"] == "JPEGLI":
                     args = [f"-q {self.params['quality']}"]
                     if self.settings["disable_progressive_jpegli"]:
                         args.append("-p 0")
@@ -269,7 +293,7 @@ class Worker(QRunnable):
                         args.append(f"-sampling-factor {self.params['jpg_chroma_subsampling']}")
                     
                     encoder = IMAGE_MAGICK_PATH
-            case "WEBP":
+            case "WebP":
                 args = []
 
                 if self.params["lossless"]:
@@ -279,7 +303,7 @@ class Worker(QRunnable):
                 
                 args.extend([
                     f"-define webp:thread-level={1 if self.available_threads > 1 else 0}",
-                    f"-define webp:method={self.settings['webp_method']}"
+                    f"-define webp:method={self.params['effort']}"
                 ])
 
                 encoder = IMAGE_MAGICK_PATH
@@ -287,7 +311,7 @@ class Worker(QRunnable):
                 encoder = getDecoder(self.item_ext)
                 args = getDecoderArgs(encoder, self.available_threads)
             case _:
-                raise GenericException("C0", f"Unknown Format ({self.params['format']})")
+                raise GenericException("C0", f"Unknown format ({self.params['format']})")
 
         # Prepare metadata
         args.extend(metadata.getArgs(encoder, self.params["misc"]["keep_metadata"], self.jpg_to_jxl_lossless))
@@ -354,91 +378,92 @@ class Worker(QRunnable):
             try:
                 self.proxy.cleanup()
             except OSError as err:
-                raise FileException("F1", f"Failed to delete proxy. {err}")
+                raise FileException("F0", f"Failed to delete proxy. {err}")
             self.item_abs_path = self.org_item_abs_path   # Redirect the source back to original file
         
-        # Check for existing files
         try:
+            if not os.path.isfile(self.output):
+                raise FileException("F2", "Conversion failed (output not found).")
+            if os.path.getsize(self.output) == 0:
+                raise FileException("F3", "Conversion failed (output is empty).")
+            
             with QMutexLocker(self.mutex):
-                if self.item_ext == "gif" and self.params["format"] == "PNG":
-                    pass    # Already handled
-                elif os.path.isfile(self.output):    # Checking if conversion was successful
-                    mode = self.params["if_file_exists"]
-                    
-                    if mode == "Skip" and self.params["format"] == "Smallest Lossless": # Only for "Smallest Lossless", other cases were handled before
-                        if os.path.isfile(self.final_output):
-                            os.remove(self.output)
-                        else:
-                            os.rename(self.output, self.final_output)
+                mode = self.params["if_file_exists"]
+                
+                if self.params["format"] == "Smallest Lossless" and mode == "Skip":
+                    if os.path.isfile(self.final_output):
+                        os.remove(self.output)
                     else:
-                        if mode == "Replace":
-                            if os.path.isfile(self.final_output):
-                                os.remove(self.final_output)
-                        elif mode == "Rename" or mode == "Skip":
-                            self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, False)
-                        
                         os.rename(self.output, self.final_output)
+                else:
+                    if mode == "Replace":
+                        if os.path.isfile(self.final_output):
+                            os.remove(self.final_output)
+                    elif mode == "Rename" or mode == "Skip":
+                        self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, False)
+                    
+                    os.rename(self.output, self.final_output)
         except OSError as err:
-            raise FileException("F0", f"Could not finish conversion. {err}")
+            raise FileException("F1", f"Conversion could not finish. {err}")
 
     def postConversionRoutines(self):
-        if os.path.isfile(self.final_output):    # Checking if renaming was successful
-            
-            # Apply metadata
+        if not os.path.isfile(self.final_output):    # Checking if renaming was successful
+            raise FileException("P2", "Output not found.")
+
+        # Apply metadata
+        if self.params["format"] not in ("Lossless JPEG Recompression", "JPEG Reconstruction"):
             metadata.runExifTool(self.org_item_abs_path, self.final_output, self.params["misc"]["keep_metadata"])
 
-            # Apply attributes
-            try:
-                if self.params["misc"]["attributes"]:
-                    shutil.copystat(self.org_item_abs_path, self.final_output)
-            except OSError as err:
-                raise FileException("P0", f"Failed to apply attributes. {err}")
+        # Apply attributes
+        try:
+            if self.params["misc"]["attributes"]:
+                shutil.copystat(self.org_item_abs_path, self.final_output)
+        except OSError as err:
+            raise FileException("P0", f"Failed to apply attributes. {err}")
 
-            # After Conversion
-            try:
-                if self.params["delete_original"]:
-                    if self.params["delete_original_mode"] == "To Trash":
-                        send2trash(self.org_item_abs_path)
-                    elif self.params["delete_original_mode"] == "Permanently":
-                        os.remove(self.org_item_abs_path)
-            except OSError as err:
-                raise FileException("P1", f"Failed to delete original file. {err}")
-        elif self.item_ext != "gif":        # If conversion failed (GIF naming is handled differently)
-            raise FileException("P2", "Conversion failed, output not found.")
+        # Delete original
+        try:
+            if self.params["delete_original"]:
+                if self.params["delete_original_mode"] == "To Trash":
+                    send2trash(self.org_item_abs_path)
+                elif self.params["delete_original_mode"] == "Permanently":
+                    os.remove(self.org_item_abs_path)
+        except OSError as err:
+            raise FileException("P1", f"Failed to delete original file. {err}")
 
     def smallestLossless(self):
         # Populate path pool
         path_pool = {}
         with QMutexLocker(self.mutex):
-            for key in self.params["smallest_format_pool"]:     # Iterate through formats ("png", "webp", "jxl")
-                if self.params["smallest_format_pool"][key]:    # If format enabled
-                    path_pool[key] = getUniqueFilePath(self.output_dir, self.item_name, key, True) # Add format
+            for key in self.params["smallest_format_pool"]:
+                if self.params["smallest_format_pool"][key]:
+                    path_pool[key] = getUniqueFilePath(self.output_dir, self.item_name, key, True)
 
-        # Check if no formats selected
         if len(path_pool) == 0:
-            raise GenericException("SL0", "No formats selected for Smallest Lossless")
+            raise GenericException("SL0", "No formats selected.")
 
         # Set arguments
-        webp_thread_level = 1 if self.available_threads > 1 else 0
         args = {
             "png": [
                 "-o 4" if self.params["max_compression"] else "-o 2",
                 f"-t {self.available_threads}"
                 ],
             "webp": [
-                f"-define webp:thread-level={webp_thread_level}",
+                f"-define webp:thread-level={1 if self.available_threads > 1 else 0}",
                 "-define webp:method=6",
                 "-define webp:lossless=true"
             ],
             "jxl": [
                 "-q 100",
                 "-e 9" if self.params["max_compression"] else "-e 7",
-                f"--num_threads={self.available_threads}"
+                f"--num_threads={self.available_threads}",
             ]
         }
 
         # Handle metadata
-        self.jpg_to_jxl_lossless = self.item_ext in JPEG_ALIASES
+        if self.settings["jxl_lossless_jpeg"]:
+            self.jpg_to_jxl_lossless = self.item_ext in JPEG_ALIASES
+        args["jxl"].extend([f"--lossless_jpeg={1 if self.jpg_to_jxl_lossless else 0}"])
 
         args["png"].extend(metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
         args["webp"].extend(metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
@@ -446,19 +471,21 @@ class Worker(QRunnable):
 
         # Generate files
         for key in path_pool:
-            if key == "png":
-                try:
-                    shutil.copy(self.item_abs_path, path_pool["png"])
-                except OSError as err:
-                    raise FileException("SL1", err)
-                optimize(OXIPNG_PATH, path_pool["png"], args["png"], self.n)
-            elif key == "webp":
-                convert(IMAGE_MAGICK_PATH, self.item_abs_path, path_pool["webp"], args["webp"], self.n)
-            elif key == "jxl":
-                src = self.item_abs_path
-                if self.item_ext in JPEG_ALIASES:  # Exception for handling JPG reconstruction
-                    src = self.org_item_abs_path
-                convert(CJXL_PATH, src, path_pool["jxl"], args["jxl"], self.n)
+            match key:
+                case "png":
+                    try:
+                        shutil.copy(self.item_abs_path, path_pool["png"])
+                    except OSError as err:
+                        raise FileException("SL1", f"Failed to copy file. {err}")
+                    optimize(OXIPNG_PATH, path_pool["png"], args["png"], self.n)
+                case "webp":
+                    convert(IMAGE_MAGICK_PATH, self.item_abs_path, path_pool["webp"], args["webp"], self.n)
+                case "jxl":
+                    if self.jpg_to_jxl_lossless:
+                        src = self.org_item_abs_path
+                    else:
+                        src = self.item_abs_path
+                    convert(CJXL_PATH, src, path_pool["jxl"], args["jxl"], self.n)
 
         # Get file sizes
         file_sizes = {}
@@ -472,16 +499,11 @@ class Worker(QRunnable):
                     os.remove(path_pool[key])
             except OSError as err:
                 raise FileException("SL3", f"Failed to delete tmp files. {err}")
+            
             raise FileException("SL2", f"Failed to get file sizes. {err}")
 
-        # Get the smallest item
-        sm_f_key = None # Smallest format key
-        for key in path_pool:
-            if sm_f_key == None:
-                sm_f_key = key
-            else:
-                if file_sizes[key] < file_sizes[sm_f_key]:
-                    sm_f_key = key
+        # Get the smallest file
+        sm_f_key = min(path_pool, key=lambda key: file_sizes[key])
 
         # Remove bigger files
         for key in path_pool:
@@ -493,5 +515,16 @@ class Worker(QRunnable):
 
         # Handle the smallest file
         self.output = path_pool[sm_f_key]
-        self.final_output = os.path.join(self.output_dir, f"{self.item_name}.{sm_f_key}")
         self.output_ext = sm_f_key
+        self.final_output = os.path.join(self.output_dir, f"{self.item_name}.{sm_f_key}")
+
+    def losslesslyRecompressJPEG(self):
+        args = [
+            "--lossless_jpeg=1",
+            f"-e {self.params['effort']}",
+            f"--num_threads={self.available_threads}",
+        ]
+        convert(CJXL_PATH, self.item_abs_path, self.output, args, self.n)
+
+    def reconstructJPEG(self):
+        convert(DJXL_PATH, self.org_item_abs_path, self.output, [f"--num_threads={self.available_threads}"], self.n)

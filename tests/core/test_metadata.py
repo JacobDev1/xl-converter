@@ -33,7 +33,7 @@ def test_deleteMetadataUnsafe():
         mock__runExifTool.assert_called_with("-all=", "-overwrite_original", "target.jpg")
 
 @pytest.mark.parametrize("mode,expected_call", [
-    ("ExifTool - Safe Wipe", "deleteMetadata"),
+    ("ExifTool - Wipe", "deleteMetadata"),
     ("ExifTool - Preserve", "copyMetadata"),
     ("ExifTool - Unsafe Wipe", "deleteMetadataUnsafe"),
 ])

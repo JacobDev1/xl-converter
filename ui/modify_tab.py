@@ -4,11 +4,9 @@ from PySide6.QtWidgets import(
     QHBoxLayout,
     QVBoxLayout,
     QPushButton,
-    QComboBox,
     QVBoxLayout,
     QCheckBox,
     QLabel,
-    QSpinBox,
     QGroupBox,
     QSizePolicy,
 )
@@ -20,6 +18,8 @@ from PySide6.QtCore import(
 from data.constants import ALLOWED_RESAMPLING
 from .widget_manager import WidgetManager
 from core.utils import dictToList
+from ui.combobox import ComboBox
+from ui.spinbox import SpinBox
 
 MAX_RES_PX = 999999999
 MAX_FILE_SIZE = 1024**2   # KiB
@@ -48,7 +48,7 @@ class ModifyTab(QWidget):
         # Scale by
         self.mode_hb = QHBoxLayout()
 
-        self.mode_cmb = self.wm.addWidget("mode_cmb", QComboBox())
+        self.mode_cmb = self.wm.addWidget("mode_cmb", ComboBox())
         self.mode_cmb.addItems((
             "Resolution",
             "Percent",
@@ -66,7 +66,7 @@ class ModifyTab(QWidget):
         # Percent
         percent_hb = QHBoxLayout()
         self.percent_l = self.wm.addWidget("percent_l", QLabel("Percent"))
-        self.percent_sb = self.wm.addWidget("percent_sb", QSpinBox())
+        self.percent_sb = self.wm.addWidget("percent_sb", SpinBox())
         
         self.percent_sb.setRange(1, 99)
         self.percent_sb.setSuffix(" %")
@@ -78,7 +78,7 @@ class ModifyTab(QWidget):
         # Resolution - Width
         pixel_w_hb = QHBoxLayout()
         self.pixel_w_l = self.wm.addWidget("pixel_w_l", QLabel("Max Width"))
-        self.pixel_w_sb = self.wm.addWidget("pixel_w_sb", QSpinBox())
+        self.pixel_w_sb = self.wm.addWidget("pixel_w_sb", SpinBox())
 
         self.pixel_w_sb.setRange(1, MAX_RES_PX)
         self.pixel_w_sb.setSuffix(" px")
@@ -90,7 +90,7 @@ class ModifyTab(QWidget):
         # Resolution - Height
         pixel_h_hb = QHBoxLayout()
         self.pixel_h_l = self.wm.addWidget("pixel_h_l", QLabel("Max Height"))
-        self.pixel_h_sb = self.wm.addWidget("pixel_h_sb", QSpinBox())
+        self.pixel_h_sb = self.wm.addWidget("pixel_h_sb", SpinBox())
 
         self.pixel_h_sb.setRange(1, MAX_RES_PX)
         self.pixel_h_sb.setSuffix(" px")
@@ -102,7 +102,7 @@ class ModifyTab(QWidget):
         # File Size
         file_size_hb = QHBoxLayout()
         self.file_size_l = self.wm.addWidget("file_size_l", QLabel("File Size"))
-        self.file_size_sb = self.wm.addWidget("file_size_sb", QSpinBox())
+        self.file_size_sb = self.wm.addWidget("file_size_sb", SpinBox())
 
         self.file_size_sb.setRange(1, MAX_FILE_SIZE)
         self.file_size_sb.setSuffix(" KiB")
@@ -114,7 +114,7 @@ class ModifyTab(QWidget):
         # Longest Side
         longest_hb = QHBoxLayout()
         self.longest_l = self.wm.addWidget("longest_l", QLabel("Max Size"))
-        self.longest_sb = self.wm.addWidget("longest_sb", QSpinBox())
+        self.longest_sb = self.wm.addWidget("longest_sb", SpinBox())
        
         self.longest_sb.setRange(1, MAX_RES_PX)
         self.longest_sb.setSuffix(" px")
@@ -126,7 +126,7 @@ class ModifyTab(QWidget):
         # Shortest Side
         shortest_hb = QHBoxLayout()
         self.shortest_l = self.wm.addWidget("shortest_l", QLabel("Max Size"))
-        self.shortest_sb = self.wm.addWidget("shortest_sb", QSpinBox())
+        self.shortest_sb = self.wm.addWidget("shortest_sb", SpinBox())
 
         self.shortest_sb.setRange(1, MAX_RES_PX)
         self.shortest_sb.setSuffix(" px")
@@ -140,7 +140,7 @@ class ModifyTab(QWidget):
 
         self.resample_l = self.wm.addWidget("resample_l", QLabel("Resample"))
         resample_hb.addWidget(self.resample_l)
-        self.resample_cmb = self.wm.addWidget("resample_cmb", QComboBox())
+        self.resample_cmb = self.wm.addWidget("resample_cmb", ComboBox())
         self.resample_cmb.addItem(("Default"))
         self.resample_cmb.addItems(ALLOWED_RESAMPLING)
         self.resample_visible = False
@@ -160,11 +160,11 @@ class ModifyTab(QWidget):
         # Metadata
         metadata_hb = QHBoxLayout()
         self.metadata_l = self.wm.addWidget("metadata_l", QLabel("Metadata"))
-        self.metadata_cmb = self.wm.addWidget("metadata_cmb", QComboBox())
+        self.metadata_cmb = self.wm.addWidget("metadata_cmb", ComboBox())
         self.metadata_cmb.addItems((
                 "Encoder - Wipe",
                 "Encoder - Preserve",
-                "ExifTool - Safe Wipe",
+                "ExifTool - Wipe",
                 "ExifTool - Preserve",
                 "ExifTool - Unsafe Wipe"
             ))
@@ -184,12 +184,11 @@ class ModifyTab(QWidget):
 
         # Size Policy
         tab_lt.setAlignment(Qt.AlignTop)
+        metadata_hb.setAlignment(Qt.AlignLeft)
 
         downscale_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         misc_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        # Alignment
-        metadata_hb.setAlignment(Qt.AlignLeft)
+        self.metadata_cmb.setMinimumWidth(180)
 
         # WidgetManager Tags
         self.wm.addTags("mode_cmb", "downscale_ui")

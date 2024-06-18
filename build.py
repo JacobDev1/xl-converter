@@ -53,15 +53,6 @@ def move(src, dst):
     except OSError as err:
         print(f"[Error] Moving failed ({src} -> {dst}) ({err})")
 
-def copyTree(src, dst):
-    src = os.path.normpath(src)
-    dst = os.path.normpath(dst)
-
-    try:
-        shutil.copytree(src, dst, dirs_exist_ok=True)
-    except OSError as err:
-        print(f"[Error] Copying tree failed ({src} -> {dst}) ({err})")
-
 def makedirs(path):
     path = os.path.normpath(path)
 
@@ -134,20 +125,16 @@ class Args():
     def __init__(self):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
         self.args = {}
-        self.parser.add_argument("--app-image", "-a", help="package as an AppImage (Linux only)", action="store_true")
-        self.parser.add_argument("--pack", "-p", help="package to a 7z (Linux only)", action="store_true")
+        self.parser.add_argument("--build-type", "-b", help="Defines how to package the binaries. If not specified, vanilla build will be generated.\nPossible values: installer|portable", action="store")
+        self.parser.add_argument("--update-file", "-u", help="Append an update file (to place on a server).", action="store_true")
 
         self._parseArgs()
 
     def _parseArgs(self):
         args = self.parser.parse_args()
-        self.args["app_image"] = args.app_image
-        self.args["pack"] = False if args.app_image else args.pack
+        self.args["build_type"] = args.build_type
+        self.args["update_file"] = args.update_file
 
-        if platform.system() != "Linux":
-            args_app_image = False
-            args_pack = False
-    
     def getArg(self, arg):
         return self.args[arg]
 
@@ -173,9 +160,11 @@ class Builder():
             "Linux": "misc/install.sh"
         }
 
-        self.misc_path = (
+        self.assets = (
             "LICENSE.txt",
-            "LICENSE_3RD_PARTY.txt"
+            "LICENSE_3RD_PARTY.txt",
+            "fonts/",
+            "sounds/",
         )
 
         # Assets
@@ -222,17 +211,29 @@ class Builder():
         self._prepare()
         self._buildBinaries()
         self._copyDependencies()
-        self._appendInstaller()
-        self._appendDesktopEntry()
-        self._appendMisc()
-        self._downloadRedistributable()
-        self._appendUpdateFile()
+        self._copyAssets()
         self._finish()
 
-        if self.args.getArg("app_image"):
-            self._buildAppImage()
-        elif self.args.getArg("pack"):
-            self._build7z()
+        match platform.system():
+            case "Linux":
+                match self.args.getArg("build_type"):
+                    case "installer":
+                        self._appendDesktopEntry()
+                        self._appendInstaller()
+                        self._build7z()
+                    case "portable":
+                        self._appendDesktopEntry()
+                        self._buildAppImage()
+            case "Windows":
+                self.downloader.downloadRedistributable()
+                match self.args.getArg("build_type"):
+                    case "installer":
+                        self._appendInstaller()
+                    case "portable":
+                        print("[Error] Portable build is unavailable on Windows.")
+       
+        if self.args.getArg("update_file"):
+            self._appendUpdateFile()
 
     def _prepare(self):
         rmTree(self.dst_dir)
@@ -247,7 +248,7 @@ class Builder():
                 if last_platform == f"{platform.system()}_{platform.architecture()}":
                     print("[Building] Using previously compiled cache")
                 else:
-                    print("[Building] Platform mismatch - deleting the cache")
+                    print("[Error] Platform mismatch - deleting the cache")
                     rmTree("build")
                     rmTree("__pycache__")
             else:
@@ -266,22 +267,19 @@ class Builder():
     def _copyDependencies(self):
         print("[Building] Copying dependencies")
         bin_dir = self.bin_dir[platform.system()]
-        copyTree(bin_dir, f"{self.internal_dir}/{bin_dir}")
+        shutil.copytree(Path(bin_dir), Path(self.internal_dir, bin_dir))
     
     def _appendInstaller(self):
         installer_dir = self.installer_path[platform.system()]
         installer_file = os.path.basename(installer_dir)
 
+        print("[Building] Appending an installer script")
         match platform.system():
             case "Linux":
-                if self.args.getArg("app_image") == False:
-                    print("[Building] Appending an installer script")
-                    copy(installer_dir, self.dst_dir)
-                    if self.args.getArg("app_image") == False:
-                        print("[Building] Embedding version into an installer script")
-                        replaceLine(f"{self.dst_dir}/{installer_file}", "VERSION=", f"VERSION=\"{VERSION}\"\n")
+                copy(installer_dir, self.dst_dir)
+                print("[Building] Embedding version into an installer script")
+                replaceLine(f"{self.dst_dir}/{installer_file}", "VERSION=", f"VERSION=\"{VERSION}\"\n")
             case "Windows":
-                print("[Building] Appending an installer script")
                 copy(installer_dir, self.dst_dir)
                 print("[Building] Embedding version into an installer script")
                 replaceLine(f"{self.dst_dir}/{installer_file}", "#define MyAppVersion", f"#define MyAppVersion \"{VERSION}\"\n")
@@ -292,19 +290,19 @@ class Builder():
             print("[Building] Appending a desktop entry")
             copy(self.desktop_entry_path, self.dst_dir)
     
-    def _appendMisc(self):
+    def _copyAssets(self):
         print("[Building] Appending assets")
-        for i in self.misc_path:
-            copy(i, self.internal_dir)
+        
+        # Most assets
+        for i in self.assets:
+            if os.path.isdir(Path(i)):
+                shutil.copytree(Path(i), Path(self.internal_dir, Path(i).name))
+            elif os.path.isfile(Path(i)):
+                copy(i, self.internal_dir)
+        
+        # Icons
         makedirs(f"{self.internal_dir}/icons")
         copy(self.icon_svg_path, f"{self.internal_dir}/icons/{os.path.basename(self.icon_svg_path)}")
-        copyTree(self.fonts_path, f"{self.internal_dir}/fonts")
-
-    def _downloadRedistributable(self):
-        if platform.system() != "Windows":
-            return
-
-        self.downloader.downloadRedistributable()
     
     def _appendUpdateFile(self):
         print("[Building] Appending an update file (to place on a server)")
@@ -345,6 +343,9 @@ class Builder():
         subprocess.run((self.appimagetool_path, appdir, f"{self.dst_dir}/{self.build_appimage_name}"))
 
     def _build7z(self):
+        if platform.system() != "Linux":
+            return
+
         dst_direct = self.build_7z_name
         dst = f"{self.dst_dir}/{self.build_7z_name}"
         makedirs(dst)
@@ -352,7 +353,7 @@ class Builder():
         move(f"{self.dst_dir}/{self.project_name}", dst)
         move(f"{self.dst_dir}/{os.path.basename(self.installer_path['Linux'])}", dst)
         move(f"{self.dst_dir}/{os.path.basename(self.desktop_entry_path)}", dst)
-        subprocess.run(("7z", "a", f"{dst_direct}.7z", dst_direct), cwd=self.dst_dir)
+        subprocess.run(("7z", "a", "-snl" , f"{dst_direct}.7z", dst_direct), cwd=self.dst_dir)
     
     def _verifyTools(self):
         match platform.system():
@@ -372,8 +373,8 @@ if __name__ == '__main__':
         builder = Builder()
         builder.build()
     except (KeyboardInterrupt, SystemExit):
-        print("[Building] Interrupted")
+        print("[Canceled] Interrupted")
         exit()
     except (Exception, OSError) as err:
-        print(f"[Building] Error - ({err})")
+        print(f"[Error] {err}")
         exit()

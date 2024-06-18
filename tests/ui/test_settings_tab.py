@@ -21,51 +21,80 @@ def app(qtbot):
 
 @pytest.mark.parametrize("category", ["general", "conversion", "advanced"])
 def test_changeCategory_visibility(category, app, qtbot):
-    general = conversion = advanced = False
-    match category:
-        case "general":
-            qtbot.mouseClick(app.general_btn, Qt.LeftButton)
-            general = True
-        case "conversion":
-            qtbot.mouseClick(app.conversion_btn, Qt.LeftButton)
-            conversion = True
-        case "advanced":
-            qtbot.mouseClick(app.advanced_btn, Qt.LeftButton)
-            advanced = True
-    
-    assert app.dark_theme_cb.isVisibleTo(app) == general
-    assert app.disable_on_startup_l.isVisibleTo(app) == general
-    assert app.disable_downscaling_startup_cb.isVisibleTo(app) == general
-    assert app.disable_delete_startup_cb.isVisibleTo(app) == general
-    assert app.no_exceptions_cb.isVisibleTo(app) == general
-    assert app.no_sorting_cb.isVisibleTo(app) == general
+    tracked_widgets = [
+        "dark_theme_cb",
+        "disable_on_startup_l",
+        "disable_downscaling_startup_cb",
+        "disable_delete_startup_cb",
+        "no_exceptions_cb",
+        "no_sorting_cb",
+        "quality_prec_snap_cb",
+        "play_sound_on_finish_cb",
+        "play_sound_on_finish_vol_l",
+        "play_sound_on_finish_vol_sb",
 
-    assert app.disable_progressive_jpegli_cb.isVisibleTo(app) == conversion
-    assert app.webp_method_l.isVisibleTo(app) == conversion
-    assert app.webp_method_sb.isVisibleTo(app) == conversion
+        "jxl_lossless_jpeg_cb",
+        "jpg_encoder_l",
+        "jpg_encoder_cmb",
+        "disable_progressive_jpegli_cb",
 
-    assert app.enable_jxl_effort_10.isVisibleTo(app) == advanced
-    assert app.custom_resampling_cb.isVisibleTo(app) == advanced
-    assert app.custom_args_cb.isVisibleTo(app) == advanced
-    assert app.avifenc_args_l.isVisibleTo(app) == advanced
-    assert app.avifenc_args_te.isVisibleTo(app) == advanced
-    assert app.cjxl_args_l.isVisibleTo(app) == advanced
-    assert app.cjxl_args_te.isVisibleTo(app) == advanced
-    assert app.cjpegli_args_l.isVisibleTo(app) == advanced
-    assert app.cjpegli_args_te.isVisibleTo(app) == advanced
-    assert app.im_args_l.isVisibleTo(app) == advanced
-    assert app.im_args_te.isVisibleTo(app) == advanced
-    assert app.empty_l.isVisibleTo(app) == advanced
+        "no_exceptions_cb",
+        "enable_jxl_effort_10",
+        "custom_resampling_cb",
+        "custom_args_cb",
+        "avifenc_args_l",
+        "avifenc_args_te",
+        "cjxl_args_l",
+        "cjxl_args_te",
+        "cjpegli_args_l",
+        "cjpegli_args_te",
+        "im_args_l",
+        "im_args_te",
+        "empty_l",
+    ]
 
-def test_changeCategory_category_buttons(app, qtbot):
-    qtbot.mouseClick(app.general_btn, Qt.LeftButton)
-    assert app.general_btn.isChecked()
-    assert app.conversion_btn.isChecked() == False
-    assert app.advanced_btn.isChecked() == False
-    qtbot.mouseClick(app.conversion_btn, Qt.LeftButton)
-    assert app.conversion_btn.isChecked()
-    qtbot.mouseClick(app.advanced_btn, Qt.LeftButton)
-    assert app.advanced_btn.isChecked()
+    visibility = {
+        "general": [
+            "dark_theme_cb",
+            "disable_on_startup_l",
+            "disable_downscaling_startup_cb",
+            "disable_delete_startup_cb",
+            "no_sorting_cb",
+            "quality_prec_snap_cb",
+            "play_sound_on_finish_cb",
+            "play_sound_on_finish_vol_l",
+            "play_sound_on_finish_vol_sb",
+        ],
+        "conversion": [
+            "jxl_lossless_jpeg_cb",
+            "jpg_encoder_l",
+            "jpg_encoder_cmb",
+            "disable_progressive_jpegli_cb",
+        ],
+        "advanced": [
+            "no_exceptions_cb",
+            "enable_jxl_effort_10",
+            "custom_resampling_cb",
+            "custom_args_cb",
+            "avifenc_args_l",
+            "avifenc_args_te",
+            "cjxl_args_l",
+            "cjxl_args_te",
+            "cjpegli_args_l",
+            "cjpegli_args_te",
+            "im_args_l",
+            "im_args_te",
+            "empty_l",
+        ],
+    }
+
+    qtbot.mouseClick(getattr(app, category + "_btn"), Qt.LeftButton)
+    for widget_str in tracked_widgets:
+        widget_p = getattr(app, widget_str, None)
+        if widget_p is None:
+            assert False, f"Widget not found ({widget_str})"
+        assert widget_p.isVisibleTo(app) == ( widget_str in visibility[category] ), \
+            f"Expected {widget_str in visibility[category]} got {widget_p.isVisibleTo(app)} ({widget_str})"
 
 @patch("ui.settings_tab.setTheme")
 def test_setDarkModeEnabled(mock_setTheme, app):
@@ -75,15 +104,9 @@ def test_setDarkModeEnabled(mock_setTheme, app):
     app.dark_theme_cb.setChecked(False)
     assert mock_setTheme.called_once_with("light")
 
-@patch("ui.settings_tab.SettingsTab.blockSignals")
-def test_setExceptionsEnabled(mock_blockSignals, app):
-    app.setExceptionsEnabled(False)
-    mock_blockSignals.assert_has_calls([call(True), call(False)])
-
 @pytest.mark.parametrize("signal_attr, widget_attr", [
     ("custom_resampling", "custom_resampling_cb"),
     ("disable_sorting", "no_sorting_cb"),
-    ("no_exceptions", "no_exceptions_cb"),
     ("enable_jxl_effort_10", "enable_jxl_effort_10"),
 ])
 def test_signals(app, qtbot, signal_attr, widget_attr):
@@ -106,7 +129,6 @@ def test_resetToDefault(app):
     assert app.enable_jxl_effort_10.isChecked() == False
     assert app.custom_resampling_cb.isChecked() == False
     assert app.disable_progressive_jpegli_cb.isChecked() == False
-    assert app.webp_method_sb.value() == 6
 
     assert app.custom_args_cb.isChecked() == False
     assert app.cjxl_args_te.toPlainText() == ""

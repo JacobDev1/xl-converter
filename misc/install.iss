@@ -1,5 +1,4 @@
 ; Inno Setup 6.2.2 script
-; /skip_deps - skips the installation of vc_redist
 
 #define MyAppName "XL Converter"
 #define MyAppVersion "0.9"
@@ -33,6 +32,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+Name: "install_vcredist"; Description: "Install Microsoft Redistributable (required)"; GroupDescription: "Dependencies"
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -43,30 +43,21 @@ Source: "xl-converter\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 Source: "..\misc\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Code]
+procedure CheckTask(TaskName: String; Checked: Boolean);
 var
-  NoDeps: Boolean;
-
-function InitializeSetup: Boolean;
-var
-  i: Integer;
+  TaskIndex: Integer;
 begin
-  NoDeps := False;
-  for i := 1 to ParamCount do
-  begin
-    if ParamStr(i) = '/skip_deps' then
-    begin
-      NoDeps := True;
-      Break;
-    end;
-  end;
-  Result := True;
+  TaskIndex := WizardForm.TasksList.Items.IndexOf(TaskName);
+  if TaskIndex <> -1 then
+    WizardForm.TasksList.Checked[TaskIndex] := Checked;
 end;
 
-function InstallDeps: Boolean;
+procedure CurPageChanged(CurPageID: Integer);
 begin
-  Result := not NoDeps;
+  if CurPageID = wpSelectTasks then
+    CheckTask('Install Microsoft Redistributable (required)', True);
 end;
 
 [Run]
-Filename: "{tmp}\VC_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft Redistributable..."; Check: InstallDeps
+Filename: "{tmp}\VC_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft Redistributable..."; Check: WizardIsTaskSelected('install_vcredist')
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

@@ -1,4 +1,6 @@
+import shutil
 import os
+import logging
 from pathlib import Path
 from typing import List, Any
 
@@ -51,3 +53,12 @@ def clip(val, _min, _max):
         return _min
     else:
         return val
+
+def getFreeSpaceLeft(path: str) -> int:
+    """Returns free space left on the device in bytes, or -1 if it cannot be determined."""
+    try:
+        total, used, free = shutil.disk_usage(path)
+        return free
+    except Exception as e:
+        logging.error(f"[getFreeSpaceLeft] {e}")
+        return -1

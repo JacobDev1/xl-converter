@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QHeaderView,
     QFileDialog,
+    QSpacerItem,
+    QSizePolicy,
 )
 from PySide6.QtCore import (
     Signal,
@@ -25,8 +27,6 @@ from data.constants import ICON_SVG, VERSION
 from ui import Notifications
 
 class ExceptionView(QDialog):
-    dont_show_again = Signal(bool)
-
     def __init__(self, settings, parent=None):
         super(ExceptionView, self).__init__(parent)
         self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
@@ -54,12 +54,14 @@ class ExceptionView(QDialog):
         self.close_btn.clicked.connect(self.close)
         self.save_to_file_btn = QPushButton("Save to File")
         self.save_to_file_btn.clicked.connect(self.saveToFile)
-        self.dont_show_again_cb = QCheckBox("Don't Show Again")
-        self.dont_show_again_cb.toggled.connect(self.dont_show_again.emit)
 
-        btm_lt.addWidget(self.dont_show_again_cb)
+        btm_lt.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum))
         btm_lt.addWidget(self.save_to_file_btn)
         btm_lt.addWidget(self.close_btn)
+
+        btm_lt.setStretch(0, 2)
+        btm_lt.setStretch(1, 1)
+        btm_lt.setStretch(2, 2)
 
         # Layout
         self.main_lt = QVBoxLayout()
@@ -70,18 +72,6 @@ class ExceptionView(QDialog):
         self.setWindowTitle("Exceptions Occured")
         self.setWindowIcon(QIcon(ICON_SVG))
         self.resize(650,300)
-
-        self.table.setStyleSheet("""
-            QTableWidget, QHeaderView { background-color: #202124; }
-            QTableWidget::item:focus {
-                border: none;
-                outline: none;
-            }
-        """)
-        self.table.viewport().setStyleSheet("background-color: #202124;")
-
-        # Apply settings
-        self.dont_show_again_cb.setChecked(settings.get("no_exceptions", False))
 
     def addItem(self, _id, exception, source):
         row_pos = self.table.rowCount()
@@ -158,11 +148,6 @@ class ExceptionView(QDialog):
         header.setSectionResizeMode(1, QHeaderView.Stretch)
         # self.table.setColumnWidth(1, 450)
         self.table.resizeRowsToContents()
-
-    def setDontShowAgain(self, checked):
-        self.blockSignals(True)
-        self.dont_show_again_cb.setChecked(checked)
-        self.blockSignals(False)
     
     def isEmpty(self):
         return self.table.rowCount() == 0

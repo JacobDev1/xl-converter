@@ -18,6 +18,8 @@ def app(qtbot):
             {
                 "disable_delete_startup": False,
                 "enable_jxl_effort_10": False,
+                "enable_quality_precision_snapping": False,
+                "jpg_encoder": "JPEGLI",
             }
         )
         qtbot.addWidget(tab)
@@ -32,9 +34,8 @@ def test_initial_state(app):
     assert settings["max_compression"] == False
     assert settings["effort"] == 7
     assert settings["intelligent_effort"] == False
-    assert settings["reconstruct_jpg"] == True
     assert settings["jxl_modular"] == False
-    assert settings["jpg_encoder"] == "JPEGLI from JPEG XL"
+    assert settings["jxl_png_fallback"] == True
     assert settings["delete_original"] == False
     assert not app.smIsFormatPoolEmpty()
 
@@ -102,55 +103,61 @@ def test_onFormatChange_lossless_toggled(app):
     assert app.quality_sl.isEnabled()
     assert app.quality_sb.isEnabled()
 
-@pytest.mark.parametrize("file_format, int_effort, effort, effort_label, quality, lossless, jxl_modular, jpg_encoder, reconstruct_jpg, smallest_lossless, chroma_subsampling", [
-    ("JPEG XL", True, True, "Effort", True, True, True, False, False, False, False),
-    ("AVIF", False, True, "Speed", True, False, False, False, False, False, True),
-    ("WEBP", False, False, ANY, True, True, False, False, False, False, False),
-    ("JPG", False, False, ANY, True, False, False, True, False, False, True),
-    ("PNG", False, False, ANY, False, False, False, False, True, False, False),
-    ("Smallest Lossless", False, False, ANY, False, False, False, False, False, True, False),
+@pytest.mark.parametrize("file_format, visible_widgets", [
+    ("JPEG XL", ["quality", "int_effort", "effort", "lossless", "jxl_modular"]),
+    ("AVIF", ["quality", "effort", "chroma_subsampling"]),
+    ("WebP", ["quality", "effort", "lossless"]),
+    ("JPEG", ["quality", "chroma_subsampling"]),
+    ("PNG", []),
+    ("Lossless JPEG Recompression", ["effort"]),
+    ("JPEG Reconstruction", ["png_fallback"]),
+    ("Smallest Lossless", ["smallest_lossless"]),
 ])
-def test_onFormatChange_visibility(app, file_format, int_effort, effort, effort_label, quality, lossless, jxl_modular, jpg_encoder, reconstruct_jpg, smallest_lossless, chroma_subsampling):
+def test_onFormatChange_visibility(app, file_format, visible_widgets):
     app.format_cmb.setCurrentIndex(app.format_cmb.findText(file_format))
     assert app.format_cmb.currentText() == file_format
     
     # Effort
-    assert app.int_effort_cb.isVisibleTo(app) == int_effort
+    effort = "effort" in visible_widgets
+    assert app.int_effort_cb.isVisibleTo(app) == ("int_effort" in visible_widgets)
     assert app.effort_sb.isVisibleTo(app) == effort
     assert app.effort_l.isVisibleTo(app) == effort
-    assert app.effort_l.text() == effort_label
     
     # Quality
+    quality = "quality" in visible_widgets
     assert app.quality_l.isVisibleTo(app) == quality
     assert app.quality_sl.isVisibleTo(app) == quality
     assert app.quality_sb.isVisibleTo(app) == quality
     
     # Lossless
-    assert app.lossless_cb.isVisibleTo(app) == lossless
+    assert app.lossless_cb.isVisibleTo(app) == ("lossless" in visible_widgets)
     
     # Misc.
+    jxl_modular = "jxl_modular" in visible_widgets
     assert app.jxl_modular_cb.isVisibleTo(app) == jxl_modular
     assert app.jxl_modular_l.isVisibleTo(app) == jxl_modular
-    assert app.jpg_encoder_l.isVisibleTo(app) == jpg_encoder
-    assert app.jpg_encoder_cmb.isVisibleTo(app) == jpg_encoder
-    assert app.reconstruct_jpg_cb.isVisibleTo(app) == reconstruct_jpg
 
+    chroma_subsampling = "chroma_subsampling" in visible_widgets
     assert app.chroma_subsampling_l.isVisibleTo(app) == chroma_subsampling
-    assert (app.chroma_subsampling_jpegli_cmb.isVisibleTo(app) == chroma_subsampling) or \
-            (app.chroma_subsampling_avif_cmb.isVisibleTo(app) == chroma_subsampling) or \
-            (app.chroma_subsampling_jpg_cmb.isVisibleTo(app) == chroma_subsampling)
+    assert (
+        app.chroma_subsampling_jpegli_cmb.isVisibleTo(app) == chroma_subsampling or
+        app.chroma_subsampling_avif_cmb.isVisibleTo(app) == chroma_subsampling or
+        app.chroma_subsampling_jpg_cmb.isVisibleTo(app) == chroma_subsampling
+    )
 
+    smallest_lossless = "smallest_lossless" in visible_widgets
     assert app.smallest_lossless_png_cb.isVisibleTo(app) == smallest_lossless
     assert app.smallest_lossless_webp_cb.isVisibleTo(app) == smallest_lossless
     assert app.smallest_lossless_jxl_cb.isVisibleTo(app) == smallest_lossless
     assert app.max_compression_cb.isVisibleTo(app) == smallest_lossless
+    assert app.jxl_png_fallback_cb.isVisibleTo(app) == ("png_fallback" in visible_widgets)
 
 def test_onFormatChange_lossless_glitch(app):
     """Tests if an option set in one format affects others."""
     app.lossless_cb.setChecked(True)
     assert not app.quality_sl.isEnabled()
 
-    app.format_cmb.setCurrentIndex(app.format_cmb.findText("WEBP"))
+    app.format_cmb.setCurrentIndex(app.format_cmb.findText("WebP"))
     assert app.quality_sl.isEnabled()
 
     app.format_cmb.setCurrentIndex(app.format_cmb.findText("JPEG XL"))

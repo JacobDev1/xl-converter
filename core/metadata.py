@@ -24,7 +24,7 @@ def deleteMetadataUnsafe(dst):
 def runExifTool(src, dst, mode):
     """ExifTool wrapper."""
     match mode:
-        case "ExifTool - Safe Wipe":
+        case "ExifTool - Wipe":
             deleteMetadata(dst)
         case "ExifTool - Preserve":
             copyMetadata(src, dst)

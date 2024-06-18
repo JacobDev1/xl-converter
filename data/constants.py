@@ -5,7 +5,7 @@ import logging
 
 from core.utils import removeDuplicates
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 VERSION_FILE_URL = "https://codepoems.eu/downloads/xl-converter/version.json"   # Used by UpdateChecker; example in misc/version.json
 
 logging.basicConfig(
@@ -18,9 +18,11 @@ logging.basicConfig(
 # Filled below
 CONFIG_LOCATION = ""
 PROGRAM_FOLDER = sys._MEIPASS if getattr(sys, "frozen", False) else os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-ICON_SVG = os.path.join(PROGRAM_FOLDER, "icons/logo.svg")
 LICENSE_PATH = os.path.join(PROGRAM_FOLDER, "LICENSE.txt")
 LICENSE_3RD_PARTY_PATH = os.path.join(PROGRAM_FOLDER, "LICENSE_3RD_PARTY.txt")
+ICON_SVG = os.path.join(PROGRAM_FOLDER, "icons/logo.svg")
+FONTS_DIR = os.path.join(PROGRAM_FOLDER, "fonts")
+FINISHED_SOUND_PATH = os.path.join(PROGRAM_FOLDER, "sounds/finished.wav")
 
 CJXL_PATH = "cjxl"
 DJXL_PATH = "djxl"

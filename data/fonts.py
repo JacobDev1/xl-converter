@@ -6,7 +6,7 @@ from PySide6.QtGui import (
     QFontDatabase,
 )
 
-from data.constants import PROGRAM_FOLDER
+from data.constants import FONTS_DIR
 
 # Load fonts
 fonts = [
@@ -23,7 +23,7 @@ fonts = [
 def loadFonts():
     """Run after initializing QApplication."""
     for font in fonts:
-        font_id = QFontDatabase.addApplicationFont(str(Path(PROGRAM_FOLDER, "fonts", font)))
+        font_id = QFontDatabase.addApplicationFont(str(Path(FONTS_DIR, font)))
         if font_id == -1:
             logging.error(f"[Fonts] Failed to load {font}")
 

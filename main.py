@@ -13,12 +13,13 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     QThreadPool,
-    QMutex
+    QMutex,
+    QUrl
 )
 from PySide6.QtGui import (
     QIcon,
     QShortcut,
-    QKeySequence
+    QKeySequence,
 )
 
 from data.constants import (
@@ -36,55 +37,51 @@ from ui import (
 )
 from core.worker import Worker
 from core.utils import clip
-from data import Items
-from data import fonts
+from data import Items, fonts
 import data.task_status as task_status
 from data.thread_manager import ThreadManager
 from data.time_left import TimeLeft
+from data.sounds import finished_sound
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowTitle("XL Converter")
         self.setWindowIcon(QIcon(ICON_SVG))
-
-        self.tabs = QTabWidget(self)
         self.setAcceptDrops(True)
-        self.tabs.setFont(fonts.MAIN_TABS)
 
+        # Components
+        self.items = Items()
+        self.time_left = TimeLeft()
+        self.n = Notifications()
         self.threadpool = QThreadPool.globalInstance()
         self.thread_manager = ThreadManager(self.threadpool)
-        self.n = Notifications()
         
-        self.items = Items()
         self.progress_dialog = ProgressDialog(parent=self, title="Converting...", cancelable=True)
         self.progress_dialog.canceled.connect(task_status.cancel)
-        
-        self.time_left = TimeLeft()
         self.time_left.update_time_left.connect(self.progress_dialog.setLabelTextLine2)
 
         # Tabs
+        self.tabs = QTabWidget(self)
+        self.tabs.setFont(fonts.MAIN_TABS)
         self.settings_tab = SettingsTab()
         settings = self.settings_tab.getSettings()
-
         self.input_tab = InputTab(settings)
-        self.input_tab.convert.connect(self.convert)
-        self.settings_tab.signals.disable_sorting.connect(self.input_tab.disableSorting)
-
         self.output_tab = OutputTab(self.threadpool.maxThreadCount(), settings)
-        self.output_tab.convert.connect(self.convert)
-        self.settings_tab.signals.enable_jxl_effort_10.connect(self.output_tab.setJxlEffort10Enabled)
-
         self.modify_tab = ModifyTab(settings)
-        self.modify_tab.convert.connect(self.convert)
-        self.settings_tab.signals.custom_resampling.connect(self.modify_tab.toggleCustomResampling)
-
         self.about_tab = AboutTab()
 
-        # Misc.
+        self.input_tab.convert.connect(self.convert)
+        self.output_tab.convert.connect(self.convert)
+        self.modify_tab.convert.connect(self.convert)
+        self.settings_tab.signals.disable_sorting.connect(self.input_tab.disableSorting)
+        self.settings_tab.signals.enable_jxl_effort_10.connect(self.output_tab.setJxlEffort10Enabled)
+        self.settings_tab.signals.custom_resampling.connect(self.modify_tab.toggleCustomResampling)
+        self.settings_tab.signals.enable_quality_prec_snap.connect(self.output_tab.enableQualityPrecisionSnapping)
+        self.settings_tab.signals.change_jpg_encoder.connect(self.output_tab.onJPGEncoderChanged)
+
+        # Components
         self.exception_view = ExceptionView(settings, parent=self)
-        self.exception_view.dont_show_again.connect(self.settings_tab.setExceptionsEnabled)
-        self.settings_tab.signals.no_exceptions.connect(self.exception_view.setDontShowAgain)
 
         # Size Policy
         self.resize(700, 352)
@@ -135,13 +132,17 @@ class MainWindow(QMainWindow):
 
         logging.debug(f"Active Threads: {self.threadpool.activeThreadCount()}")
 
+        # Finished
         if self.items.getCompletedItemCount() == self.items.getItemCount():
+            settings = self.settings_tab.getSettings()
+
             self.setUIEnabled(True)
             self.progress_dialog.finished()
             self.time_left.stopCounting()
+            if settings["play_sound_on_finish"]:
+                finished_sound.play(volume=settings["play_sound_on_finish_vol"])
 
-            # Post conversion routines
-            if not self.exception_view.isEmpty() and not self.settings_tab.getSettings()["no_exceptions"]:
+            if not self.exception_view.isEmpty() and not settings["no_exceptions"]:
                 self.exception_view.resizeToContent()
                 self.exception_view.show()
             
