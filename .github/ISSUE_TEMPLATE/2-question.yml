@@ -1,0 +1,26 @@
+name: Question
+description: Ask a question
+body:
+  - type: markdown
+    attributes:
+      value: |
+      Make sure to look through [the docs](https://xl-docs.codepoems.eu) first.
+
+      You can reach me directly at: contact@codepoems.eu
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Ask a question.
+    validation:
+      required: true
+
+  - type: checkboxes
+    id: docs
+    attributes:
+      label: The Docs
+      description: Have you read [the docs](https://xl-docs.codepoems.eu)?
+      options:
+        - label: I have read the docs before asking this question.
+          required: true

@@ -1,0 +1,109 @@
+name: Bug Report
+description: File a bug report
+body:
+  - type: markdown
+    attributes:
+      value: |
+      Please, make sure to look through [the docs](https://xl-docs.codepoems.eu) first.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you using? You will find it in the About tab. You should be using the latest version.
+      placeholder: 1.0.0
+    validation:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      description: What operating system are you using?
+      options:
+        - Windows
+        - Linux
+      default: 0
+    validation:
+      required: true
+  
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Description
+      description: Provide a clear and concise description of the bug.
+    validation:
+      required: true
+    
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Write a step-by-step instruction on how to reproduce the issue.
+    validation:
+      required: true
+    
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Result
+      description: Describe what should happen.
+    validation:
+      required: true
+    
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Expected Result
+      description: Describe what happened instead.
+    validation:
+      required: true
+    
+  - type: input
+    id: input-formats
+    attributes:
+      label: Input Formats
+      description: What image formats are you converting from? They are listed in the Input tab.
+      placeholder: TIFF, HEIF
+    validation:
+      required: true
+    
+  - type: input
+    id: output-format
+    attributes:
+      label: Output Format
+      description: What image format are you converting to? It's the value from the format selector.
+      placeholder: JPEG XL or Lossless JPEG Recompression 
+    validation:
+      required: true
+    
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information (Optional)
+      description: Include any other relevant information, such as error messages, or screenshots.
+    validation:
+      required: false
+    
+  - type: markdown
+    id: attachments
+    attributes:
+      values: |
+      ### Attachments (Optional)
+
+      To share files alongside your issue:
+
+      1. Upload your files to [Disroot Lufi](https://upload.disroot.org/) or a similar service.
+      2. Send me an email using the following template:
+
+      ```txt
+      Download link: 
+      GitHub username: 
+      GitHub issue title: 
+      ```
+
+      Email: contact@codepoems.eu
+
+      Sharing exception logs is recommended, but not required. You can also share images if you think that's necessary to reproduce the issue.
+
+      Sharing links is done via email for your privacy.

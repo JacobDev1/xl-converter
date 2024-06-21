@@ -1,0 +1,26 @@
+name: Feature Request
+description: Suggest improvements
+body:
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: A detailed description of a feature or an improvement you would like to see.
+    validation:
+      required: true
+    
+  - type: textarea
+    id: how-it-works
+    attributes:
+      label: Technical Details
+      description: Describe how this feature would work. Include any relevant technical details.
+    validation:
+      required: true
+    
+  - type: textarea
+    id: existing-implementations
+    attributes:
+      label: Existing Implementations
+      description: List at least one program with that feature. Provide examples.
+    validation:
+      required: true

@@ -40,24 +40,6 @@ Losslessly transcode JPEG to JPEG XL, and reverse the process when needed.
 
 Scale down images to resolution, percent, shortest (and longest) side, or even file size.
 
-## Bug Reports
-
-You can submit a bug report in 2 ways
-- \[public\] Submit a new [GitHub Issue](https://github.com/JacobDev1/xl-converter/issues)
-- \[private\] Email me at contact@codepoems.eu
-
-### Sharing Files
-
-You can share logs and images with me when making a bug report.
-
-Upload files to a service like [Disroot Lufi](https://upload.disroot.org/) and send me a download link to contact@codepoems.eu
-
-## Contributions
-
-Pull requests are ignored to avoid licensing issues when reusing the code.
-
-Feel free to make bug reports as contributions.
-
 ## Building from Source
 
 > [!NOTE]
