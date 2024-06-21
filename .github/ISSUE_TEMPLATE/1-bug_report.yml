@@ -88,7 +88,7 @@ body:
   - type: markdown
     id: attachments
     attributes:
-      values: |
+      value: |
         ### Attachments (Optional)
 
         To share files alongside your issue:
