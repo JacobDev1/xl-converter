@@ -4,7 +4,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please, make sure to look through [the docs](https://xl-docs.codepoems.eu) first.
+        #### Before You Start
+
+        Make sure to look through [the docs](https://xl-docs.codepoems.eu) first.
 
   - type: input
     id: version
@@ -86,10 +88,9 @@ body:
       required: false
     
   - type: markdown
-    id: attachments
     attributes:
       value: |
-        ### Attachments (Optional)
+        #### Attachments (Optional)
 
         To share files alongside your issue:
 
