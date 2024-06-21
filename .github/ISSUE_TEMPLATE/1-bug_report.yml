@@ -56,7 +56,7 @@ body:
   - type: textarea
     id: what-happened
     attributes:
-      label: Expected Result
+      label: Current Result
       description: Describe what happened instead.
     validations:
       required: true
