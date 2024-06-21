@@ -4,7 +4,7 @@ body:
   - type: markdown
     attributes:
       value: |
-      Please, make sure to look through [the docs](https://xl-docs.codepoems.eu) first.
+        Please, make sure to look through [the docs](https://xl-docs.codepoems.eu) first.
 
   - type: input
     id: version
@@ -12,7 +12,7 @@ body:
       label: Version
       description: What version are you using? You will find it in the About tab. You should be using the latest version.
       placeholder: 1.0.0
-    validation:
+    validations:
       required: true
 
   - type: dropdown
@@ -24,7 +24,7 @@ body:
         - Windows
         - Linux
       default: 0
-    validation:
+    validations:
       required: true
   
   - type: textarea
@@ -32,7 +32,7 @@ body:
     attributes:
       label: Description
       description: Provide a clear and concise description of the bug.
-    validation:
+    validations:
       required: true
     
   - type: textarea
@@ -40,7 +40,7 @@ body:
     attributes:
       label: Steps to Reproduce
       description: Write a step-by-step instruction on how to reproduce the issue.
-    validation:
+    validations:
       required: true
     
   - type: textarea
@@ -48,7 +48,7 @@ body:
     attributes:
       label: Expected Result
       description: Describe what should happen.
-    validation:
+    validations:
       required: true
     
   - type: textarea
@@ -56,7 +56,7 @@ body:
     attributes:
       label: Expected Result
       description: Describe what happened instead.
-    validation:
+    validations:
       required: true
     
   - type: input
@@ -65,7 +65,7 @@ body:
       label: Input Formats
       description: What image formats are you converting from? They are listed in the Input tab.
       placeholder: TIFF, HEIF
-    validation:
+    validations:
       required: true
     
   - type: input
@@ -74,7 +74,7 @@ body:
       label: Output Format
       description: What image format are you converting to? It's the value from the format selector.
       placeholder: JPEG XL or Lossless JPEG Recompression 
-    validation:
+    validations:
       required: true
     
   - type: textarea
@@ -82,28 +82,28 @@ body:
     attributes:
       label: Additional Information (Optional)
       description: Include any other relevant information, such as error messages, or screenshots.
-    validation:
+    validations:
       required: false
     
   - type: markdown
     id: attachments
     attributes:
       values: |
-      ### Attachments (Optional)
+        ### Attachments (Optional)
 
-      To share files alongside your issue:
+        To share files alongside your issue:
 
-      1. Upload your files to [Disroot Lufi](https://upload.disroot.org/) or a similar service.
-      2. Send me an email using the following template:
+        1. Upload your files to [Disroot Lufi](https://upload.disroot.org/) or a similar service.
+        2. Send me an email using the following template:
 
-      ```txt
-      Download link: 
-      GitHub username: 
-      GitHub issue title: 
-      ```
+        ```txt
+        Download link: 
+        GitHub username: 
+        GitHub issue title: 
+        ```
 
-      Email: contact@codepoems.eu
+        Email: contact@codepoems.eu
 
-      Sharing exception logs is recommended, but not required. You can also share images if you think that's necessary to reproduce the issue.
+        Sharing exception logs is recommended, but not required. You can also share images if you think that's necessary to reproduce the issue.
 
-      Sharing links is done via email for your privacy.
+        Sharing links is done via email for your privacy.

@@ -6,7 +6,7 @@ body:
     attributes:
       label: Feature Description
       description: A detailed description of a feature or an improvement you would like to see.
-    validation:
+    validations:
       required: true
     
   - type: textarea
@@ -14,7 +14,7 @@ body:
     attributes:
       label: Technical Details
       description: Describe how this feature would work. Include any relevant technical details.
-    validation:
+    validations:
       required: true
     
   - type: textarea
@@ -22,5 +22,5 @@ body:
     attributes:
       label: Existing Implementations
       description: List at least one program with that feature. Provide examples.
-    validation:
+    validations:
       required: true
