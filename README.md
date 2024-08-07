@@ -16,10 +16,6 @@ Read the [Manual](https://xl-docs.codepoems.eu)
 Encode to **JPEG XL, AVIF, WebP, and JPEG**. Convert from **HEIF, TIFF,** and [more](https://xl-docs.codepoems.eu/supported-formats)
 
 ## Features
-#### Out of the Box
-
-Just drop your images and convert. XL Converter works out of the box with no setup or steep learning curve. It prioritizes user experience while granting access to cutting-edge technology.
-
 #### JPEGLI
 
 Generate fully compatible JPEGs with up to [35% better compression ratio](https://opensource.googleblog.com/2024/04/introducing-jpegli-new-jpeg-coding-library.html).
@@ -30,7 +26,7 @@ Achieve exceptional quality at a modest size with JPEG XL and AVIF.
 
 #### Parallel Encoding
 
-Encode images in parallel to speed up the process. Control how much CPU to use during encoding.
+Encode images in parallel to speed up the process. Control how many threads to use for encoding.
 
 #### Lossless JPEG Recompression
 
@@ -48,8 +44,8 @@ Scale down images to resolution, percent, shortest (and longest) side, or even f
 ### Windows 10
 
 Install:
-- Python `3.11.9` (with `pip`)
-- `git`
+- [Python 3.11.9](https://python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe) (check `Add python.exe to PATH`)
+- [git](https://git-scm.com/)
 
 Clone the repo.
 
@@ -63,8 +59,8 @@ cd xl-converter
 Setup `venv`.
 
 ```cmd
-python -m venv env
-env\Scripts\activate.bat
+python -m venv env_build
+env_build\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
@@ -88,7 +84,7 @@ Install packages.
 
 ```bash
 sudo apt update
-sudo apt install git make curl
+sudo apt install git make curl fuse p7z-full
 ```
 
 Install [xcb QPA](https://doc.qt.io/qt-6/linux-requirements.html) dependencies.
@@ -125,8 +121,8 @@ cd xl-converter
 Create and activate a virtual environment.
 
 ```bash
-python3 -m venv env
-source env/bin/activate
+python -m venv env_build
+source env_build/bin/activate
 ```
 
 Install Python dependencies
@@ -151,31 +147,40 @@ python build.py
 
 To build XL Converter, you need to provide various binaries. This can be quite challenging.
 
-Binaries needed:
-- [libjxl](https://github.com/libjxl/libjxl) `0.10.2` ([with this patch on Windows](https://github.com/JacobDev1/libjxl-utf8))
-    - cjxl
-    - djxl
-    - jxlinfo
-    - cjpegli
-- [libavif](https://github.com/AOMediaCodec/libavif) `1.0.4` (AOM `3.8.2`)
-    - avifenc
-    - avifdec
-- [imagemagick](https://imagemagick.org/) `7.* Q16-HDRI`
-    - magick - AppImage for Linux
-    - magick.exe - Windows
-- [exiftool](https://exiftool.org/) `12.77`
-    - exiftool.exe - Windows
-    - exiftool - standalone Perl build
-- [oxipng](https://github.com/shssoichiro/oxipng) `0.9.0`
-
-Place them in the following directories:
-- `xl-converter\bin\win` for Windows (x86_64) 
-- `xl-converter/bin/linux` for Linux (x86_64) 
-
-All binaries should be statically linked.
-
 > [!TIP]
-> See the official [XL Converter builds](https://github.com/JacobDev1/xl-converter/releases) for examples.
+> Use [the official builds](https://github.com/JacobDev1/xl-converter/releases) as a reference.
+
+Libraries:
+- [libjxl](https://github.com/libjxl/libjxl) `v0.10.2`
+- [libavif](https://github.com/AOMediaCodec/libavif) `v1.0.4` (AOM `3.9.1`)
+- [imagemagick](https://imagemagick.org/) `7.* Q16-HDRI`
+- [exiftool](https://exiftool.org/) `12.92`
+- [oxipng](https://github.com/shssoichiro/oxipng) `v0.9.2`
+
+#### Linux (x86_64)
+
+The following static binaries are required:
+- libjxl - cjxl, djxl, jxlinfo, cjpegli
+- libavif - avifenc, avifdec
+- imagemagick - magick (AppImage)
+- oxipng - oxipng
+
+Move them to `xl-converter/bin/linux`.
+
+#### Windows (x86_64)
+
+The following static binaries are required:
+- libjxl - cjxl.exe, djxl.exe, jxlinfo.exe, cjpegli.exe
+- libavif - avifenc.exe, avifdec.exe
+- imagemagick - magick.exe
+- oxipng - oxipng.exe
+- ExifTool - folder named `exiftool\` with `exiftool.exe` and `exiftool_files\`
+
+Move them to `xl-converter\bin\win`.
+
+> [!NOTE]
+> `libjxl` does not feature UTF-8 support on Windows.
+> To enable it, embed [this manifest](https://github.com/AOMediaCodec/libavif/blob/3ec01cefd1ddd266a622d5e114a0888581b68f4a/apps/utf8.manifest) into each EXE with `mt.exe` from Visual Studio.
 
 ## Info
 
@@ -194,8 +199,8 @@ All binaries should be statically linked.
 Create a test environment.
 
 ```bash
-python3 -m venv env_test
-source env/bin/activate
+python -m venv env_dev
+source env_dev/bin/activate
 pip install -r requirements.txt
 pip install -r requirements_test.txt
 ```

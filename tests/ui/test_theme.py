@@ -6,7 +6,7 @@ import pytest
 from ui.theme import setTheme
 
 @pytest.mark.parametrize("theme, expected_args, expected_kwargs", [
-    ("dark", (), {"corner_shape": "sharp", "custom_colors": {"primary":"#F18000"}}),
+    ("dark", ("dark",), {"corner_shape": "sharp", "custom_colors": {"primary":"#F18000"}}),
     ("light", ("light",), {"corner_shape": "sharp", "custom_colors": {"primary":"#EF7202"}}),
 ])
 def test_setTheme(theme, expected_args, expected_kwargs):

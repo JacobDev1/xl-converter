@@ -13,30 +13,36 @@ def _getStartupInfo():
 
 def runProcess(*cmd, cwd=None):
     """Run process."""
-    logging.info(f"Running command: {cmd}")
+    logging.info(f"[runProcess] {cmd}")
 
     process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo(), cwd=cwd)
     
     try:
         if process.stdout:
-            logging.debug(process.stdout.decode())
+            logging.debug(f"[runProcess] {process.stdout.decode('utf-8')}")
         if process.stderr:
-            logging.debug(process.stderr.decode())
+            logging.debug(f"[runProcess] {process.stderr.decode('utf-8')}")
     except Exception as err:
-        logging.error(f"Failed to decode process output. {err}")
+        logging.error(f"[runProcess] Failed to decode process output. {err}")
 
-def runProcessOutput(*cmd):
-    """Run process then return its output."""
-    logging.info(f"Running command with output: {cmd}")
+def runProcessOutput(*cmd, cwd=None) -> (str, str):
+    """Run process then return its output.
+    
+    Output: (stdout, stderr)
+    """
+    logging.info(f"[runProcessOutput] {cmd}")
 
-    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, startupinfo=_getStartupInfo())
+    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo(), cwd=cwd)
 
     try:
+        stdout, stderr = "", ""
         if process.stdout:
-            logging.debug(process.stdout.decode())
+            stdout = process.stdout.decode("utf-8")
+            logging.debug(f"[runProcessOutput] {stdout}")
         if process.stderr:
-            logging.debug(process.stderr.decode())    
+            stderr = process.stderr.decode("utf-8")
+            logging.debug(f"[runProcessOutput] {stderr}")
     except Exception as err:
         logging.error(f"Failed to decode process output. {err}")
 
-    return process.stdout
+    return (stdout, stderr)

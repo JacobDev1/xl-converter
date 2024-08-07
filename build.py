@@ -125,7 +125,14 @@ class Args():
     def __init__(self):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
         self.args = {}
-        self.parser.add_argument("--build-type", "-b", help="Defines how to package the binaries. If not specified, vanilla build will be generated.\nPossible values: installer|portable", action="store")
+        self.parser.add_argument("--build-type", "-b",
+                help="""Type of build to generate.
+not specified: vanilla build.
+sh (Linux only): 7z archive with an installer script.
+appimage (Linux only): an AppImage build.
+innosetup (Windows only): an InnoSetup script and build ready to compile.""",
+                action="store"
+        )
         self.parser.add_argument("--update-file", "-u", help="Append an update file (to place on a server).", action="store_true")
 
         self._parseArgs()
@@ -187,7 +194,7 @@ class Builder():
             "cjpegli.exe",
             "avifenc.exe",
             "avifdec.exe",
-            "exiftool.exe",
+            "exiftool",
             "magick.exe",
         ]
         self.tools_linux = [
@@ -197,7 +204,6 @@ class Builder():
             "cjpegli",
             "avifenc",
             "avifdec",
-            "exiftool",
             "magick",
         ]
         
@@ -217,20 +223,20 @@ class Builder():
         match platform.system():
             case "Linux":
                 match self.args.getArg("build_type"):
-                    case "installer":
+                    case "sh":
                         self._appendDesktopEntry()
                         self._appendInstaller()
                         self._build7z()
-                    case "portable":
+                    case "appimage":
                         self._appendDesktopEntry()
                         self._buildAppImage()
             case "Windows":
                 self.downloader.downloadRedistributable()
                 match self.args.getArg("build_type"):
-                    case "installer":
+                    case "innosetup":
                         self._appendInstaller()
-                    case "portable":
-                        print("[Error] Portable build is unavailable on Windows.")
+                    # case "portable":
+                    #     print("[Error] Portable build is unavailable on Windows.")
        
         if self.args.getArg("update_file"):
             self._appendUpdateFile()
@@ -372,8 +378,10 @@ if __name__ == '__main__':
     try:
         builder = Builder()
         builder.build()
-    except (KeyboardInterrupt, SystemExit):
+    except (KeyboardInterrupt):
         print("[Canceled] Interrupted")
+        exit()
+    except SystemExit:
         exit()
     except (Exception, OSError) as err:
         print(f"[Error] {err}")

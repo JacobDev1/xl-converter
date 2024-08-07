@@ -3,6 +3,7 @@ import sys
 import shutil
 import hashlib
 from pathlib import Path
+import platform
 
 from PySide6.QtGui import (
     QDropEvent,
@@ -302,18 +303,12 @@ class TestMainWindow(unittest.TestCase):
             AVIFDEC_PATH,
             OXIPNG_PATH,
             EXIFTOOL_PATH,
-            Path(EXIFTOOL_FOLDER_PATH) / EXIFTOOL_BIN_NAME,
-        )
-
-        DIRS = (
-            EXIFTOOL_FOLDER_PATH,   # Trailing comma is very important here
         )
 
         for i in FILES:
+            if platform.system() == "Linux" and i == EXIFTOOL_PATH:
+                continue
             assert Path(i).is_file(), f"File not found ({i})"
-
-        for i in DIRS:
-            assert Path(i).is_dir(), f"Dir not found ({i})"
 
     def test_clear_list(self):
         self.app.add_items(self.data.get_sample_imgs())
@@ -447,7 +442,7 @@ class TestMainWindow(unittest.TestCase):
         self.app.convert_preset(self.data.get_sample_img(), self.data.get_tmp_folder_path(), "JPEG")
 
         files = self.data.get_tmp_folder_content()
-        assert files[0].stat().st_size != files[1].stat().st_size, "No change detected"
+        assert files[0].stat().st_size != files[1].stat().st_size, "No change detected" # This is expected to fail if your Windows username contains Unicode specific characters. See core/metadata.py for more info.
 
     def test_downscaling_resolution(self):
         self.app.set_downscaling_mode("Resolution", width = 100, height = 2000)

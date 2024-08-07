@@ -3,6 +3,7 @@ import shutil
 import copy
 from pathlib import Path
 from typing import Dict
+import platform
 
 from PySide6.QtCore import (
     QRunnable,
@@ -78,11 +79,13 @@ class Worker(QRunnable):
         self.output_ext = None
         self.final_output = None 
 
-        # Misc.
-        self.scl_params = None
+        # Flags
         self.skip = False
         self.jpg_to_jxl_lossless = False
         self.jpeg_rec_data_found = False      # Reconstruction data found
+
+        # Misc.
+        self.scl_params = None
         self.anchor_path = anchor_path        # keep_dir_struct
     
     def logException(self, id: str, msg: str):
@@ -372,7 +375,31 @@ class Worker(QRunnable):
                     raise FileException("C2", err)
             else:   # Regular conversion
                 convert(encoder, self.item_abs_path, self.output, args, self.n)
-        
+    
+    def runExifTool(self):
+        # Apply metadata (ExifTool)
+        if (
+            self.params["format"] not in ("Lossless JPEG Recompression", "JPEG Reconstruction") and
+            self.params["misc"]["keep_metadata"].startswith("ExifTool")
+        ):
+            exiftool_available = metadata.isExifToolAvailable()
+            if exiftool_available[0] == False:
+                self.logException("E0", exiftool_available[1])
+            else:
+                cur_mode = self.params["misc"]["keep_metadata"]
+                try:
+                    et_args = self.settings["exiftool_args"][cur_mode].strip().split(" ")
+                    if len(et_args) == 1 and et_args[0] == "":
+                        self.logException("E1", f"Argument list for \"{cur_mode}\" is empty.\nPlease add arguments in Settings -> Advanced -> ExifTool Arguments")
+                    else:
+                        metadata.runExifTool(
+                            self.org_item_abs_path,
+                            self.output,
+                            et_args,
+                        )
+                except KeyError as e:
+                    self.logException("E2", f"ExifTool mode not mapped. {e}")
+
     def finishConversion(self):
         if self.proxy.proxyExists():
             try:
@@ -382,11 +409,16 @@ class Worker(QRunnable):
             self.item_abs_path = self.org_item_abs_path   # Redirect the source back to original file
         
         try:
+            # Checks
             if not os.path.isfile(self.output):
                 raise FileException("F2", "Conversion failed (output not found).")
             if os.path.getsize(self.output) == 0:
                 raise FileException("F3", "Conversion failed (output is empty).")
             
+            # Apply metadata
+            self.runExifTool()  # before getsize()
+
+            # Rename / remove
             with QMutexLocker(self.mutex):
                 mode = self.params["if_file_exists"]
                 
@@ -397,22 +429,35 @@ class Worker(QRunnable):
                         os.rename(self.output, self.final_output)
                 else:
                     if mode == "Replace":
-                        if os.path.isfile(self.final_output):
-                            os.remove(self.final_output)
+                        if (
+                            (self.settings["keep_if_larger"] or self.settings["copy_if_larger"]) and
+                            os.path.getsize(self.org_item_abs_path) < os.path.getsize(self.output) and
+                            os.path.samefile(self.org_item_abs_path, self.final_output)
+                        ):
+                            self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, False)
+                        else:
+                            if os.path.isfile(self.final_output):
+                                os.remove(self.final_output)
                     elif mode == "Rename" or mode == "Skip":
                         self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext, False)
                     
                     os.rename(self.output, self.final_output)
+
+                # Copy original
+                if (
+                    self.settings["copy_if_larger"] and
+                    os.path.getsize(self.org_item_abs_path) < os.path.getsize(self.final_output) and
+                    self.params["format"] not in ("Lossless JPEG Recompression", "JPEG Reconstruction")
+                ):
+                    os.remove(self.final_output)
+                    self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.item_ext, False)
+                    shutil.copy(self.org_item_abs_path, self.final_output)
         except OSError as err:
             raise FileException("F1", f"Conversion could not finish. {err}")
 
     def postConversionRoutines(self):
         if not os.path.isfile(self.final_output):    # Checking if renaming was successful
             raise FileException("P2", "Output not found.")
-
-        # Apply metadata
-        if self.params["format"] not in ("Lossless JPEG Recompression", "JPEG Reconstruction"):
-            metadata.runExifTool(self.org_item_abs_path, self.final_output, self.params["misc"]["keep_metadata"])
 
         # Apply attributes
         try:
@@ -422,14 +467,15 @@ class Worker(QRunnable):
             raise FileException("P0", f"Failed to apply attributes. {err}")
 
         # Delete original
-        try:
-            if self.params["delete_original"]:
-                if self.params["delete_original_mode"] == "To Trash":
-                    send2trash(self.org_item_abs_path)
-                elif self.params["delete_original_mode"] == "Permanently":
-                    os.remove(self.org_item_abs_path)
-        except OSError as err:
-            raise FileException("P1", f"Failed to delete original file. {err}")
+        if not self.settings["keep_if_larger"] or os.path.getsize(self.org_item_abs_path) > os.path.getsize(self.final_output):
+            try:
+                if self.params["delete_original"]:
+                    if self.params["delete_original_mode"] == "To Trash":
+                        send2trash(self.org_item_abs_path)
+                    elif self.params["delete_original_mode"] == "Permanently":
+                        os.remove(self.org_item_abs_path)
+            except OSError as err:
+                raise FileException("P1", f"Failed to delete original file. {err}")
 
     def smallestLossless(self):
         # Populate path pool

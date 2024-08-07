@@ -42,6 +42,7 @@ import data.task_status as task_status
 from data.thread_manager import ThreadManager
 from data.time_left import TimeLeft
 from data.sounds import finished_sound
+from data.logging_manager import LoggingManager
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -51,9 +52,10 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
 
         # Components
+        LoggingManager()    # init singleton
         self.items = Items()
         self.time_left = TimeLeft()
-        self.n = Notifications()
+        self.n = Notifications(self)
         self.threadpool = QThreadPool.globalInstance()
         self.thread_manager = ThreadManager(self.threadpool)
         
@@ -90,7 +92,6 @@ class MainWindow(QMainWindow):
         MAX_HEIGHT = 320
         self.output_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
         self.modify_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
-        self.settings_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
         self.about_tab.setMaximumSize(MAX_WIDTH, MAX_HEIGHT)
 
         # Layout
@@ -178,8 +179,11 @@ class MainWindow(QMainWindow):
             return False
 
         # Check If Downscaling Allowed
-        if params["downscaling"]["enabled"] and params["format"] == "Smallest Lossless":
-            self.n.notify("Downscaling Disabled", "Downscaling was set to disabled,\nbecause it's not available for Smallest Lossless")
+        if (
+            params["downscaling"]["enabled"] and
+            params["format"] in ("Smallest Lossless", "Lossless JPEG Recompression", "JPEG Reconstruction")
+        ):
+            self.n.notify("Downscaling Disabled", f"Downscaling was set to disabled,\nbecause it's not available for {params['format']}.")
             params["downscaling"]["enabled"] = False
             self.modify_tab.disableDownscaling()
         
@@ -217,7 +221,8 @@ class MainWindow(QMainWindow):
         self.thread_manager.configure(
             params["format"],
             self.items.getItemCount(),
-            self.output_tab.getUsedThreadCount()
+            self.output_tab.getUsedThreadCount(),
+            settings["multithreading_mode"],
         )
 
         # Start workers

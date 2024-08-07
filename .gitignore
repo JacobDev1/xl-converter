@@ -7,6 +7,8 @@ __pycache__
 tmp.py
 /env/
 /env_test/
+/env_dev/
+/env_build/
 /sample_img/
 /unit_tests_tmp/
 /misc/appimagetool

@@ -92,7 +92,13 @@ body:
       value: |
         #### Attachments (Optional)
 
-        To share files alongside your issue:
+        You can share files (such as logs) alongside your issue.
+
+        There are 2 types of logs you can save to file:
+        1. Exception logs (pop up when errors occur)
+        2. Program-wide logs (Settings -> Advanced (at the very bottom) -> Start Logging)
+
+        Sharing files:
 
         1. Upload your files to [Disroot Lufi](https://upload.disroot.org/) or a similar service.
         2. Send me an email using the following template:
@@ -105,6 +111,4 @@ body:
 
         Email: contact@codepoems.eu
 
-        Sharing exception logs is recommended, but not required. You can also share images if you think that's necessary to reproduce the issue.
-
-        Sharing links is done via email for your privacy.
+        Sharing files is done this way to avoid web scrapers.

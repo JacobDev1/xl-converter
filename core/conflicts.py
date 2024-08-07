@@ -38,7 +38,7 @@ def checkForMultipage(src_ext: str, src_abs_path: str) -> None:
     """Raises an exception if an image is multipage."""
     if src_ext in ("tif", "tiff", "heif", "heic"):
         try:
-            layers_re = re.search(r"\d+", runProcessOutput(IMAGE_MAGICK_PATH, "identify", "-format", "%n\n", src_abs_path).decode("utf-8"))
+            layers_re = re.search(r"\d+", runProcessOutput(IMAGE_MAGICK_PATH, "identify", "-format", "%n\n", src_abs_path)[0])
             layers_n = int(layers_re.group(0))
         except Exception:
             raise FileException("CF2", "Cannot detect the number of pages.")

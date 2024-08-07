@@ -28,7 +28,7 @@ class InputTab(QWidget):
     def __init__(self, settings):
         super(InputTab, self).__init__()
         self.file_view = FileView(self)
-        self.notify = Notifications()
+        self.notify = Notifications(self)
 
         # Apply Settings
         self.disableSorting(settings["sorting_disabled"])

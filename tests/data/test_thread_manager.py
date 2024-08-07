@@ -27,6 +27,13 @@ def test_configure_dynamic(thread_manager):
     assert thread_manager.getAvailableThreads(1) == 2
     thread_manager.threadpool.setMaxThreadCount.assert_called_once_with(11)
 
+def test_configure_low_ram(thread_manager):
+    thread_manager.configure("JPEG XL", 5, 11, "Low RAM")
+
+    assert thread_manager.burst_threadpool == []
+    assert thread_manager.getAvailableThreads(0) == 11
+    thread_manager.threadpool.setMaxThreadCount.assert_called_once_with(1)
+
 def test_getAvailableThreads_burst(thread_manager):
     thread_manager.configure("JPEG XL", 5, 10)
     

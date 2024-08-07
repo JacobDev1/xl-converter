@@ -1,6 +1,7 @@
 from unittest.mock import patch
 import sys
 from importlib import reload
+import platform
 
 import pytest
 
@@ -28,9 +29,9 @@ def test_vars_filled(mock_os):
         assert constants.AVIFENC_PATH != "" and constants.AVIFENC_PATH != "avifenc"
         assert constants.AVIFDEC_PATH != "" and constants.AVIFDEC_PATH != "avifdec"
         assert constants.OXIPNG_PATH != "" and constants.OXIPNG_PATH != "oxipng"
-        assert constants.EXIFTOOL_PATH != "" and constants.EXIFTOOL_PATH != "exiftool"
-        assert constants.EXIFTOOL_FOLDER_PATH != ""
-        assert constants.EXIFTOOL_BIN_NAME != ""
+        
+        if platform.system() == "Windows":
+            assert constants.EXIFTOOL_PATH != "" and constants.EXIFTOOL_PATH != "exiftool"
     
     assert len(constants.ALLOWED_INPUT) > 0
 

@@ -1,6 +1,6 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 
 import pytest
 from PySide6.QtCore import QMutex
@@ -62,6 +62,12 @@ def worker():
             "im_args": "",
             "jpg_encoder": "JPEGLI",
             "jxl_lossless_jpeg": False,
+            "copy_if_larger": False,
+            "keep_if_larger": False,
+            "exiftool_args": {
+                "ExifTool - Wipe": "-all= -tagsFromFile @ -icc_profile:all -ColorSpace:all -Orientation $dst -overwrite_original",
+                "ExifTool - Preserve": "-tagsFromFile $src $dst -overwrite_original",
+            },
         },
         4,
         mutex,
@@ -78,6 +84,7 @@ def normalizePath(path: str):
 def getSuffix(path: str):
     return Path(path).suffix[1:]
 
+@contextmanager
 def convert_patches(
     getDecoder_return_value = "sample_decoder",
     getDecoderArgs_return_value = [],
@@ -86,16 +93,18 @@ def convert_patches(
     getsize_side_effect=[300000, 400000]
 ):
     stack = ExitStack()
-    stack.enter_context(patch("core.downscale.downscale"))
-    stack.enter_context(patch("core.worker.convert"))
-    stack.enter_context(patch("core.worker.getDecoder", return_value=getDecoder_return_value))
-    stack.enter_context(patch("core.worker.getDecoderArgs", return_value=getDecoderArgs_return_value))
-    stack.enter_context(patch("core.metadata.getArgs", return_value=metadata_getArgs_return_value))
-    stack.enter_context(patch("core.worker.getUniqueFilePath", side_effect=getUniqueFilePath_side_effect))
-    stack.enter_context(patch("core.worker.os.path.getsize", side_effect=getsize_side_effect))
-    stack.enter_context(patch("core.worker.os.remove"))
-    stack.enter_context(patch("core.worker.os.rename"))
-    return stack
+    with stack:
+        stack.enter_context(patch("core.downscale.downscale"))
+        stack.enter_context(patch("core.worker.convert"))
+        stack.enter_context(patch("core.worker.getDecoder", return_value=getDecoder_return_value))
+        stack.enter_context(patch("core.worker.getDecoderArgs", return_value=getDecoderArgs_return_value))
+        stack.enter_context(patch("core.metadata.getArgs", return_value=metadata_getArgs_return_value))
+        stack.enter_context(patch("core.worker.getUniqueFilePath", side_effect=getUniqueFilePath_side_effect))
+        stack.enter_context(patch("core.worker.os.path.getsize", side_effect=getsize_side_effect))
+        stack.enter_context(patch("core.worker.os.remove"))
+        stack.enter_context(patch("core.worker.os.rename"))
+        
+        yield stack
 
 @pytest.fixture
 def finishConversion_patches():
@@ -594,18 +603,72 @@ def test_postConversionRoutines_no_output(postConversionRoutines_patches, worker
 
     assert "Output not found" in exc.value.msg
 
-@pytest.mark.parametrize("file_format, expected_to_run", [
-    ("JPEG XL", True),
-    ("Lossless JPEG Recompression", False),
-    ("JPEG Reconstruction", False),
-])
-def test_postConversionRoutines_exiftool(
-    file_format, expected_to_run, postConversionRoutines_patches, worker
-):
-    _, mock_runExifTool, *_ = postConversionRoutines_patches
-    worker.params["format"] = file_format
-    worker.postConversionRoutines()
-    assert mock_runExifTool.called == expected_to_run
+@pytest.fixture
+def mock_exiftool_env(worker):
+    worker.params["format"] = "JPEG XL"
+    worker.params["misc"]["keep_metadata"] = "ExifTool - Wipe"
+
+    # with (
+    #     patch("core.worker.metadata.isExifToolAvailable", return_value=(True, "")) as mock_isExifToolAvailable,
+    #     patch("core.worker.metadata.runExifTool") as mock_runExifTool,
+    #     patch("core.worker.Worker.logException") as mock_logException,
+    # ):
+    #     yield worker, {
+    #         "isExifToolAvailable": mock_isExifToolAvailable,
+    #         "runExifTool": mock_runExifTool,
+    #         "logException": mock_logException,
+    #     }
+
+    patches = {
+        "isExifToolAvailable": patch("core.worker.metadata.isExifToolAvailable", return_value=(True, "")),
+        "runExifTool": patch("core.worker.metadata.runExifTool"),
+        "logException": patch("core.worker.Worker.logException"),
+    }
+
+    with ExitStack() as stack:
+        mocks = {name: stack.enter_context(patcher) for name, patcher in patches.items()}
+        yield worker, mocks
+
+def test_runExifTool_happy_path(mock_exiftool_env):
+    worker, mocks = mock_exiftool_env
+
+    worker.runExifTool()
+
+    mocks["runExifTool"].assert_called_once_with(
+        worker.org_item_abs_path,
+        worker.output,
+        worker.settings["exiftool_args"]["ExifTool - Wipe"].strip().split(" "),
+    )
+
+def test_runExifTool_dont_run(mock_exiftool_env):
+    worker, mocks = mock_exiftool_env
+
+    worker.params["format"] = "Lossless JPEG Recompression"
+    worker.runExifTool()
+    mocks["runExifTool"].assert_not_called()
+
+    worker.params["format"] = "JPEG XL"
+    worker.params["misc"]["keep_metadata"] = "Not ExifTool"
+    worker.runExifTool()
+    mocks["runExifTool"].assert_not_called()
+
+def test_runExifTool_not_available(mock_exiftool_env):
+    worker, mocks = mock_exiftool_env
+    mocks["isExifToolAvailable"].return_value = (False, "error msg")
+
+    worker.runExifTool()
+
+    mocks["logException"].assert_called_once()
+    assert "error msg" == mocks["logException"].call_args[0][1]
+
+def test_runExifTool_args_empty(mock_exiftool_env):
+    worker, mocks = mock_exiftool_env
+    worker.settings["exiftool_args"]["ExifTool - Wipe"] = ""
+
+    worker.runExifTool()
+    
+    mocks["logException"].assert_called_once()
+    assert "Argument list for \"ExifTool - Wipe\" is empty." in mocks["logException"].call_args[0][1]
 
 @pytest.mark.parametrize("attributes", [True, False])
 def test_postConversionRoutines_attributes(attributes, postConversionRoutines_patches, worker):

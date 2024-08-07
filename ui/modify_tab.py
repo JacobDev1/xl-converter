@@ -1,3 +1,5 @@
+import platform
+
 from PySide6.QtWidgets import(
     QWidget,
     QGridLayout,
@@ -20,6 +22,8 @@ from .widget_manager import WidgetManager
 from core.utils import dictToList
 from ui.combobox import ComboBox
 from ui.spinbox import SpinBox
+from ui.utils import setToolTip
+from data.tooltips import TOOLTIPS
 
 MAX_RES_PX = 999999999
 MAX_FILE_SIZE = 1024**2   # KiB
@@ -166,7 +170,8 @@ class ModifyTab(QWidget):
                 "Encoder - Preserve",
                 "ExifTool - Wipe",
                 "ExifTool - Preserve",
-                "ExifTool - Unsafe Wipe"
+                "ExifTool - Unsafe Wipe",
+                "ExifTool - Custom"
             ))
 
         metadata_hb.addWidget(self.metadata_l)
@@ -219,6 +224,7 @@ class ModifyTab(QWidget):
         self.toggleDownscaleUI(False)
         self.wm.loadState()
         self.onModeChanged()
+        self.setToolTips()
 
         # Apply Settings
         if settings["disable_downscaling_startup"]:
@@ -235,6 +241,16 @@ class ModifyTab(QWidget):
     def disableDownscaling(self):
         self.downscale_cb.setChecked(False)
     
+    def setToolTips(self):
+        setToolTip(TOOLTIPS["metadata"], self.metadata_cmb)
+        if platform.system() == "Linux":
+            setToolTip(TOOLTIPS["date_time_linux"], self.date_time_cb)
+        else:
+            setToolTip(TOOLTIPS["date_time"], self.date_time_cb)
+        setToolTip(TOOLTIPS["downscaling"], self.downscale_cb)
+        setToolTip(TOOLTIPS["downscaling_file_size"], self.file_size_sb)
+        setToolTip(TOOLTIPS["downscaling_percent"], self.percent_sb)
+
     def resetToDefault(self):
         self.disableDownscaling()
         self.metadata_cmb.setCurrentIndex(0)

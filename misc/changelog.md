@@ -1,3 +1,23 @@
+## 1.0.2 - 2024-08-07
+
+- Added tooltips
+- Added an option to copy original when output is larger (#45)
+- Added an option to prevent deleting original when output is larger (#45)
+- Added logging to file
+- Added custom ExifTool arguments
+- Added low RAM mode (#49)
+- Fixed UTF-8 support in ExifTool (Windows) (#46)
+- Fixed ExifTool handling of JPEG XL (Linux)
+- Fixed menu entry disappearing after an update (Linux)
+- Fixed UI bug with multiple chroma subsampling options appearing 
+- Set Windows installer to always show dir page
+- Improved sound handling
+- Improved settings tab scaling
+- Switched to the system-provided ExifTool on Linux 
+- Updated ExifTool on Windows to `12.92`
+- Updated `libavif` to `1.1.1`
+- Updated `libaom` to `3.9.1`
+- Updated OxiPNG to `0.9.2`
 
 ## 1.0.1 - 2024-06-18
 

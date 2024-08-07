@@ -22,11 +22,11 @@ def test_optimize():
         mock_runProcess.assert_called_once_with("path/to/optimizer", "-o", "4", "target.png")
 
 def test_getExtensionJxl_jpg():
-    with patch("core.convert.runProcessOutput", return_value=b"JPEG bitstream reconstruction data available"):
+    with patch("core.convert.runProcessOutput", return_value=("JPEG bitstream reconstruction data available", "")):
         assert convert.getExtensionJxl("src.jxl") == "jpg"
 
 def test_getExtensionJxl_png():
-    with patch("core.convert.runProcessOutput", return_value=b""):
+    with patch("core.convert.runProcessOutput", return_value=("", "")):
         assert convert.getExtensionJxl("src.jxl") == "png"
 
 def test_parseArgs():

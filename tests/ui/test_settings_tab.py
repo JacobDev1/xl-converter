@@ -21,72 +21,42 @@ def app(qtbot):
 
 @pytest.mark.parametrize("category", ["general", "conversion", "advanced"])
 def test_changeCategory_visibility(category, app, qtbot):
-    tracked_widgets = [
-        "dark_theme_cb",
-        "disable_on_startup_l",
-        "disable_downscaling_startup_cb",
-        "disable_delete_startup_cb",
-        "no_exceptions_cb",
-        "no_sorting_cb",
-        "quality_prec_snap_cb",
-        "play_sound_on_finish_cb",
-        "play_sound_on_finish_vol_l",
-        "play_sound_on_finish_vol_sb",
-
-        "jxl_lossless_jpeg_cb",
-        "jpg_encoder_l",
-        "jpg_encoder_cmb",
-        "disable_progressive_jpegli_cb",
-
-        "no_exceptions_cb",
-        "enable_jxl_effort_10",
-        "custom_resampling_cb",
-        "custom_args_cb",
-        "avifenc_args_l",
-        "avifenc_args_te",
-        "cjxl_args_l",
-        "cjxl_args_te",
-        "cjpegli_args_l",
-        "cjpegli_args_te",
-        "im_args_l",
-        "im_args_te",
-        "empty_l",
-    ]
-
     visibility = {
         "general": [
             "dark_theme_cb",
-            "disable_on_startup_l",
-            "disable_downscaling_startup_cb",
-            "disable_delete_startup_cb",
+            "disable_on_startup_l", "disable_downscaling_startup_cb", "disable_delete_startup_cb",
             "no_sorting_cb",
             "quality_prec_snap_cb",
-            "play_sound_on_finish_cb",
-            "play_sound_on_finish_vol_l",
-            "play_sound_on_finish_vol_sb",
+            "play_sound_on_finish_cb", "play_sound_on_finish_vol_l", "play_sound_on_finish_vol_sb",
         ],
         "conversion": [
             "jxl_lossless_jpeg_cb",
-            "jpg_encoder_l",
-            "jpg_encoder_cmb",
+            "jpg_encoder_l", "jpg_encoder_cmb",
             "disable_progressive_jpegli_cb",
+            "keep_if_larger_cb",
+            "copy_if_larger_cb",
+            "multithreading_l", "multithreading_cmb",
         ],
         "advanced": [
             "no_exceptions_cb",
             "enable_jxl_effort_10",
             "custom_resampling_cb",
+            "exiftool_l",
+            "exiftool_reset_btn",
+            "exiftool_wipe_l", "exiftool_wipe_te",
+            "exiftool_preserve_l", "exiftool_preserve_te",
+            "exiftool_unsafe_wipe_l", "exiftool_unsafe_wipe_te",
+            "exiftool_custom_l", "exiftool_custom_te",
             "custom_args_cb",
-            "avifenc_args_l",
-            "avifenc_args_te",
-            "cjxl_args_l",
-            "cjxl_args_te",
-            "cjpegli_args_l",
-            "cjpegli_args_te",
-            "im_args_l",
-            "im_args_te",
-            "empty_l",
+            "avifenc_args_l", "avifenc_args_te",
+            "cjxl_args_l", "cjxl_args_te",
+            "cjpegli_args_l", "cjpegli_args_te",
+            "im_args_l", "im_args_te",
+            "start_logging_btn", "open_log_dir_btn", "wipe_log_dir_btn",
         ],
     }
+
+    tracked_widgets = [widget for widgets in visibility.values() for widget in widgets]
 
     qtbot.mouseClick(getattr(app, category + "_btn"), Qt.LeftButton)
     for widget_str in tracked_widgets:

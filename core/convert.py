@@ -32,7 +32,7 @@ def optimize(bin_path, src, args = [], n = None):
 
 def getExtensionJxl(src_path):
     """Assign extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
-    if b"JPEG bitstream reconstruction data available" in runProcessOutput(JXLINFO_PATH, src_path):
+    if "JPEG bitstream reconstruction data available" in runProcessOutput(JXLINFO_PATH, src_path)[0]:
         return "jpg"
     else:
         return "png"

@@ -8,8 +8,8 @@ from PySide6.QtGui import(
 from data.constants import ICON_SVG
 
 class Notifications():
-    def __init__(self):
-        self.dlg = QMessageBox()
+    def __init__(self, parent=None):
+        self.dlg = QMessageBox(parent)
         self.dlg.setWindowIcon(QIcon(ICON_SVG))
     
     def notify(self, title, msg):

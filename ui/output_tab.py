@@ -22,6 +22,8 @@ from core.utils import dictToList
 from ui.slider import Slider
 from ui.combobox import ComboBox
 from ui.spinbox import SpinBox
+from ui.utils import setToolTip
+from data.tooltips import TOOLTIPS
 
 class OutputTab(QWidget):
     convert = Signal()
@@ -242,6 +244,7 @@ class OutputTab(QWidget):
         # Misc
         self.resetToDefault()
         self.wm.loadState()
+        self.setToolTipsStatic()
         
         # Apply Settings
         if settings["disable_delete_startup"]:
@@ -254,6 +257,45 @@ class OutputTab(QWidget):
         self.onDeleteOriginalChanged()
         self.onOutputToggled()
     
+    def setToolTipsStatic(self):
+        """Sets tooltips at once at startup."""
+        setToolTip(TOOLTIPS["duplicates"], self.duplicates_cmb)
+        setToolTip(TOOLTIPS["threads"], self.threads_sl, self.threads_sb)
+        setToolTip(TOOLTIPS["output_src"], self.choose_output_src_rb)
+        setToolTip(TOOLTIPS["output_ct"], self.choose_output_ct_le, self.choose_output_ct_rb, self.choose_output_ct_btn)
+        setToolTip(TOOLTIPS["keep_dir_struct"], self.keep_dir_struct_cb)
+        setToolTip(TOOLTIPS["delete_original"], self.delete_original_cb, self.delete_original_cmb)
+        setToolTip(TOOLTIPS["clear_after_conv"], self.clear_after_conv_cb)
+        setToolTip(TOOLTIPS["format"], self.format_cmb)
+        setToolTip(TOOLTIPS["jxl_modular"], self.jxl_modular_cb)
+        setToolTip(TOOLTIPS["jxl_png_fallback"], self.jxl_png_fallback_cb)
+        setToolTip(TOOLTIPS["int_effort"], self.int_effort_cb)
+        setToolTip(TOOLTIPS["chroma_subsampling_jpeg"], self.chroma_subsampling_jpegli_cmb, self.chroma_subsampling_jpg_cmb)
+        setToolTip(TOOLTIPS["chroma_subsampling_avif"], self.chroma_subsampling_avif_cmb)
+        setToolTip(TOOLTIPS["smallest_lossless_png"], self.smallest_lossless_png_cb)
+        setToolTip(TOOLTIPS["smallest_lossless_webp"], self.smallest_lossless_webp_cb)
+        setToolTip(TOOLTIPS["smallest_lossless_jpeg_xl"], self.smallest_lossless_jxl_cb)
+        setToolTip(TOOLTIPS["smallest_lossless_max_comp"], self.max_compression_cb)
+
+    def setToolTipsDynamic(self):
+        """Sets tooltips. Their content can change."""
+        match self.format_cmb.currentText():
+            case "JPEG XL":
+                setToolTip(TOOLTIPS["lossless_jpeg_xl"], self.lossless_cb)
+                setToolTip(TOOLTIPS["effort"], self.effort_sb)
+                setToolTip(TOOLTIPS["quality_jpeg_xl"], self.quality_sl, self.quality_sb)
+            case "AVIF":
+                setToolTip(TOOLTIPS["speed"], self.effort_sb)
+                setToolTip(TOOLTIPS["quality_avif"], self.quality_sl, self.quality_sb)
+            case "WebP":
+                setToolTip(TOOLTIPS["method"], self.effort_sb)
+                setToolTip(TOOLTIPS["quality_webp"], self.quality_sl, self.quality_sb)
+                setToolTip(TOOLTIPS["lossless"], self.lossless_cb)
+            case "JPEG":
+                setToolTip(TOOLTIPS["quality_jpeg"], self.quality_sl, self.quality_sb)
+            case "Lossless JPEG Recompression":
+                setToolTip(TOOLTIPS["effort_jpeg_recomp"], self.effort_sb)
+
     def isClearAfterConvChecked(self):
         return self.clear_after_conv_cb.isChecked()
 
@@ -368,6 +410,7 @@ class OutputTab(QWidget):
             self.onEffortToggled()  # It's very important to update int_effort_cb to avoid issues when changing formats while it's enabled
 
         self.loadFormatState()
+        self.setToolTipsDynamic()
         
     def onQualitySlChanged(self):
         self.quality_sb.setValue(self.quality_sl.value())
@@ -388,8 +431,9 @@ class OutputTab(QWidget):
         self.wm.setEnabledByTag("jxl_advanced", not lossless_checked)        
 
     def onJPGEncoderChanged(self, encoder):
-        self.chroma_subsampling_jpg_cmb.setVisible(encoder == "libjpeg")
-        self.chroma_subsampling_jpegli_cmb.setVisible(encoder == "JPEGLI")
+        if self.format_cmb.currentText() == "JPEG":
+            self.chroma_subsampling_jpg_cmb.setVisible(encoder == "libjpeg")
+            self.chroma_subsampling_jpegli_cmb.setVisible(encoder == "JPEGLI")
 
     def setJxlEffort10Enabled(self, enabled):
         self.enable_jxl_effort_10 = enabled

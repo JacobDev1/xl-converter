@@ -31,7 +31,7 @@ class ExceptionView(QDialog):
         super(ExceptionView, self).__init__(parent)
         self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
         
-        self.notifications = Notifications()
+        self.notifications = Notifications(self)
         self.report_data = {}
 
         # Table
