@@ -1,7 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
+import platform
 
 block_cipher = None
-
+target_arch = "universal2" if platform.system() == "Darwin" else None
 
 a = Analysis(
     ['../main.py'],
@@ -33,7 +34,7 @@ exe = EXE(
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    target_arch=None,
+    target_arch=target_arch,
     codesign_identity=None,
     entitlements_file=None,
     icon=['./images/logo.ico'],

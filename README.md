@@ -239,6 +239,13 @@ Add the following line to `/opt/local/etc/macports/macports.conf`:
 macosx_deployment_target 11.0
 ```
 
+Create aliases for Python:
+
+```bash
+echo -e 'alias python=python3\nalias pip=pip3' >> ~/.zshrc
+source ~/.zshrc
+```
+
 Install dependencies:
 
 ```bash
@@ -273,7 +280,7 @@ Clone PyInstaller, recompile the bootloader, and install:
 ```bash
 git clone -b v6.11.1 --depth 1 https://github.com/pyinstaller/pyinstaller.git misc/pyinstaller
 cd misc/pyinstaller/bootloader
-python waf all --clang
+python waf all --universal2 --clang
 cd ..
 pip install .
 cd ../..
