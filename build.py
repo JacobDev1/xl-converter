@@ -8,6 +8,8 @@ import hashlib
 from pathlib import Path
 import re
 import glob
+import plistlib
+import tempfile
 
 import PyInstaller.__main__
 import requests
@@ -138,7 +140,10 @@ not specified: vanilla build.
 sh (Linux only): 7z archive with an installer script.
 appimage (Linux only): an AppImage build.
 innosetup (Windows only): an InnoSetup script and build ready to compile.
-portable (Windows only): 7z archive with the program.""",
+portable (Windows only): 7z archive with the program.
+app (macOS only): macOS app bundle.
+dmg (macOS only): app wrapped in a dmg archive.
+""",
                 action="store"
         )
         self.parser.add_argument("--update-file", "-u", help="Append an update file (to place on a server).", action="store_true")
@@ -161,8 +166,10 @@ class Builder():
 
         # General
         self.project_name = "xl-converter" 
+        self.project_display_name = "XL Converter"
         self.dst_dir = "dist"
         self.internal_dir = f"{self.dst_dir}/{self.project_name}/_internal"
+        self.icon_path = "misc/images/logo.png"
 
         # Shared
         self.bin_dir = {
@@ -193,6 +200,9 @@ class Builder():
 
         # Windows
         self.win_7z_path = "C:\\Program Files\\7-Zip\\7z.exe"
+
+        # macOS
+        self.macos_minimum_version = "11.0"
         
         # Build Names
         self.version_sanitized = re.sub(r"[ \n]", "-", VERSION)   # No whitespaces or newline characters
@@ -202,7 +212,8 @@ class Builder():
         self.build_7z_name = f"xl-converter-linux-{self.version_sanitized}-x86_64"
         self.build_appimage_name = f"xl-converter-linux-{self.version_sanitized}-x86_64.AppImage"
 
-        self.build_macos_universal_name = f"xl-converter-macos-{self.version_sanitized}-experimental"
+        self.build_macos_app_name = f"xl-converter-macos-{self.version_sanitized}-universal.app"
+        self.build_macos_dmg_name = f"xl-converter-macos-{self.version_sanitized}-universal.dmg"
 
         # Clean up
         # base path: xl-converter/_internal
@@ -264,7 +275,7 @@ class Builder():
     def build(self):
         build_type = self.args.getArg('build_type')
 
-        if build_type is not None and build_type not in ("sh", "appimage", "appimage-skip-packing", "innosetup", "portable"):
+        if build_type is not None and build_type not in ("sh", "appimage", "appimage-skip-packing", "innosetup", "portable", "app", "dmg"):
             raise Exception("build_type incorrect")
 
         self._prepare()
@@ -290,6 +301,13 @@ class Builder():
                     case "portable":
                         self._appendConfig(portable=True)
                         self._buildPortableWin()
+            case "Darwin":
+                match build_type:
+                    case "app":
+                        self._buildMacApp()
+                    case "dmg":     # app wrapped in a dmg.
+                        self._buildMacApp()
+                        self._buildDmg()
        
         if self.args.getArg("update_file"):
             self._appendUpdateFile()
@@ -451,12 +469,108 @@ class Builder():
             self.build_win_portable_name,
         ], cwd=self.dst_dir)
 
+    def _generateMacIcnsIcon(self, png_src: str, icns_dst: str) -> None:
+        if platform.system() != "Darwin":
+            return
+
+        with tempfile.TemporaryDirectory(prefix="xl_converter_icon_") as iconset_dir:
+            iconset_dir = os.path.join(iconset_dir, "bundle.iconset")
+            makedirs(iconset_dir )
+            sizes = [
+                16, 32, 64, 128, 256, # 512
+            ]
+            for size in sizes:
+                for retina in (True, False):
+                    pixels = size * (2 if retina else 1)
+                    suffix = "@2x" if retina else ""
+                    name = f"icon_{size}x{size}{suffix}.png"
+                    output_path = os.path.join(iconset_dir, name)
+                    subprocess.run(
+                        ["sips", "-z", str(pixels), str(pixels), png_src, "--out", output_path],
+                        check=True,
+                    )
+
+            subprocess.run(
+                ["iconutil", "-c", "icns", iconset_dir, "-o", icns_dst],
+                check=True,
+            )
+
+    def _buildMacApp(self) -> None:
+        if platform.system() != "Darwin":
+            return
+
+        print("[Building] Bundling macOS app")
+        project_dir = os.path.join(self.dst_dir, self.project_name)
+        if not os.path.exists(project_dir):
+            raise FileNotFoundError("Missing PyInstaller output.")
+
+        bundle_root_dir = os.path.join(self.dst_dir, self.build_macos_app_name)
+        contents_dir = os.path.join(bundle_root_dir, "Contents")
+        macos_dir = os.path.join(contents_dir, "MacOS")
+        resources_dir = os.path.join(contents_dir, "Resources")
+        frameworks_dir = os.path.join(contents_dir, "Frameworks")
+        for dir in (contents_dir, macos_dir, resources_dir, frameworks_dir):
+            makedirs(dir)
+
+        shutil.copytree(
+            project_dir,
+            macos_dir,
+            dirs_exist_ok=True,
+            symlinks=True,
+        )
+        internal_dir = os.path.join(macos_dir, "_internal")
+        for entry in os.listdir(internal_dir):
+            move(os.path.join(internal_dir, entry), os.path.join(frameworks_dir, entry))
+        rmTree(internal_dir)
+
+        rmTree(project_dir)
+
+        copy(self.icon_path, os.path.join(resources_dir, os.path.basename(self.icon_path)))
+
+        plist = {
+            "CFBundleName": self.project_display_name,
+            "CFBundleDisplayName": self.project_display_name,
+            "CFBundleIdentifier": "eu.codepoems.xl-converter",
+            "CFBundleExecutable": self.project_name,
+            "CFBundleVersion": VERSION,
+            "CFBundleShortVersionString": VERSION,
+            "LSMinimumSystemVersion": self.macos_minimum_version,
+            "CFBundlePackageType": "APPL",
+            "NSHighResolutionCapable": True,
+            "CFBundleIconFile": "icon",
+        }
+
+        with open(os.path.join(contents_dir, "Info.plist"), "wb") as plist_file:
+            plistlib.dump(plist, plist_file)
+
+        self._generateMacIcnsIcon(
+            self.icon_path,
+            os.path.join(resources_dir, "icon.icns")
+        )
+
+    def _buildDmg(self) -> None:
+        if platform.system() != "Darwin":
+            return
+
+        print("[Building] Creating dmg archive")
+        app_path = os.path.join(self.dst_dir, self.build_macos_app_name)
+        subprocess.run([
+            "hdiutil",
+            "create",
+            "-volname", self.project_display_name,
+            "-srcfolder", app_path,
+            "-format", "ULFO",
+            os.path.join(self.dst_dir, self.build_macos_dmg_name),
+
+        ], check=True) 
+        rmTree(app_path)
+
     def _reduceBundleSize(self) -> None:
         print("[Building] Reducing bundle size")
 
         current_system = platform.system()
         if current_system not in self.cleanup_resources:
-            Exception(f"_reduceBundleSize is unsupported for {current_system}")
+            raise Exception(f"_reduceBundleSize is unsupported for {current_system}")
         
         file_patterns = [os.path.join(self.internal_dir, res) for res in self.cleanup_resources[current_system]]
         files_to_remove = []
