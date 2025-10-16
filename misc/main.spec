@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import platform
+from data.constants import VERSION
 
 block_cipher = None
 target_arch = "universal2" if platform.system() == "Darwin" else None
@@ -49,3 +50,25 @@ coll = COLLECT(
     upx_exclude=[],
     name='xl-converter',
 )
+if platform.system() == "Darwin":
+    app = BUNDLE(
+        coll,
+        name='xl-converter.app',
+        icon='./images/logo.icns',
+        bundle_identifier='eu.codepoems.xl-converter',
+        version=VERSION,
+        info_plist={
+            'NSPrincipalClass': 'NSApplication',
+            'NSAppleScriptEnabled': False,
+            'CFBundleName': 'XL Converter', 
+            'CFBundleDisplayName': 'XL Converter',
+            'CFBundleIdentifier': 'eu.codepoems.xl-converter',
+            'CFBundleExecutable': 'xl-converter',
+            'CFBundleVersion': VERSION,
+            'CFBundleShortVersionString': VERSION,
+            'LSMinimumSystemVersion': '11.0',
+            'CFBundlePackageType': 'APPL',
+            'NSHighResolutionCapable': True,
+        },
+    )
+

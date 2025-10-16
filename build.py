@@ -73,7 +73,7 @@ def makedirs(path):
     path = os.path.normpath(path)
 
     try:
-        os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
     except OSError as err:
         print(f"[Error] Makedirs failed ({path}) ({err})")
 
@@ -136,12 +136,11 @@ class Args():
         self.args = {}
         self.parser.add_argument("--build-type", "-b",
                 help="""Type of build to generate.
-not specified: vanilla build.
+not specified: vanilla build on Windows and Linux. app bundle on macOS.
 sh (Linux only): 7z archive with an installer script.
 appimage (Linux only): an AppImage build.
 innosetup (Windows only): an InnoSetup script and build ready to compile.
 portable (Windows only): 7z archive with the program.
-app (macOS only): macOS app bundle.
 dmg (macOS only): app wrapped in a dmg archive.
 """,
                 action="store"
@@ -275,10 +274,15 @@ class Builder():
     def build(self):
         build_type = self.args.getArg('build_type')
 
-        if build_type is not None and build_type not in ("sh", "appimage", "appimage-skip-packing", "innosetup", "portable", "app", "dmg"):
+        if build_type is not None and build_type not in ("sh", "appimage", "appimage-skip-packing", "innosetup", "portable", "dmg"):
             raise Exception("build_type incorrect")
 
         self._prepare()
+        if platform.system() == "Darwin":
+            self._generateMacIcnsIcon(
+                os.path.join(PROGRAM_FOLDER, self.icon_path),
+                os.path.join(PROGRAM_FOLDER, "./misc/images", "logo.icns")
+            )
         self._buildBinaries()
         self._reduceBundleSize()
         self._copyDependencies()
@@ -302,11 +306,9 @@ class Builder():
                         self._appendConfig(portable=True)
                         self._buildPortableWin()
             case "Darwin":
+                rmTree(f"{self.dst_dir}/{self.project_name}")   # Remove leftover dist/xl-converter
                 match build_type:
-                    case "app":
-                        self._buildMacApp()
-                    case "dmg":     # app wrapped in a dmg.
-                        self._buildMacApp()
+                    case "dmg":
                         self._buildDmg()
        
         if self.args.getArg("update_file"):
@@ -363,12 +365,16 @@ class Builder():
     def _copyAssets(self):
         print("[Building] Appending assets")
         
-        # Most assets
+        if platform.system() == "Darwin":
+            dst = os.path.join(self.dst_dir, f"{self.project_name}.app", "Contents", "Frameworks")
+        else:
+            dst = self.internal_dir
+
         for i in self.assets:
             if os.path.isdir(Path(i)):
-                shutil.copytree(Path(i), Path(self.internal_dir, Path(i).name))
+                shutil.copytree(Path(i), Path(dst, Path(i).name))
             elif os.path.isfile(Path(i)):
-                copy(i, self.internal_dir)
+                copy(i, dst)
 
     def _appendUpdateFile(self):
         print("[Building] Appending an update file (to place on a server)")
@@ -475,7 +481,7 @@ class Builder():
 
         with tempfile.TemporaryDirectory(prefix="xl_converter_icon_") as iconset_dir:
             iconset_dir = os.path.join(iconset_dir, "bundle.iconset")
-            makedirs(iconset_dir )
+            makedirs(iconset_dir)
             sizes = [
                 16, 32, 64, 128, 256, # 512
             ]
@@ -488,72 +494,24 @@ class Builder():
                     subprocess.run(
                         ["sips", "-z", str(pixels), str(pixels), png_src, "--out", output_path],
                         check=True,
+                        stdout=subprocess.DEVNULL,
                     )
 
+            if os.path.exists(icns_dst):
+                os.remove(icns_dst)
+            makedirs(os.path.dirname(os.path.normpath(icns_dst)))
             subprocess.run(
                 ["iconutil", "-c", "icns", iconset_dir, "-o", icns_dst],
                 check=True,
+                stdout=subprocess.DEVNULL,
             )
-
-    def _buildMacApp(self) -> None:
-        if platform.system() != "Darwin":
-            return
-
-        print("[Building] Bundling macOS app")
-        project_dir = os.path.join(self.dst_dir, self.project_name)
-        if not os.path.exists(project_dir):
-            raise FileNotFoundError("Missing PyInstaller output.")
-
-        bundle_root_dir = os.path.join(self.dst_dir, self.build_macos_app_name)
-        contents_dir = os.path.join(bundle_root_dir, "Contents")
-        macos_dir = os.path.join(contents_dir, "MacOS")
-        resources_dir = os.path.join(contents_dir, "Resources")
-        frameworks_dir = os.path.join(contents_dir, "Frameworks")
-        for dir in (contents_dir, macos_dir, resources_dir, frameworks_dir):
-            makedirs(dir)
-
-        shutil.copytree(
-            project_dir,
-            macos_dir,
-            dirs_exist_ok=True,
-            symlinks=True,
-        )
-        internal_dir = os.path.join(macos_dir, "_internal")
-        for entry in os.listdir(internal_dir):
-            move(os.path.join(internal_dir, entry), os.path.join(frameworks_dir, entry))
-        rmTree(internal_dir)
-
-        rmTree(project_dir)
-
-        copy(self.icon_path, os.path.join(resources_dir, os.path.basename(self.icon_path)))
-
-        plist = {
-            "CFBundleName": self.project_display_name,
-            "CFBundleDisplayName": self.project_display_name,
-            "CFBundleIdentifier": "eu.codepoems.xl-converter",
-            "CFBundleExecutable": self.project_name,
-            "CFBundleVersion": VERSION,
-            "CFBundleShortVersionString": VERSION,
-            "LSMinimumSystemVersion": self.macos_minimum_version,
-            "CFBundlePackageType": "APPL",
-            "NSHighResolutionCapable": True,
-            "CFBundleIconFile": "icon",
-        }
-
-        with open(os.path.join(contents_dir, "Info.plist"), "wb") as plist_file:
-            plistlib.dump(plist, plist_file)
-
-        self._generateMacIcnsIcon(
-            self.icon_path,
-            os.path.join(resources_dir, "icon.icns")
-        )
 
     def _buildDmg(self) -> None:
         if platform.system() != "Darwin":
             return
 
         print("[Building] Creating dmg archive")
-        app_path = os.path.join(self.dst_dir, self.build_macos_app_name)
+        app_path = os.path.join(self.dst_dir, self.project_name + ".app")
         subprocess.run([
             "hdiutil",
             "create",
@@ -562,7 +520,7 @@ class Builder():
             "-format", "ULFO",
             os.path.join(self.dst_dir, self.build_macos_dmg_name),
 
-        ], check=True) 
+        ], check=True)
         rmTree(app_path)
 
     def _reduceBundleSize(self) -> None:
@@ -572,13 +530,32 @@ class Builder():
         if current_system not in self.cleanup_resources:
             raise Exception(f"_reduceBundleSize is unsupported for {current_system}")
         
-        file_patterns = [os.path.join(self.internal_dir, res) for res in self.cleanup_resources[current_system]]
+        if current_system == "Darwin":
+            contents_dir = os.path.join(self.dst_dir, self.project_name + ".app", "Contents")
+            roots = [
+                os.path.join(contents_dir, "Frameworks"),
+                os.path.join(contents_dir, "Resources"),
+            ]
+        else:
+            roots = [self.internal_dir]
+    
+        file_patterns = []
+        for res in self.cleanup_resources[current_system]:
+            for root in roots:
+                file_patterns.append(os.path.join(root, res))
+                if current_system == "Darwin":
+                    file_patterns.append(os.path.join(root, os.path.basename(res)))
+
         files_to_remove = []
         for pattern in file_patterns:
             files_to_remove.extend(glob.glob(pattern))
         
         for path in files_to_remove:
-            if os.path.isfile(path):
+            if not os.path.lexists(path):
+                continue
+            if os.path.islink(path):
+                os.unlink(path)
+            elif os.path.isfile(path):
                 os.remove(path)
             elif os.path.isdir(path):
                 shutil.rmtree(path)
