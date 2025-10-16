@@ -201,7 +201,7 @@ class Builder():
         self.win_7z_path = "C:\\Program Files\\7-Zip\\7z.exe"
 
         # macOS
-        self.macos_minimum_version = "11.0"
+        self.macos_app_bundle_name = "XL Converter.app"
         
         # Build Names
         self.version_sanitized = re.sub(r"[ \n]", "-", VERSION)   # No whitespaces or newline characters
@@ -366,7 +366,7 @@ class Builder():
         print("[Building] Appending assets")
         
         if platform.system() == "Darwin":
-            dst = os.path.join(self.dst_dir, f"{self.project_name}.app", "Contents", "Frameworks")
+            dst = os.path.join(self.dst_dir, self.macos_app_bundle_name, "Contents", "Frameworks")
         else:
             dst = self.internal_dir
 
@@ -511,7 +511,7 @@ class Builder():
             return
 
         print("[Building] Creating dmg archive")
-        app_path = os.path.join(self.dst_dir, self.project_name + ".app")
+        app_path = os.path.join(self.dst_dir, self.macos_app_bundle_name)
         subprocess.run([
             "hdiutil",
             "create",
@@ -531,7 +531,7 @@ class Builder():
             raise Exception(f"_reduceBundleSize is unsupported for {current_system}")
         
         if current_system == "Darwin":
-            contents_dir = os.path.join(self.dst_dir, self.project_name + ".app", "Contents")
+            contents_dir = os.path.join(self.dst_dir, self.macos_app_bundle_name, "Contents")
             roots = [
                 os.path.join(contents_dir, "Frameworks"),
                 os.path.join(contents_dir, "Resources"),

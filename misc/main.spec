@@ -53,7 +53,7 @@ coll = COLLECT(
 if platform.system() == "Darwin":
     app = BUNDLE(
         coll,
-        name='xl-converter.app',
+        name='XL Converter.app',
         icon='./images/logo.icns',
         bundle_identifier='eu.codepoems.xl-converter',
         version=VERSION,
