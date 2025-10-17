@@ -168,7 +168,7 @@ class Builder():
         self.project_display_name = "XL Converter"
         self.dst_dir = "dist"
         self.internal_dir = f"{self.dst_dir}/{self.project_name}/_internal"
-        self.icon_path = "misc/images/logo.png"
+        self.icon_svg_path = "assets/icons/logo.svg"
 
         # Shared
         self.bin_dir = {
@@ -280,7 +280,7 @@ class Builder():
         self._prepare()
         if platform.system() == "Darwin":
             self._generateMacIcnsIcon(
-                os.path.join(PROGRAM_FOLDER, self.icon_path),
+                os.path.join(PROGRAM_FOLDER, self.icon_svg_path),
                 os.path.join(PROGRAM_FOLDER, "./misc/images", "logo.icns")
             )
         self._buildBinaries()
@@ -475,15 +475,21 @@ class Builder():
             self.build_win_portable_name,
         ], cwd=self.dst_dir)
 
-    def _generateMacIcnsIcon(self, png_src: str, icns_dst: str) -> None:
+    def _generateMacIcnsIcon(self, svg_src: str, icns_dst: str) -> None:
         if platform.system() != "Darwin":
             return
 
         with tempfile.TemporaryDirectory(prefix="xl_converter_icon_") as iconset_dir:
+            png_src = os.path.join(iconset_dir, "icon.png")
+            subprocess.run(
+                ["rsvg-convert", "-w", "2048", svg_src, "-o", png_src],
+                check=True,
+                stdout=subprocess.DEVNULL,
+            )
             iconset_dir = os.path.join(iconset_dir, "bundle.iconset")
             makedirs(iconset_dir)
             sizes = [
-                16, 32, 64, 128, 256, # 512
+                16, 32, 64, 128, 256, 512
             ]
             for size in sizes:
                 for retina in (True, False):
