@@ -278,6 +278,8 @@ Bundling support is limited. The exported bundle will not work on another machin
 Clone PyInstaller, recompile the bootloader, and install:
 
 ```bash
+export CC="/opt/local/bin/clang-mp-17"
+export MACOSX_DEPLOYMENT_TARGET=11.0
 git clone -b v6.11.1 --depth 1 https://github.com/pyinstaller/pyinstaller.git misc/pyinstaller
 cd misc/pyinstaller/bootloader
 python waf all --universal2 --clang
