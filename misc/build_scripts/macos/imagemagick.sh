@@ -3,10 +3,12 @@ set -euo pipefail
 
 IMAGEMAGICK_TAG="7.1.2-3"
 LIBHEIF_TAG="v1.20.2"
+LIBAOM_TAG="v3.12.1"
 RUN_DIR=$(pwd)
 OUTPUT_DIR="${RUN_DIR}/bin/macos/imagemagick"
 TEMP_DIR=$(mktemp -d)
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
+LIBHEIF_PREFIX="${TEMP_DIR}/libheif-prefix"
 
 source "${SCRIPT_DIR}/_shared.sh"
 trap 'cleanup "${TEMP_DIR}"' EXIT
@@ -24,11 +26,91 @@ check_packages \
     freetype \
     libjpeg-turbo \
     libjxl \
-    libheif \
     liblqr \
     libpng \
     tiff \
     libtool
+
+export MACOSX_DEPLOYMENT_TARGET=11.0
+
+# Build libaom for libheif
+cd "${TEMP_DIR}"
+git clone -b "${LIBAOM_TAG}" --depth 1 https://aomedia.googlesource.com/aom
+export CC="/opt/local/bin/clang-mp-17"
+export CXX="/opt/local/bin/clang++-mp-17"
+for arch in x86_64 arm64; do
+    cmake \
+        -G Ninja \
+        -S aom \
+        -B "aom/build.${arch}" \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_OSX_ARCHITECTURES="${arch}" \
+        -DAOM_TARGET_CPU="${arch}" \
+        -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
+        -DCONFIG_PIC=1 \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DENABLE_DOCS=0 \
+        -DENABLE_EXAMPLES=0 \
+        -DENABLE_TESTDATA=0 \
+        -DENABLE_TESTS=0 \
+        -DENABLE_TOOLS=0
+    cmake --build "aom/build.${arch}" --config Release --parallel
+done
+
+mkdir -p "${TEMP_DIR}/aom/build"
+lipo -create \
+    "${TEMP_DIR}/aom/build.x86_64/libaom.a" \
+    "${TEMP_DIR}/aom/build.arm64/libaom.a" \
+    -output "${TEMP_DIR}/aom/build/libaom.a"
+
+# Build libheif without non-free codecs (HEVC, AVC etc.)
+cd "${TEMP_DIR}"
+git clone --depth 1 -b "${LIBHEIF_TAG}" https://github.com/strukturag/libheif.git
+cd libheif/
+mkdir build && cd build/
+export CC="/opt/local/bin/clang-mp-17"
+export CXX="/opt/local/bin/clang++-mp-17"
+cmake \
+    -DCMAKE_INSTALL_PREFIX="${LIBHEIF_PREFIX}" \
+    -DCMAKE_INSTALL_NAME_DIR="${LIBHEIF_PREFIX}/lib" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+    -DAOM_LIBRARY="${TEMP_DIR}/aom/build/libaom.a" \
+    -DAOM_INCLUDE_DIR="${TEMP_DIR}/aom" \
+    -DWITH_GDK_PIXBUF=OFF \
+    -DWITH_KVAZAAR=OFF \
+    -DWITH_KVAZAAR_PLUGIN=OFF \
+    -DWITH_LIBDE265=OFF \
+    -DWITH_LIBDE265_PLUGIN=OFF \
+    -DWITH_UVG266=OFF \
+    -DWITH_UVG266_PLUGIN=OFF \
+    -DWITH_VVDEC=OFF \
+    -DWITH_VVDEC_PLUGIN=OFF \
+    -DWITH_VVENC=OFF \
+    -DWITH_VVENC_PLUGIN=OFF \
+    -DWITH_X265=OFF \
+    -DWITH_X265_PLUGIN=OFF \
+    -DWITH_OPENJPH_ENCODER=OFF \
+    -DWITH_OpenH264_DECODER=OFF \
+    -DWITH_OpenH264_DECODER_PLUGIN=OFF \
+    -DWITH_DAV1D=OFF \
+    -DWITH_DAV1D_PLUGIN=OFF \
+    -DWITH_EXAMPLES=OFF \
+    -DWITH_FFMPEG_DECODER=OFF \
+    -DWITH_FFMPEG_DECODER_PLUGIN=OFF \
+    -DWITH_RAV1E=OFF \
+    -DWITH_RAV1E_PLUGIN=OFF \
+    -DWITH_SvtEnc=OFF \
+    -DWITH_SvtEnc_PLUGIN=OFF \
+    -DWITH_SvtEnc_PLUGIN=OFF \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+    ..
+make -j$(sysctl -n hw.logicalcpu)
+make install
+
+export PKG_CONFIG_PATH="${LIBHEIF_PREFIX}/lib/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
+export CPPFLAGS="-I${LIBHEIF_PREFIX}/include${CPPFLAGS:+ ${CPPFLAGS}}"
+export LDFLAGS="-L${LIBHEIF_PREFIX}/lib${LDFLAGS:+ ${LDFLAGS}}"
 
 # Build
 git clone --depth 1 -b "${IMAGEMAGICK_TAG}" https://github.com/ImageMagick/ImageMagick.git "${TEMP_DIR}/ImageMagick"
