@@ -160,6 +160,10 @@ for arch in x86_64 arm64; do
         --without-openexr \
         --without-raqm \
         --without-jbig \
+        --without-gvc \
+        --without-pango \
+        --without-rsvg \
+        --without-raqm \
         --host="${arch}-apple-darwin"
 
     make -j$(sysctl -n hw.logicalcpu)
