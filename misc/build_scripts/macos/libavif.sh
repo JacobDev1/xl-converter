@@ -38,32 +38,23 @@ cd libavif/ext/
 # Build aom
 git clone -b "${AOM_AV1_TAG}" --depth 1 https://aomedia.googlesource.com/aom aom
 for arch in x86_64 arm64; do
-    cmake_args=(
-        -G Ninja
-        -S aom
-        -B "aom/build.libaom.${arch}"
-        -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
-        -DAOM_TARGET_CPU="${arch}"
-        -DCMAKE_C_COMPILER="/opt/local/bin/clang-mp-17"
-        -DCMAKE_CXX_COMPILER="/opt/local/bin/clang++-mp-17"
-        -DBUILD_SHARED_LIBS=OFF
-        -DCONFIG_PIC=1
-        -DCMAKE_BUILD_TYPE=Release
-        -DENABLE_DOCS=0
-        -DENABLE_EXAMPLES=0
-        -DENABLE_TESTDATA=0
-        -DENABLE_TESTS=0
+    cmake \
+        -G Ninja \
+        -S aom \
+        -B "aom/build.libaom.${arch}" \
+        -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+        -DCMAKE_OSX_ARCHITECTURES="${arch}" \
+        -DAOM_TARGET_CPU="${arch}" \
+        -DCMAKE_C_COMPILER="/opt/local/bin/clang-mp-17" \
+        -DCMAKE_CXX_COMPILER="/opt/local/bin/clang++-mp-17" \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCONFIG_PIC=1 \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DENABLE_DOCS=0 \
+        -DENABLE_EXAMPLES=0 \
+        -DENABLE_TESTDATA=0 \
+        -DENABLE_TESTS=0 \
         -DENABLE_TOOLS=0
-    )
-
-    if [ "${arch}" = "arm64" ]; then
-        cmake_args+=(
-            -DCMAKE_C_FLAGS="-arch arm64"
-            -DCMAKE_CXX_FLAGS="-arch arm64"
-        )
-    fi
-
-    cmake "${cmake_args[@]}"
     cmake --build "aom/build.libaom.${arch}" --config Release --parallel
 done
 
