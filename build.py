@@ -202,6 +202,8 @@ class Builder():
 
         # macOS
         self.macos_app_bundle_name = "XL Converter.app"
+        self.logo_icns_path = None
+        self.macos_dmg_background = "misc/images/macos_dmg_background.svg"
         
         # Build Names
         self.version_sanitized = re.sub(r"[ \n]", "-", VERSION)   # No whitespaces or newline characters
@@ -279,9 +281,10 @@ class Builder():
 
         self._prepare()
         if platform.system() == "Darwin":
+            self.logo_icns_path = os.path.join(PROGRAM_FOLDER, "./misc/images", "logo.icns")
             self._generateMacIcnsIcon(
                 os.path.join(PROGRAM_FOLDER, self.icon_svg_path),
-                os.path.join(PROGRAM_FOLDER, "./misc/images", "logo.icns")
+                self.logo_icns_path,
             )
         self._buildBinaries()
         self._reduceBundleSize()
@@ -517,17 +520,63 @@ class Builder():
             return
 
         print("[Building] Creating dmg archive")
-        app_path = os.path.join(self.dst_dir, self.macos_app_bundle_name)
-        subprocess.run([
-            "hdiutil",
-            "create",
-            "-volname", self.project_display_name,
-            "-srcfolder", app_path,
-            "-format", "ULFO",
-            os.path.join(self.dst_dir, self.build_macos_dmg_name),
 
-        ], check=True)
-        rmTree(app_path)
+        try:
+            import dmgbuild
+        except ImportError:
+            raise
+
+        app_dir = os.path.join(self.dst_dir, self.macos_app_bundle_name)
+        dmg_output = os.path.join(self.dst_dir, self.build_macos_dmg_name)
+        license_path = os.path.join(PROGRAM_FOLDER, "LICENSE.txt")
+
+        with tempfile.TemporaryDirectory(prefix="xl_converter_dmg_", dir=self.dst_dir) as tmp_dir:
+            dmg_background_path = os.path.join(tmp_dir, "dmg_background.png")
+            dmg_settings_path = os.path.join(tmp_dir, "dmg_settings.py")
+            dmg_settings_py = f"""
+format = "ULMO"
+
+files = [
+    f"{app_dir}",
+    (f"{license_path}", "LICENSE.txt"),
+]
+hide = [
+    "LICENSE.txt",
+]
+symlinks = {{ "Applications": "/Applications" }}
+license = {{
+    "default-language": "en_US",
+    "licenses": {{
+        "en_US": r"{license_path}",
+    }},
+}}
+
+icon_locations = {{
+    f"{self.macos_app_bundle_name}": (140, 150),
+    "Applications": (500, 150),
+}}
+# NOTE: Font color always remains black if a background is set. Finder doesn't adjust the font color here.
+background = f"{dmg_background_path}"
+badge_icon = f"{self.logo_icns_path}"
+window_rect = ((100, 100), (640, 360))
+default_view = "icon-view"
+icon_size = 128
+text_size = 14
+"""
+            subprocess.run(
+                ["rsvg-convert", "-w", "640", "-h", "360", self.macos_dmg_background, "-o", dmg_background_path],
+                check=True,
+            )
+
+            with open(dmg_settings_path, "w", encoding="utf-8") as f:
+                f.write(dmg_settings_py)
+            
+            try:
+                subprocess.run([
+                    "dmgbuild", "-s", dmg_settings_path, self.project_display_name, dmg_output,
+                ], check=True)
+            except subprocess.CalledProcessError as e:
+                raise RuntimeError(f"dmgbuild failed: {e}") from e
 
     def _reduceBundleSize(self) -> None:
         print("[Building] Reducing bundle size")
