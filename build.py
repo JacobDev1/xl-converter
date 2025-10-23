@@ -10,6 +10,7 @@ import re
 import glob
 import plistlib
 import tempfile
+import errno
 
 import PyInstaller.__main__
 import requests
@@ -328,7 +329,13 @@ class Builder():
             # Remove read-only in ./bin/win as it can be problematic later on.
             removeReadOnly(self.bin_dir["Windows"])
         
-        rmTree(self.dst_dir)    # Delete ./dist 
+        try:
+            if os.path.isdir(self.dst_dir):
+                shutil.rmtree(self.dst_dir)
+        except OSError as e:
+            if platform.system() == "Darwin" and e.errno == errno.ENOTEMPTY:
+                print("Close or move Finder out of the ./dist directory, and try again.")
+            raise
         
     def _buildBinaries(self):
         print("[Building] Generating binaries")
