@@ -249,7 +249,7 @@ source ~/.zshrc
 Install dependencies:
 
 ```bash
-sudo port -s install nasm cmake git wget gtest coreutils ninja gmake gsed pkgconfig +universal llvm-17 clang-17 giflib5 +universal libjpeg-turbo +universal libpng +universal zlib +universal brotli +universal webp +universal libiconv +universal libomp +universal imath +universal glib2 +universal gettext +universal openjpeg +universal lcms2 +universal fontconfig +universal freetype +universal libjxl +universal liblqr +universal tiff +universal libtool +universal librsvg
+sudo port -s install nasm cmake git wget gtest coreutils ninja gmake gsed pkgconfig +universal llvm-17 clang-17 giflib5 +universal libjpeg-turbo +universal libpng +universal zlib +universal brotli +universal webp +universal libiconv +universal libomp +universal imath +universal glib2 +universal gettext +universal openjpeg +universal lcms2 +universal fontconfig +universal freetype +universal libjxl +universal liblqr +universal tiff +universal libtool +universal librsvg perl5.40 +universal
 ```
 
 Run each target individually:
@@ -258,6 +258,7 @@ Run each target individually:
 - `make libavif`
 - `make oxipng`
 - `make imagemagick`
+- `make exiftool`
 
 Create and activate a virtual environment:
 
