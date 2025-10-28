@@ -46,3 +46,8 @@ check_commands() {
         exit 1
     fi
 }
+
+# Yellow text
+warning() {
+    printf '\033[33m%b\033[0m\n' "$*"
+}

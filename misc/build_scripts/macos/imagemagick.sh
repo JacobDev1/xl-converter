@@ -228,10 +228,6 @@ update_ids() {
     done
 }
 
-warning() {
-    printf '\033[33m%b\033[0m\n' "$*"
-}
-
 validate() {
     # Main executable
     local exe_deps=$(otool -L "${OUTPUT_DIR}/magick" \
