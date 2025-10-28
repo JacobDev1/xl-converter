@@ -147,9 +147,13 @@ ifeq ($(PLAT),win)
 exiftool:
 	@rm -rf ./bin/win/exiftool
 	bash $(SCRIPT_DIR)/windows/exiftool.sh
+else ifeq ($(PLAT),macos)
+exiftool:
+	@rm -rf ./bin/macos/exiftool
+	bash $(SCRIPT_DIR)/macos/exiftool.sh
 else
 exiftool:
-	$(error The 'exiftool' target is only available on Windows)
+	$(error The 'exiftool' target is only available on Windows and macOS)
 endif
 
 # Misc.
