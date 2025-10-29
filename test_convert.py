@@ -309,7 +309,7 @@ class TestMainWindow(unittest.TestCase):
         )
 
         for i in FILES:
-            if platform.system() == "Linux" and i == EXIFTOOL_PATH:
+            if platform.system() in ("Linux", "Darwin") and i == EXIFTOOL_PATH:
                 continue
             assert Path(i).is_file(), f"File not found ({i})"
 
