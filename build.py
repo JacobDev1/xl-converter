@@ -214,8 +214,8 @@ class Builder():
         self.build_7z_name = f"xl-converter-linux-{self.version_sanitized}-x86_64"
         self.build_appimage_name = f"xl-converter-linux-{self.version_sanitized}-x86_64.AppImage"
 
-        self.build_macos_app_name = f"xl-converter-macos-{self.version_sanitized}-universal.app"
-        self.build_macos_dmg_name = f"xl-converter-macos-{self.version_sanitized}-universal.dmg"
+        self.build_macos_app_name = f"xl-converter-macos-{self.version_sanitized}-universal2.app"
+        self.build_macos_dmg_name = f"xl-converter-macos-{self.version_sanitized}-universal2.dmg"
 
         # Clean up
         # base path: xl-converter/_internal
