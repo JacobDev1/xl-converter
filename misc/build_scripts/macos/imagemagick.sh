@@ -358,8 +358,10 @@ check_deployment_target() {
     local actual
     actual="$(binary_minimum_version "${binary}")"
     if [[ -n "${actual}" && "${actual}" != "${expected}" ]]; then
-        warning "${binary} has deployment target ${actual}, expected ${expected}"
+        warning "${binary} has deployment target ${actual}, expected ${expected}."
+        return 1
     fi
+    return 0
 }
 
 validate() {
@@ -377,11 +379,14 @@ validate() {
 
     local exe_bad_rpaths
     exe_bad_rpaths="$(collect_rpaths "${OUTPUT_DIR}/magick" | grep -Ev '^(@loader_path|@executable_path)' || true)"
+    local has_bad_minos=false
     if [[ -n "${exe_bad_rpaths}" ]];  then
         warning "The magick binary contains unexpected rpaths: ${exe_bad_rpaths}"
     fi
 
-    check_deployment_target "${OUTPUT_DIR}/magick" "${MACOSX_DEPLOYMENT_TARGET}"
+    if ! check_deployment_target "${OUTPUT_DIR}/magick" "${MACOSX_DEPLOYMENT_TARGET}"; then
+        has_bad_minos=true
+    fi
 
     # lib
     local has_external=false
@@ -403,7 +408,9 @@ validate() {
             has_bad_rpath=true
         fi
 
-        check_deployment_target "${dylib}" "${MACOSX_DEPLOYMENT_TARGET}"
+        if ! check_deployment_target "${dylib}" "${MACOSX_DEPLOYMENT_TARGET}"; then
+            has_bad_minos=true
+        fi
     done
 
     if [[ "${has_external}" == "true" ]]; then
@@ -412,6 +419,10 @@ validate() {
 
     if [[ "${has_bad_rpath}" == "true" ]]; then
         warning "Some dylibs contain unexpected rpaths."
+    fi
+
+    if [[ "${has_bad_minos}" == "true" ]]; then
+        warning "Put 'macosx_deployment_target ${MACOSX_DEPLOYMENT_TARGET}' in '/opt/local/etc/macports/macports.conf', then reinstall the libraries with 'sudo port -s upgrade --force <libname>'"
     fi
 }
 
