@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QApplication, QCheckBox, QComboBox
 from PySide6.QtCore import Qt
 
 from ui.tabs.settings_tab import SettingsTab, STOCK_PRESETS
+import data.process_manager as process_manager
 
 @pytest.fixture
 def app(qtbot):
@@ -79,6 +80,7 @@ def test_changeCategory_visibility(category, button, app):
             "cjpegli_args_l", "cjpegli_args_te",
             "im_args_l", "im_args_te",
             "processing_order_l", "processing_order_cmb",
+            "process_priority_l", "process_priority_cmb",
             "start_logging_btn", "open_log_dir_btn", "wipe_log_dir_btn",
         ],
     }
@@ -172,6 +174,32 @@ def test_onThemeChanged(app):
     ):
         app.onThemeChanged()
         mock_setTheme.assert_called_once_with(mock_currentText.return_value)
+
+@pytest.mark.parametrize(
+    "priority_str, expected_enum",
+    [
+        ("Normal", process_manager.ProcessPriority.NORMAL),
+        ("Below Normal", process_manager.ProcessPriority.BELOW_NORMAL),
+        ("Idle", process_manager.ProcessPriority.IDLE),
+    ]
+)
+def test_onProcessPriorityChanged_valid_values(priority_str, expected_enum, app):
+    with (
+        patch.object(app.process_priority_cmb, "currentText", return_value=priority_str),
+        patch("ui.tabs.settings_tab.process_manager.ProcessPriorityManager.setPriority") as mock_setPriority,
+    ):
+        app.onProcessPriorityChanged()
+        mock_setPriority.assert_called_once_with(expected_enum)
+
+def test_onProcessPriorityChanged_invalid_value(app, caplog):
+    with (
+        patch.object(app.process_priority_cmb, "currentText", return_value="Unsupported"),
+        patch("ui.tabs.settings_tab.process_manager.ProcessPriorityManager.setPriority") as mock_setPriority,
+        caplog.at_level(logging.ERROR),
+    ):
+        app.onProcessPriorityChanged()
+        assert "Unmapped priority" in caplog.text
+        mock_setPriority.assert_not_called()
 
 @pytest.mark.parametrize("currently_logging", [True, False])
 def test_enableLogging(currently_logging, app):
@@ -313,6 +341,7 @@ def test_resetToDefault(app):
     assert app.cjpegli_args_te.toPlainText() == ""
     assert app.im_args_te.toPlainText() == ""
     assert app.avifenc_args_te.toPlainText() == ""
+    assert app.process_priority_cmb.currentIndex() == 0
 
 def test_runMigrations_no_loaded_ver(app_migrations):
     with (

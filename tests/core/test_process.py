@@ -1,8 +1,10 @@
 from unittest.mock import patch, MagicMock, ANY, call
 import subprocess
 import os
+import logging
 
 import pytest
+import psutil
 
 import core.process as process
 
@@ -65,10 +67,12 @@ def test_runProcess2_happy_path():
     stderr = b""
 
     with (
-        patch("core.process.subprocess.Popen", autospec=True) as mock_popen,
+        patch("core.process.psutil.Popen") as mock_popen,
         patch("core.process.logging.info") as mock_logging_info,
         patch("data.process_manager.ProcessManager.addProcess") as mock_addProcess,
         patch("data.process_manager.ProcessManager.removeProcess") as mock_removeProcess,
+        patch("core.process._setProcessPriority") as mock__setProcessPriority,
+        patch("data.process_manager.ProcessPriorityManager.getPriorityFlag", return_value=0b10),
     ):
         mock_process = mock_popen.return_value
         mock_process.communicate.return_value = (stdout, stderr)
@@ -76,6 +80,7 @@ def test_runProcess2_happy_path():
         process.runProcess2(*cmd)
 
         mock_popen.assert_called_once_with(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=ANY, cwd=None)
+        mock__setProcessPriority.assert_called_once_with(mock_popen.return_value, 0b10)
         mock_addProcess.assert_called_once_with(mock_process)
         mock_removeProcess.assert_called_once_with(mock_process)
         mock_process.communicate.assert_called_once()
@@ -85,11 +90,32 @@ def test_runProcess2_happy_path():
 
 def test_runProcess2_no_output():
     with (
-        patch("core.process.subprocess.Popen", autospec=True) as mock_popen,
+        patch("core.process.psutil.Popen") as mock_popen,
         patch("core.process.logging.info"),
         patch("data.process_manager.ProcessManager.addProcess"),
         patch("data.process_manager.ProcessManager.removeProcess"),
+        patch("core.process._setProcessPriority"),
+        patch("data.process_manager.ProcessPriorityManager.getPriorityFlag", return_value=0b10),
     ):
         mock_popen.return_value.communicate.return_value = (None, None)
 
         assert process.runProcess2(["bin", "-arg", "sample.png"]) == ("", "")
+
+def test__setProcessPriority_none(caplog):
+    with caplog.at_level(logging.ERROR):
+        process._setProcessPriority(MagicMock(), None)
+        assert "Received None priority" in caplog.text
+
+def test__setProcessPriority_valid_priority():
+    mock_process = MagicMock()
+    process._setProcessPriority(mock_process, 0b10)
+    mock_process.nice.assert_called_once_with(0b10)
+
+@pytest.mark.parametrize("exception", [ValueError, psutil.Error])
+def test__setProcessPriority_error(exception, caplog):
+    mock_process = MagicMock()
+    mock_process.nice.side_effect = exception
+    with caplog.at_level(logging.ERROR):
+        process._setProcessPriority(mock_process, 0b10)
+        mock_process.nice.assert_called_once_with(0b10)
+        assert "Failed to set process priority" in caplog.text

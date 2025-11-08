@@ -1,9 +1,10 @@
 import subprocess
+import logging
 from unittest.mock import patch, MagicMock
 
 import pytest
 
-from data.process_manager import ProcessManager
+from data.process_manager import ProcessManager, ProcessPriority, ProcessPriorityManager
 
 @pytest.fixture(autouse=True)
 def reset():
@@ -70,3 +71,45 @@ def test_clear():
         assert ProcessManager.processes == []
         mock_lock.__enter__.assert_called_once()
         mock_lock.__exit__.assert_called_once()
+
+def test_ProcessPriorityManager_setPriority_update_state(monkeypatch):
+    mock_lock = MagicMock()
+    monkeypatch.setattr(ProcessPriorityManager, "lock", mock_lock, raising=False)
+    monkeypatch.setattr(ProcessPriorityManager, "priority", ProcessPriority.NORMAL, raising=False)
+
+    ProcessPriorityManager.setPriority(ProcessPriority.HIGH)
+    
+    assert ProcessPriorityManager.priority == ProcessPriority.HIGH
+    mock_lock.__enter__.assert_called_once()
+    mock_lock.__exit__.assert_called_once()
+
+def test_ProcessPriorityManager_getPriorityFlag_return_value(monkeypatch):
+    mock_lock = MagicMock()
+    monkeypatch.setattr(ProcessPriorityManager, "lock", mock_lock, raising=False)
+    monkeypatch.setattr(ProcessPriorityManager, "priority", ProcessPriority.HIGH, raising=False)
+    monkeypatch.setattr(
+        ProcessPriorityManager,
+        "_PROCESS_PRIORITY_MAP",
+        { ProcessPriority.HIGH: 0b10},
+        raising=False,
+    )
+
+    assert ProcessPriorityManager.getPriorityFlag() == 0b10
+    
+    assert ProcessPriorityManager.priority == ProcessPriority.HIGH
+    mock_lock.__enter__.assert_called_once()
+    mock_lock.__exit__.assert_called_once()
+
+
+def test_ProcessPriorityManager_getPriorityFlag_unmapped_value(monkeypatch, caplog):
+    mock_lock = MagicMock()
+    monkeypatch.setattr(ProcessPriorityManager, "lock", mock_lock, raising=False)
+    monkeypatch.setattr(ProcessPriorityManager, "priority", ProcessPriority.HIGH, raising=False)
+    monkeypatch.setattr(ProcessPriorityManager, "_PROCESS_PRIORITY_MAP", {}, raising=False)
+
+    with caplog.at_level(logging.ERROR):
+        assert ProcessPriorityManager.getPriorityFlag() == None
+        assert "Priority not mapped" in caplog.text
+    
+    mock_lock.__enter__.assert_called_once()
+    mock_lock.__exit__.assert_called_once()
