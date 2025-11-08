@@ -87,4 +87,11 @@ Random - random order; more accurate estimated time left.
 Sequential - sorted by path; less fragmentation on HDDs; less accurate estimated time left.
 
 Total processing time remains the same.""",
+    "process_priority": """Controls the priority of transcoding processes. Lower priority means slower transcoding, but more responsive system.
+
+Normal - system default.
+
+Below Normal - delegates transcoding to the background.
+
+Idle - lowest priority.""",
 }

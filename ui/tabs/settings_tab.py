@@ -32,6 +32,7 @@ from ui.lib.utils import setToolTip, openLocalUrl, createQHBoxLayout, blockSigna
 from ui.theme import setTheme
 from ui.widgets import ScrollArea, SpinBox, ComboBox
 from ui.dialogs import message_box
+import data.process_manager as process_manager
 
 @dataclass(frozen=True)
 class StockPresets:
@@ -183,6 +184,8 @@ class SettingsTab(QWidget):
         self.open_log_dir_btn = self.wm.addWidget("open_log_dir_btn", QPushButton("Open Logs Folder"))
         self.wipe_log_dir_btn = self.wm.addWidget("wipe_log_dir_btn", QPushButton("Wipe Logs Folder"))
         self.start_logging_btn.setCheckable(True)
+        self.process_priority_l = self.wm.addWidget("process_priority_l", QLabel("Process Priority"))
+        self.process_priority_cmb = self.wm.addWidget("process_priority_cmb", ComboBox(("Normal", "Below Normal", "Idle")))
 
         # Categories
         self.general_btn = QPushButton("General")
@@ -254,6 +257,8 @@ class SettingsTab(QWidget):
         self.settings_lt.addLayout(createQHBoxLayout(self.im_args_l, self.im_args_te))
         self.processing_order_hb = createQHBoxLayout(self.processing_order_l, self.processing_order_cmb)
         self.settings_lt.addLayout(self.processing_order_hb)
+        self.process_priority_hb = createQHBoxLayout(self.process_priority_l, self.process_priority_cmb)
+        self.settings_lt.addLayout(self.process_priority_hb)
         self.settings_lt.addLayout(createQHBoxLayout(self.start_logging_btn, self.open_log_dir_btn, self.wipe_log_dir_btn))
 
         # All
@@ -271,6 +276,7 @@ class SettingsTab(QWidget):
             self.cjpegli_args_l,
             self.cjxl_args_l,
             self.im_args_l,
+            self.process_priority_l,
         ):
             label.setMinimumWidth(90)
 
@@ -282,6 +288,7 @@ class SettingsTab(QWidget):
             self.theme_hb,
             self.ram_optimizer_hb,
             self.processing_order_hb,
+            self.process_priority_hb,
             # self.avif_aom_tune_hb,
         ):
             hbox.setAlignment(Qt.AlignLeft)
@@ -293,6 +300,7 @@ class SettingsTab(QWidget):
             self.theme_cmb,
             self.ram_optimizer_cmb,
             self.processing_order_cmb,
+            self.process_priority_cmb,
             # self.avif_aom_tune_cmb,
         ):
             cmb.setMinimumWidth(150)
@@ -317,6 +325,7 @@ class SettingsTab(QWidget):
         self.theme_cmb.currentTextChanged.connect(self.onThemeChanged)
         self.ram_optimizer_rules_reset_btn.clicked.connect(self.resetOptimizationRules)
         self.ram_optimizer_cmb.currentTextChanged.connect(self.onRamOptimizerChanged)
+        self.process_priority_cmb.currentTextChanged.connect(self.onProcessPriorityChanged)
 
         self.general_btn.clicked.connect(lambda: self.changeCategory("General"))
         self.exiftool_btn.clicked.connect(lambda: self.changeCategory("ExifTool"))
@@ -347,6 +356,7 @@ class SettingsTab(QWidget):
         setToolTip("ram_optimizer", self.ram_optimizer_cmb)
         setToolTip("ram_optimizer_rules", self.ram_optimizer_rules_te)
         setToolTip("processing_order", self.processing_order_cmb)
+        setToolTip("process_priority", self.process_priority_cmb)
 
     def changeCategory(self, category):
         # Category buttons
@@ -396,6 +406,7 @@ class SettingsTab(QWidget):
                 "cjpegli_args_l", "cjpegli_args_te",
                 "im_args_l", "im_args_te",
                 "processing_order_l", "processing_order_cmb",
+                "process_priority_l", "process_priority_cmb",
                 "start_logging_btn", "open_log_dir_btn", "wipe_log_dir_btn",
             ],
         }
@@ -460,6 +471,24 @@ class SettingsTab(QWidget):
         self.ram_optimizer_rules_te.setEnabled(dynamic_ram_optimizer)
         self.ram_optimizer_rules_l.setEnabled(dynamic_ram_optimizer)
         self.ram_optimizer_rules_reset_btn.setEnabled(dynamic_ram_optimizer)
+
+    def onProcessPriorityChanged(self) -> None:
+        priority = self.process_priority_cmb.currentText()
+        match priority:
+            case "Normal":
+                process_manager.ProcessPriorityManager.setPriority(
+                    process_manager.ProcessPriority.NORMAL
+                )
+            case "Below Normal":
+                process_manager.ProcessPriorityManager.setPriority(
+                    process_manager.ProcessPriority.BELOW_NORMAL
+                )
+            case "Idle":
+                process_manager.ProcessPriorityManager.setPriority(
+                    process_manager.ProcessPriority.IDLE
+                )
+            case _:
+                logging.error(f"[onProcessPriorityChanged] Unmapped priority ({priority})")
 
     def enableLogging(self) -> None:
         if not self.logging_manager.isLoggingToFile():
@@ -568,6 +597,7 @@ class SettingsTab(QWidget):
         self.cjpegli_args_te.clear()
         self.im_args_te.clear()
         self.avifenc_args_te.clear()
+        self.process_priority_cmb.setCurrentIndex(0)
     
     def saveState(self, new_states: Optional[Dict] = None) -> None:
         if new_states is None or new_states != self.cached_states:

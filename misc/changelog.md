@@ -1,3 +1,17 @@
+## TBA
+
+### Added
+
+- Add process priority option.
+
+### Fixed
+
+-
+
+### Changed
+
+- 
+
 ## 1.2.3 - 2025-10-02
 
 ### Added
