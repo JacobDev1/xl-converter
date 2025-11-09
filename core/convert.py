@@ -12,7 +12,7 @@ from data.constants import (
     AVIFENC_PATH,
     JPEGTRAN_PATH,
 )
-from core.process import runProcess, runProcessOutput, runProcess2
+from core.process import runProcessOutput, runProcess2
 from core.exceptions import GenericException, CancellationException
 import data.task_status as task_status
 
@@ -26,7 +26,7 @@ def runBinary(
     args_after_input: bool = False,
     delete_if_canceled: list[str] = [],
 ) -> (str, str):
-    """Replacement for convert().
+    """A universal method for running binaries.
 
     Args:
         bin_path: the absolute path to the binary
@@ -90,16 +90,6 @@ def runJPEGtran(
         raise CancellationException()
 
     return (stdout, stderr)
-
-def convert(encoder_path, src, dst, args = []):
-    """Universal method for all encoders. Deprecated."""
-    cmd = []
-    if encoder_path == AVIFENC_PATH:
-        cmd = (encoder_path, *parseArgs(args), src, dst)
-    else:
-        cmd = (encoder_path, src, *parseArgs(args), dst)
-    
-    runProcess(*cmd)
 
 def getExtensionJxl(src_path: str) -> Literal["jpg", "png"]:
     """Assign extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""

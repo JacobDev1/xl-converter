@@ -10,7 +10,7 @@ from data.constants import (
     AVIFENC_PATH,
     OXIPNG_PATH
 )
-from core.process import runProcess, runProcessOutput
+from core.process import runProcess2, runProcessOutput
 from core.exceptions import GenericException, FileException
 
 class Data:
@@ -58,7 +58,7 @@ def _runExifTool(*args):
             except Exception as e:
                 raise FileException("M0", f"Failed to create an argfile. {e}")
             
-            runProcess(EXIFTOOL_PATH, "-charset", "filename=UTF8", "-@", tmp_file_name, cwd=tmp_file_dir)
+            runProcess2(EXIFTOOL_PATH, "-charset", "filename=UTF8", "-@", tmp_file_name, cwd=tmp_file_dir)
 
             try:
                 os.unlink(tmp_file_path)
@@ -66,7 +66,7 @@ def _runExifTool(*args):
                 raise FileException("M1", f"Failed to clean up an argfile. {e}")
             # ExifTool does not support UTF-8 paths on Windows, unless you put them in an argfile.
         case "Linux" | "Darwin":
-            runProcess("exiftool", *args)
+            runProcess2("exiftool", *args)
             # ExifTool is no longer included due to a bug in its handling of JPEG XL in the platform-independent Perl library.
             # If you try to process JPEG XL from Worker via an absolute path, you get:
             # (stderr): Warning: Install IO::Uncompress::Brotli to decode Brotli-compressed metadata

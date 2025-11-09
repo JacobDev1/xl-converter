@@ -27,7 +27,7 @@ from data.constants import (
 
 from core.proxy import Proxy
 from core.pathing import getUniqueFilePath, getExtension, getOutputDir, getUniqueTmpFilePath, removeFile
-from core.convert import convert, getDecoder, getDecoderArgs, getExtensionJxl, runBinary, cleanUp
+from core.convert import getDecoder, getDecoderArgs, getExtensionJxl, runBinary, cleanUp
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status

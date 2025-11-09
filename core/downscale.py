@@ -13,7 +13,7 @@ from data.constants import (
 from core.utils import clip
 from core.pathing import getUniqueTmpFilePath
 import core.metadata as metadata
-from core.convert import convert, getDecoder
+from core.convert import getDecoder, runBinary
 from core.exceptions import CancellationException, GenericException, FileException
 
 # ------------------------------------------------------------
@@ -54,7 +54,7 @@ def _extrapolateScale(sample_points, desired_size) -> int:
 #                           Helper
 # ------------------------------------------------------------
 
-def _downscaleToPercent(src, dst, amount=90, resample="Default"):
+def _downscaleToPercent(src, dst, amount=90, resample="Default", delete_if_canceled=[]):
     amount = clip(amount, 1, 100)
 
     args = []
@@ -62,18 +62,46 @@ def _downscaleToPercent(src, dst, amount=90, resample="Default"):
         args.append(f"-filter {resample}")  # Needs to come first
     args.extend([f"-resize {amount}%"])
 
-    convert(IMAGE_MAGICK_PATH, src, dst, args)
+    runBinary(
+        IMAGE_MAGICK_PATH,
+        args,
+        src,
+        dst,
+        args_after_input=True,
+        delete_if_canceled=delete_if_canceled,
+    )
 
-def cancelCheck(*tmp_files):
-    """Checks if the task was canceled and removes temporary files."""
-    if task_status.wasCanceled():
-        for file in tmp_files:
+def _getFileSize(file_path: str, cleanup_targets: list[str] = []) -> int:
+    try:
+        return os.path.getsize(file_path)
+    except OSError as e:
+        for file in cleanup_targets:
             try:
                 os.remove(file)
-            except OSError as err:
-                raise FileException("D5", err)
-        raise CancellationException()
+            except OSError:
+                pass
+        raise
 
+def _checkForSuccess(err_id: str, file_to_check: str, files_to_del: list[str] = []) -> None:
+    """Checks if an output exists. If it doesn't exist, raises an exception and deletes files_to_del."""
+    if os.path.isfile(file_to_check):
+        return
+
+    for file in files_to_del:
+        try:
+            os.remove(file)
+        except OSError as err:
+            pass
+    raise FileException(err_id, "Output not found.")
+
+def _deleteFile(path: str, raising: bool = True, exc_id: str = "NO_ID") -> None:
+    """Deletes a file. Raise an exception if deleting failed."""
+    try:
+        os.remove(path)
+    except OSError as err:
+        if raising:
+            raise FileException(exc_id, err)
+    
 # ------------------------------------------------------------
 #                           Scaling
 # ------------------------------------------------------------
@@ -90,107 +118,136 @@ def _downscaleToFileSize(params, mutex):
         params["args"][1] = "-e 7"
 
     # Sample 2 data points (evenly)
-    _downscaleToPercent(params["src"], proxy_src, 66, params["resample"])
-    convert(params["enc"], proxy_src, params["dst"], params["args"])
+    _downscaleToPercent(
+        params["src"],
+        proxy_src,
+        66,
+        params["resample"],
+        [proxy_src, params["dst"]],
+    )
+    _checkForSuccess("D0", proxy_src, [proxy_src, params["dst"]])
+    runBinary(
+        params["enc"],
+        params["args"],
+        proxy_src,
+        params["dst"],
+        args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
+        delete_if_canceled=[proxy_src, params["dst"]],
+    )
+    _checkForSuccess("D1", params["dst"], [proxy_src])
 
-    try:
-        size_samples.append([os.path.getsize(params["dst"]), 66])
-    except OSError as err:
-        try:
-            os.remove(proxy_src)
-            os.remove(params["dst"])
-        except OSError as err:
-            raise FileException("D7", err)
-        raise FileException("D6", err)
+    file_size = _getFileSize(params["dst"], [proxy_src, params["dst"]])
+    size_samples.append([file_size, 66])
 
-    cancelCheck(proxy_src, params["dst"])
+    _deleteFile(proxy_src, raising=True, exc_id="D28")
+    _downscaleToPercent(
+        params["src"],
+        proxy_src,
+        33,
+        params["resample"],
+        [proxy_src, params["dst"]],
+    )
+    _checkForSuccess("D23", proxy_src, [params["dst"]])
+    runBinary(
+        params["enc"],
+        params["args"],
+        proxy_src,
+        params["dst"],
+        args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
+        delete_if_canceled=[proxy_src, params["dst"]],
+    )
+    _checkForSuccess("D24", params["dst"], [proxy_src])
 
-    if not os.path.isfile(params["dst"]):  # Failed conversion check (in case of corrupt images)
-        try:
-            os.remove(proxy_src)
-            os.remove(params["dst"])
-        except OSError as err:
-            raise FileException("D8", err)
-        raise FileException("D9", f"Failed conversion check. {err}")
+    file_size = _getFileSize(params["dst"], [proxy_src, params["dst"]])
+    size_samples.append([file_size, 33])
 
-    _downscaleToPercent(params["src"], proxy_src, 33, params["resample"])
-    convert(params["enc"], proxy_src, params["dst"], params["args"])
-
-    try:
-        size_samples.append([os.path.getsize(params["dst"]), 33])
-    except OSError as err:
-        try:
-            os.remove(proxy_src)
-        except OSError as err:
-            raise FileException("D10", err)
-        raise FileException("D11", f"Getting file sizes failed. {err}")
-
-    try:
-        os.remove(params["dst"])
-    except OSError as err:
-        raise FileException("D12", err)
-
-    cancelCheck(proxy_src)
+    _deleteFile(params["dst"], raising=True, exc_id="D25")
 
     # Use gathered data
     extrapolated_scale = _extrapolateScale(size_samples, params["max_size"] * 1024)
 
     if extrapolated_scale < 0:          # Error
-        
-        try:
-            os.remove(proxy_src)
-        except OSError as err:
-            raise FileException("D13", err)
+        _deleteFile(proxy_src, raising=True, exc_id="D13")
         raise GenericException("D14", f"Extrapolated scale cannot be negative ({extrapolated_scale})")
     elif extrapolated_scale >= 100:     # Non-downscaled conversion
         if Path(params["src"]).suffix[1:].lower() in ("png", "jpeg", "jpg"):
-            convert(params["enc"], params["src"], params["dst"], params["args"])
+            runBinary(
+                params["enc"],
+                params["args"],
+                params["src"],
+                params["dst"],
+                args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
+                delete_if_canceled=[proxy_src, params["dst"]],
+            )
+            _checkForSuccess("D26", params["dst"], [proxy_src])
         else:
-            try:
-                os.remove(proxy_src)
-            except OSError as err:
-                raise FileException("D21", err)
-            convert(IMAGE_MAGICK_PATH, params["src"], proxy_src, [])
-            convert(params["enc"], proxy_src, params["dst"], params["args"])
-            try:
-                os.remove(proxy_src)
-            except OSError as err:
-                raise FileException("D22", err)
+            _deleteFile(proxy_src, raising=True, exc_id="D21")
+            runBinary(
+                IMAGE_MAGICK_PATH,
+                [],
+                params["src"],
+                proxy_src,
+                delete_if_canceled=[proxy_src],
+            )
+            _checkForSuccess("D5", proxy_src)
+            runBinary(
+                params["enc"],
+                params["args"],
+                proxy_src,
+                params["dst"],
+                args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
+                delete_if_canceled=[proxy_src, params["dst"]],
+            )
+            _checkForSuccess("D6", params["dst"], [proxy_src])
+            _deleteFile(proxy_src, raising=True, exc_id="D22")
     else:
         while extrapolated_scale > 1:
-            _downscaleToPercent(params["src"], proxy_src, extrapolated_scale, params["resample"])
-            convert(params["enc"], proxy_src, params["dst"], params["args"])
+            _downscaleToPercent(
+                params["src"],
+                proxy_src,
+                extrapolated_scale,
+                params["resample"],
+                [proxy_src, params["dst"]],
+            )
+            _checkForSuccess("D7", proxy_src, [params["dst"]])
+            runBinary(
+                params["enc"],
+                params["args"],
+                proxy_src,
+                params["dst"],
+                args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
+                delete_if_canceled=[proxy_src, params["dst"]],
+            )
+            _checkForSuccess("D15", params["dst"], [proxy_src])
 
             extrapolated_scale -= 10
             if extrapolated_scale < 1:
                 extrapolated_scale = 1
             
-            try:
-                size = os.path.getsize(params["dst"])
-                threshold = params["max_size"] * 1024 * (1 + fault_tolerance)
-                if size < threshold:
-                    break
-            except OSError as err:
-                try:
-                    os.remove(proxy_src)
-                    os.remove(params["dst"])
-                except OSError as err:
-                    raise FileException("D17", err)
-                raise FileException("D16", err)
+            threshold = params["max_size"] * 1024 * (1 + fault_tolerance)
+            file_size = _getFileSize(params["dst"], [proxy_src, params["dst"]])
+            if file_size < threshold:
+                break
 
-            cancelCheck(proxy_src, params["dst"])
-        
         # JPEG XL - intelligent effort
         if params["format"] == "JPEG XL" and params["jxl_int_e"]:
             params["args"][1] = "-e 9"
             with QMutexLocker(mutex):
                 e9_tmp = getUniqueTmpFilePath(params["dst_dir"], "jxl")
 
-            convert(params["enc"], proxy_src, e9_tmp, params["args"])
+            runBinary(
+                params["enc"],
+                params["args"],
+                proxy_src,
+                e9_tmp,
+                delete_if_canceled=[proxy_src, e9_tmp, params["dst"]],
+            )
+            _checkForSuccess("D8", e9_tmp, [proxy_src])
+
+            e7_size = _getFileSize(params["dst"], [proxy_src, e9_tmp])
+            e9_size = _getFileSize(e9_tmp, [proxy_src, e9_tmp])
 
             try:
-                e7_size = os.path.getsize(params["dst"])
-                e9_size = os.path.getsize(e9_tmp)
                 if e9_size < e7_size:
                     os.remove(params["dst"])
                     os.rename(e9_tmp, params["dst"])
@@ -200,10 +257,7 @@ def _downscaleToFileSize(params, mutex):
                 raise FileException("D18", err)
             
         # Cleanup
-        try:
-            os.remove(proxy_src)
-        except OSError as err:
-            raise FileException("D19", err)
+        _deleteFile(proxy_src, raising=True, exc_id="D31")
 
         return True
 
@@ -244,20 +298,44 @@ def _downscaleManualModes(params, mutex):
     # Downscale
     if params["enc"] == IMAGE_MAGICK_PATH:  # We can just add arguments If the encoder is ImageMagick, since it also handles downscaling
         args.extend(params["args"])
-        convert(IMAGE_MAGICK_PATH, params["src"], params["dst"], args)
+        runBinary(
+            IMAGE_MAGICK_PATH,
+            args,
+            params["src"],
+            params["dst"],
+            args_after_input=True,
+            delete_if_canceled=[params["dst"]],
+        )
+        _checkForSuccess("D9", params["dst"])
     else:
         with QMutexLocker(mutex):
             downscaled_path = getUniqueTmpFilePath(params["dst_dir"], "png")
 
         # Downscale
         # Proxy was handled before in Worker.py
-        convert(IMAGE_MAGICK_PATH, params["src"], downscaled_path, args)
+        runBinary(
+            IMAGE_MAGICK_PATH,
+            args,
+            params["src"],
+            downscaled_path,
+            args_after_input=True,
+            delete_if_canceled=[downscaled_path],
+        )
+        _checkForSuccess("D10", downscaled_path)
         
         # Convert
         if params["format"] == "JPEG XL" and params["jxl_int_e"]: 
-            params["args"][1] == "-e 7"
+            params["args"][1] = "-e 7"
 
-        convert(params["enc"], downscaled_path, params["dst"], params["args"])
+        runBinary(
+            params["enc"],
+            params["args"],
+            downscaled_path,
+            params["dst"],
+            args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
+            delete_if_canceled=[downscaled_path, params["dst"]],
+        )
+        _checkForSuccess("D11", params["dst"], [downscaled_path])
 
         # Intelligent Effort
         if params["format"] == "JPEG XL" and params["jxl_int_e"]: 
@@ -265,12 +343,20 @@ def _downscaleManualModes(params, mutex):
 
             with QMutexLocker(mutex):
                 e9_tmp = getUniqueTmpFilePath(params["dst_dir"], "jxl")
-            convert(params["enc"], downscaled_path, e9_tmp, params["args"])
+            runBinary(
+                params["enc"],
+                params["args"],
+                downscaled_path,
+                e9_tmp,
+                args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
+                delete_if_canceled=[downscaled_path, e9_tmp, params["dst"]],
+            )
+            _checkForSuccess("D29", e9_tmp, [downscaled_path])
+
+            e7_size = _getFileSize(params["dst"], [downscaled_path, e9_tmp])
+            e9_size = _getFileSize(e9_tmp, [downscaled_path, e9_tmp])
 
             try:
-                e7_size = os.path.getsize(params["dst"])
-                e9_size = os.path.getsize(e9_tmp)
-
                 if e9_size < e7_size:
                     os.remove(params["dst"])
                     os.rename(e9_tmp, params["dst"])
@@ -281,10 +367,7 @@ def _downscaleManualModes(params, mutex):
                 raise FileException("D3", err)
 
         # Clean-up
-        try:
-            os.remove(downscaled_path)
-        except OSError as err:
-            raise FileException("D4", err)
+        _deleteFile(downscaled_path, raising=True, exc_id="D4")
 
 # ------------------------------------------------------------
 #                           Public
@@ -300,19 +383,23 @@ def decodeAndDownscale(params, ext, metadata_mode, mutex):
     else:
         # Generate proxy
         with QMutexLocker(mutex):
-            proxy_path = getUniqueTmpFilePath(params["dst_dir"], "png")
-        convert(params["enc"], params["src"], proxy_path, [])
+            proxy_src = getUniqueTmpFilePath(params["dst_dir"], "png")
+        runBinary(
+            params["enc"],
+            [],
+            params["src"],
+            proxy_src,
+            delete_if_canceled=[proxy_src],
+        )
+        _checkForSuccess("D27", proxy_src)
 
         # Downscale
-        params["src"] = proxy_path
+        params["src"] = proxy_src
         params["enc"] = IMAGE_MAGICK_PATH
         downscale(params, mutex)
 
         # Clean-up
-        try:
-            os.remove(proxy_path)
-        except OSError as err:
-            raise FileException("D1", err)
+        _deleteFile(proxy_src, raising=True, exc_id="D19")
 
 def downscale(params, mutex):
     """A wrapper for all downscaling methods. Keeps the same aspect ratio.

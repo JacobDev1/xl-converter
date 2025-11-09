@@ -54,23 +54,6 @@ def _getStartupInfo():
         startupinfo.wShowWindow = subprocess.SW_HIDE
     return startupinfo
 
-def runProcess(*cmd, cwd=None):
-    """Run process."""
-    logging.info(f"[runProcess] {cmd}")
-
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo(), cwd=cwd)
-    ProcessManager.addProcess(process)
-    stdout, stderr = process.communicate()
-    ProcessManager.removeProcess(process)
-
-    try:
-        if stdout:
-            logging.info(f"[runProcess] {stdout.decode('utf-8')}")
-        if stderr:
-            logging.info(f"[runProcess] {stderr.decode('utf-8')}")
-    except Exception as err:
-        logging.error(f"[runProcess] Failed to decode process output. {err}")
-
 def runProcessOutput(*cmd, cwd=None) -> (str, str):
     """Run process then return its output.
     
