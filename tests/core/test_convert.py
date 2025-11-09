@@ -165,16 +165,6 @@ def test_runJPEGtran_sad_path():
         "path/src.jpg",
     )
 
-def test_convert_avifenc():
-    with patch("core.convert.runProcess") as mock_runProcess:
-        convert.convert(AVIFENC_PATH, "src.png", "dst.avif", ["-q", "50"])
-        mock_runProcess.assert_called_once_with(AVIFENC_PATH, "-q", "50", "src.png", "dst.avif")
-
-def test_convert_other():
-    with patch("core.convert.runProcess") as mock_runProcess:
-        convert.convert("encoder_path", "src.png", "dst.avif", ["-q", "50"])
-        mock_runProcess.assert_called_once_with("encoder_path", "src.png","-q", "50", "dst.avif")
-
 def test_getExtensionJxl_jpg():
     with patch("core.convert.runProcessOutput", return_value=("JPEG bitstream reconstruction data available", "")):
         assert convert.getExtensionJxl("src.jxl") == "jpg"

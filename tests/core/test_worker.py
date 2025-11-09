@@ -268,7 +268,6 @@ def test_setupConversion_downscaling_no_key_error(setupConversion_patches, worke
 def worker_convert_patches(worker):
     patches = {
         "runBinary": patch("core.worker.runBinary", return_value=("stdout", "stderr")),
-        "convert": patch("core.worker.convert"),
         "remove": patch("core.worker.os.remove"),
         "rename": patch("core.worker.os.rename"),
         "getsize": patch("core.worker.os.path.getsize", return_value=[300_000, 400_00]),

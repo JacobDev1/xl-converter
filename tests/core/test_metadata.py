@@ -26,11 +26,11 @@ def test_runExifTool():
 def test__runExifTool_posix(system):
     with (
         patch("platform.system", return_value=system),
-        patch("core.metadata.runProcess") as mock_runProcess,
+        patch("core.metadata.runProcess2") as mock_runProcess2,
     ):
         et_args = "-arg1", "-arg2"
         metadata._runExifTool(et_args)
-        mock_runProcess.assert_called_once_with("exiftool", et_args)
+        mock_runProcess2.assert_called_once_with("exiftool", et_args)
 
 # def test__runExifTool_linux():
 #     with (
@@ -54,7 +54,7 @@ def test__runExifTool_posix(system):
 def test__runExifTool_windows():
     with (
         patch("platform.system", return_value="Windows"),
-        patch("core.metadata.runProcess") as mock_run,
+        patch("core.metadata.runProcess2") as mock_run,
         patch("os.unlink") as mock_unlink,
         patch("tempfile.NamedTemporaryFile") as mock_tempfile,
         patch("os.path.basename", return_value="tmp_file_name"),
@@ -83,7 +83,7 @@ def test__runExifTool_windows():
 def test__runExifTool_windows_cleanup_exc():
     with (
         patch("platform.system", return_value="Windows"),
-        patch("core.metadata.runProcess"),
+        patch("core.metadata.runProcess2"),
         patch("os.unlink"),
         patch("tempfile.NamedTemporaryFile") as mock_tempfile,
     ):
@@ -96,7 +96,7 @@ def test__runExifTool_windows_cleanup_exc():
 def test__runExifTool_windows_file_exc():
     with (
         patch("platform.system", return_value="Windows"),
-        patch("core.metadata.runProcess"),
+        patch("core.metadata.runProcess2"),
         patch("os.unlink", side_effect=OSError("error")),
         patch("tempfile.NamedTemporaryFile") as mock_tempfile,
     ):
