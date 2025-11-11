@@ -13,7 +13,7 @@ from data.constants import (
 from core.utils import clip
 from core.pathing import getUniqueTmpFilePath
 import core.metadata as metadata
-from core.convert import getDecoder, runBinary
+from core.convert import getDecoder, runBinary, cleanUp
 from core.exceptions import CancellationException, GenericException, FileException
 
 # ------------------------------------------------------------
@@ -72,6 +72,7 @@ def _downscaleToPercent(src, dst, amount=90, resample="Default", delete_if_cance
     )
 
 def _getFileSize(file_path: str, cleanup_targets: list[str] = []) -> int:
+    """Returns file size in bytes. On fail, deletes files in cleanup_targets, and raises OSError."""
     try:
         return os.path.getsize(file_path)
     except OSError as e:
@@ -82,12 +83,12 @@ def _getFileSize(file_path: str, cleanup_targets: list[str] = []) -> int:
                 pass
         raise
 
-def _checkForSuccess(err_id: str, file_to_check: str, files_to_del: list[str] = []) -> None:
-    """Checks if an output exists. If it doesn't exist, raises an exception and deletes files_to_del."""
+def _checkForSuccess(err_id: str, file_to_check: str, cleanup_targets: list[str] = []) -> None:
+    """Checks if an output exists. If it doesn't exist, raises an exception and deletes cleanup_targets."""
     if os.path.isfile(file_to_check):
         return
 
-    for file in files_to_del:
+    for file in cleanup_targets:
         try:
             os.remove(file)
         except OSError as err:
@@ -244,8 +245,8 @@ def _downscaleToFileSize(params, mutex):
             )
             _checkForSuccess("D8", e9_tmp, [proxy_src])
 
-            e7_size = _getFileSize(params["dst"], [proxy_src, e9_tmp])
-            e9_size = _getFileSize(e9_tmp, [proxy_src, e9_tmp])
+            e7_size = _getFileSize(params["dst"], [proxy_src, e9_tmp, params["dst"]])
+            e9_size = _getFileSize(e9_tmp, [proxy_src, e9_tmp, params["dst"]])
 
             try:
                 if e9_size < e7_size:
@@ -254,6 +255,7 @@ def _downscaleToFileSize(params, mutex):
                 else:
                     os.remove(e9_tmp)
             except OSError as err:
+                cleanUp([params["dst"], e9_tmp, proxy_src])
                 raise FileException("D18", err)
             
         # Cleanup
@@ -343,6 +345,7 @@ def _downscaleManualModes(params, mutex):
 
             with QMutexLocker(mutex):
                 e9_tmp = getUniqueTmpFilePath(params["dst_dir"], "jxl")
+
             runBinary(
                 params["enc"],
                 params["args"],
@@ -351,10 +354,10 @@ def _downscaleManualModes(params, mutex):
                 args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
                 delete_if_canceled=[downscaled_path, e9_tmp, params["dst"]],
             )
-            _checkForSuccess("D29", e9_tmp, [downscaled_path])
+            _checkForSuccess("D29", e9_tmp, [downscaled_path, params["dst"]])
 
-            e7_size = _getFileSize(params["dst"], [downscaled_path, e9_tmp])
-            e9_size = _getFileSize(e9_tmp, [downscaled_path, e9_tmp])
+            e7_size = _getFileSize(params["dst"], [downscaled_path, e9_tmp, params["dst"]])
+            e9_size = _getFileSize(e9_tmp, [downscaled_path, e9_tmp, params["dst"]])
 
             try:
                 if e9_size < e7_size:
@@ -362,8 +365,8 @@ def _downscaleManualModes(params, mutex):
                     os.rename(e9_tmp, params["dst"])
                 else:
                     os.remove(e9_tmp)
-
             except OSError as err:
+                cleanUp([params["dst"], e9_tmp, downscaled_path])
                 raise FileException("D3", err)
 
         # Clean-up
@@ -398,7 +401,7 @@ def decodeAndDownscale(params, ext, metadata_mode, mutex):
         params["enc"] = IMAGE_MAGICK_PATH
         downscale(params, mutex)
 
-        # Clean-up
+        # Cleanup
         _deleteFile(proxy_src, raising=True, exc_id="D19")
 
 def downscale(params, mutex):
