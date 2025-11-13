@@ -91,7 +91,8 @@ class Proxy():
             return
 
         try:
-            os.remove(self.proxy_path)
+            if os.path.isfile(self.proxy_path):     # In case path was assigned but no output was generated.
+                os.remove(self.proxy_path)
         except OSError as e:
             if raising:
                 raise FileException("Proxy2", f"Failed to clean up proxy. {e}")

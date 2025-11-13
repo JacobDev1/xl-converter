@@ -104,14 +104,20 @@ def test_proxyExists(proxy):
 
 def test_cleanUp_no_proxy(proxy):
     assert proxy.proxy_path is None
-    with patch("core.proxy.os.remove") as mock_remove:
+    with (
+        patch("core.proxy.os.remove") as mock_remove,
+        patch("core.proxy.os.path.isfile", return_value=True),
+    ):
         proxy.cleanUp()
         mock_remove.assert_not_called()
 
 def test_cleanUp_happy_path(proxy):
     proxy_file = "/proxy/path/proxy.png"
     proxy.proxy_path = proxy_file
-    with patch("core.proxy.os.remove") as mock_remove:
+    with (
+        patch("core.proxy.os.remove") as mock_remove,
+        patch("core.proxy.os.path.isfile", return_value=True),
+    ):
         proxy.cleanUp(raising=True)
         mock_remove.assert_called_once_with(proxy_file)
         assert proxy.proxy_path is None
@@ -121,6 +127,7 @@ def test_cleanUp_sad_path_raising(proxy):
     proxy.proxy_path = proxy_file
     with (
         patch("core.proxy.os.remove", side_effect=OSError) as mock_remove,
+        patch("core.proxy.os.path.isfile", return_value=True),
         pytest.raises(FileException),
     ):
         proxy.cleanUp(raising=True)
@@ -132,9 +139,20 @@ def test_cleanUp_sad_path_not_raising(proxy, caplog):
     proxy.proxy_path = proxy_file
     with (
         patch("core.proxy.os.remove", side_effect=OSError) as mock_remove,
+        patch("core.proxy.os.path.isfile", return_value=True),
         caplog.at_level(logging.ERROR)
     ):
         proxy.cleanUp(raising=False)
         mock_remove.assert_called_once_with(proxy_file)
         assert proxy.proxy_path is None
         assert "Failed to clean up proxy" in caplog.text
+
+def test_cleanUp_no_file(proxy, caplog):
+    proxy_file = "/proxy/path/proxy.png"
+    proxy.proxy_path = proxy_file
+    with (
+        patch("core.proxy.os.remove", side_effect=OSError) as mock_remove,
+        patch("core.proxy.os.path.isfile", return_value=False),
+    ):
+        proxy.cleanUp(raising=True)
+        mock_remove.assert_not_called()
