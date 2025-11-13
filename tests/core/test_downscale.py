@@ -190,6 +190,278 @@ def params_fixture():
         "n": 0,
     }
 
+def test__downscaleToFileSize_gather_data(params_fixture):
+    params_fixture.update({
+        "mode": "File Size",
+        "max_size": 300,
+        "jxl_int_e": False,
+        "args": ["-arg1", "-arg2"],
+    })
+    mutex = MagicMock(spec=QMutex)
+    proxy_src = "/tmp/proxy.png"
+    with (
+        patch("core.downscale.getUniqueTmpFilePath", return_value=proxy_src) as mock_getUniqueTmpFilePath,
+        patch("core.downscale._downscaleToPercent") as mock__downscaleToPercent,
+        patch("core.downscale._getFileSize", side_effect=[500_000, 200_000, 300_000]) as mock__getFileSize,
+        patch("core.downscale.runBinary") as mock_runBinary,
+        patch("core.downscale.QMutexLocker") as mock_QMutexLocker,
+        patch("core.downscale._checkForSuccess") as mock__checkForSuccess,
+        patch("core.downscale._deleteFile") as mock__deleteFile,
+        patch("core.downscale._extrapolateScale", return_value=40) as mock__extrapolatedScale,
+    ):
+        downscale._downscaleToFileSize(params_fixture, mutex)
+        mock_QMutexLocker.assert_called_once_with(mutex)
+        assert mock__downscaleToPercent.call_args_list[0] == call(
+            params_fixture["src"],
+            proxy_src,
+            66,
+            params_fixture["resample"],
+            [proxy_src, params_fixture["dst"]],
+        )
+        assert mock__checkForSuccess.call_args_list[0] == call("D0", proxy_src, [params_fixture["dst"]])
+        assert mock_runBinary.call_args_list[0] == call(
+            params_fixture["enc"],
+            params_fixture["args"],
+            proxy_src,
+            params_fixture["dst"],
+            args_after_input=False,
+            delete_if_canceled=[proxy_src, params_fixture["dst"]],
+        )
+        assert mock__checkForSuccess.call_args_list[1] == call("D1", params_fixture["dst"], [proxy_src])
+        assert mock__deleteFile.call_args_list[0] == call(proxy_src, raising=True, exc_id="D28")
+        assert mock__deleteFile.call_args_list[1] == call(params_fixture["dst"], raising=True, exc_id="D30")
+
+        assert mock__downscaleToPercent.call_args_list[1] == call(
+            params_fixture["src"],
+            proxy_src,
+            33,
+            params_fixture["resample"],
+            [proxy_src, params_fixture["dst"]],
+        )
+        assert mock__checkForSuccess.call_args_list[2] == call("D23", proxy_src, [params_fixture["dst"]])
+        assert mock_runBinary.call_args_list[0] == call(
+            params_fixture["enc"],
+            params_fixture["args"],
+            proxy_src,
+            params_fixture["dst"],
+            args_after_input=False,
+            delete_if_canceled=[proxy_src, params_fixture["dst"]],
+        )
+        assert mock__checkForSuccess.call_args_list[3] == call("D24", params_fixture["dst"], [proxy_src])
+        assert mock__deleteFile.call_args_list[2] == call(proxy_src, raising=True, exc_id="D32")
+        assert mock__deleteFile.call_args_list[3] == call(params_fixture["dst"], raising=True, exc_id="D25")
+
+        mock__extrapolatedScale.assert_called_once_with(
+            [
+                [500_000, 66],
+                [200_000, 33],
+            ],
+                params_fixture["max_size"] * 1024,
+        )
+        # Downscaling tested in elsewhere...
+        mock__deleteFile.call_args_list[4] == call(proxy_src, raising=True, exc_id="D31")
+
+class RunBinaryRecorder:
+    def __init__(self):
+        self.call_args_list = []
+        self.call_count = 0
+
+    def __call__(self, enc, enc_args, src, dst, **kwargs):
+        self.call_args_list.append(
+            call(
+                enc, list(enc_args), src, dst, **kwargs
+            )
+        )
+        self.call_count += 1
+
+@pytest.mark.parametrize("e7_size, e9_size", [
+    (300_000, 305_000),
+    (305_000, 300_000),
+])
+def test__downscaleToFileSize_int_e(e7_size, e9_size, params_fixture):
+    params_fixture.update({
+        "mode": "File Size",
+        "format": "JPEG XL",
+        "jxl_int_e": True,
+        "max_size": 300,
+        "args": ["-q 90", "-e 9"],
+    })
+    mutex = MagicMock(spec=QMutex)
+    proxy_src = "/tmp/proxy.png"
+    e9_tmp = "/tmp/e9_tmp.jxl"
+    with (
+        patch("core.downscale.getUniqueTmpFilePath", side_effect=[proxy_src, e9_tmp]) as mock_getUniqueTmpFilePath,
+        patch("core.downscale._downscaleToPercent") as mock__downscaleToPercent,
+        patch("core.downscale._getFileSize", side_effect=[500_000, 200_000, 300_000, e7_size, e9_size]) as mock__getFileSize,
+        patch("core.downscale.runBinary", new=RunBinaryRecorder()) as mock_runBinary,
+        patch("core.downscale.QMutexLocker") as mock_QMutexLocker,
+        patch("core.downscale._checkForSuccess") as mock__checkForSuccess,
+        patch("core.downscale._deleteFile") as mock__deleteFile,
+        patch("core.downscale._extrapolateScale", return_value=40) as mock__extrapolatedScale,
+        patch("core.downscale.os.remove") as mock_remove,
+        patch("core.downscale.os.rename") as mock_rename,
+    ):
+        downscale._downscaleToFileSize(params_fixture, mutex)
+        assert mock_runBinary.call_args_list[0] == call(
+            params_fixture["enc"],
+            ["-q 90", "-e 7"],
+            proxy_src,
+            params_fixture["dst"],
+            args_after_input=False,
+            delete_if_canceled=[proxy_src, params_fixture["dst"]],
+        )
+        assert mock_QMutexLocker.call_args_list[1] == call(mutex)
+        assert mock_runBinary.call_args_list[3] == call(
+            params_fixture["enc"],
+            ["-q 90", "-e 9"],
+            proxy_src,
+            e9_tmp,
+            delete_if_canceled=[proxy_src, e9_tmp, params_fixture["dst"]],
+        )
+        assert mock__checkForSuccess.call_args_list[6] == call("D8", e9_tmp, [proxy_src])
+        assert mock__getFileSize.call_args_list[3] == call(params_fixture["dst"], [proxy_src, e9_tmp, params_fixture["dst"]])
+        assert mock__getFileSize.call_args_list[4] == call(e9_tmp, [proxy_src, e9_tmp, params_fixture["dst"]])
+
+        if e9_size < e7_size:
+            mock_remove.assert_called_once_with(params_fixture["dst"])
+            mock_rename.assert_called_once_with(e9_tmp, params_fixture["dst"])
+        else:
+            mock_rename.assert_not_called()
+            mock_remove.assert_called_once_with(e9_tmp)
+
+def test__downscaleToFileSize_int_e_exception(params_fixture):
+    params_fixture.update({
+        "mode": "File Size",
+        "format": "JPEG XL",
+        "jxl_int_e": True,
+        "max_size": 300,
+        "args": ["-q 90", "-e 9"],
+    })
+    mutex = MagicMock(spec=QMutex)
+    proxy_src = "/tmp/proxy.png"
+    e9_tmp = "/tmp/e9_tmp.jxl"
+    with (
+        patch("core.downscale.getUniqueTmpFilePath", side_effect=[proxy_src, e9_tmp]) as mock_getUniqueTmpFilePath,
+        patch("core.downscale._downscaleToPercent") as mock__downscaleToPercent,
+        patch("core.downscale._getFileSize", side_effect=[500_000, 200_000, 300_000, 300_000, 305_000]) as mock__getFileSize,
+        patch("core.downscale.runBinary", new=RunBinaryRecorder()) as mock_runBinary,
+        patch("core.downscale.QMutexLocker") as mock_QMutexLocker,
+        patch("core.downscale._checkForSuccess") as mock__checkForSuccess,
+        patch("core.downscale._deleteFile") as mock__deleteFile,
+        patch("core.downscale._extrapolateScale", return_value=40) as mock__extrapolatedScale,
+        patch("core.downscale.os.remove", side_effect=OSError) as mock_remove,
+        patch("core.downscale.os.rename") as mock_rename,
+        patch("core.downscale.cleanUp") as mock_cleanUp,
+        pytest.raises(FileException),
+    ):
+        downscale._downscaleToFileSize(params_fixture, mutex)
+        mock_cleanUp.assert_called_once_with([params_fixture["dst"], e9_tmp, proxy_src])
+
+def test__downscaleToFileSize_negative_extrapolated_scale(params_fixture):
+    params_fixture.update({
+        "mode": "File Size",
+        "max_size": 300,
+        "jxl_int_e": False,
+        "args": ["-arg1", "-arg2"],
+    })
+    mutex = MagicMock(spec=QMutex)
+    proxy_src = "/tmp/proxy.png"
+    with (
+        patch("core.downscale.getUniqueTmpFilePath", return_value=proxy_src) as mock_getUniqueTmpFilePath,
+        patch("core.downscale._downscaleToPercent") as mock__downscaleToPercent,
+        patch("core.downscale._getFileSize", side_effect=[500_000, 200_000, 300_000]) as mock__getFileSize,
+        patch("core.downscale.runBinary") as mock_runBinary,
+        patch("core.downscale.QMutexLocker") as mock_QMutexLocker,
+        patch("core.downscale._checkForSuccess") as mock__checkForSuccess,
+        patch("core.downscale._deleteFile") as mock__deleteFile,
+        patch("core.downscale._extrapolateScale", return_value=0) as mock__extrapolatedScale,
+        pytest.raises(GenericException),
+    ):
+        downscale._downscaleToFileSize(params_fixture, mutex)
+
+def test__downscaleToFileSize_do_not_downscale_common_formats(params_fixture):
+    params_fixture.update({
+        "mode": "File Size",
+        "format": "JPEG XL",
+        "jxl_int_e": False,
+        "max_size": 300,
+        "args": ["-q 90", "-e 9"],
+        "src": "path/to/src.jpg",
+    })
+    mutex = MagicMock(spec=QMutex)
+    proxy_src = "/tmp/proxy.png"
+    e9_tmp = "/tmp/e9_tmp.jxl"
+    with (
+        patch("core.downscale.getUniqueTmpFilePath", side_effect=[proxy_src, e9_tmp]) as mock_getUniqueTmpFilePath,
+        patch("core.downscale._downscaleToPercent") as mock__downscaleToPercent,
+        patch("core.downscale._getFileSize", side_effect=[500_000, 200_000, 300_000, 300_000, 305_000]) as mock__getFileSize,
+        patch("core.downscale.runBinary", new=RunBinaryRecorder()) as mock_runBinary,
+        patch("core.downscale.QMutexLocker") as mock_QMutexLocker,
+        patch("core.downscale._checkForSuccess") as mock__checkForSuccess,
+        patch("core.downscale._deleteFile") as mock__deleteFile,
+        patch("core.downscale._extrapolateScale", return_value=150) as mock__extrapolatedScale,
+        patch("core.downscale.os.remove", side_effect=OSError) as mock_remove,
+        patch("core.downscale.os.rename") as mock_rename,
+        patch("core.downscale.cleanUp") as mock_cleanUp,
+    ):
+        downscale._downscaleToFileSize(params_fixture, mutex)
+        assert mock_runBinary.call_args_list[2] == call(
+            params_fixture["enc"],
+            params_fixture["args"],
+            params_fixture["src"],
+            params_fixture["dst"],
+            args_after_input=False,
+            delete_if_canceled=[proxy_src, params_fixture["dst"]],
+        )
+        assert mock__checkForSuccess.call_args_list[4] == call("D26", params_fixture["dst"], [proxy_src])
+
+def test__downscaleToFileSize_do_not_downscale_uncommon_formats(params_fixture):
+    params_fixture.update({
+        "mode": "File Size",
+        "format": "JPEG XL",
+        "jxl_int_e": False,
+        "max_size": 300,
+        "args": ["-q 90", "-e 9"],
+        "src": "path/to/src.avif",
+    })
+    mutex = MagicMock(spec=QMutex)
+    proxy_src = "/tmp/proxy.png"
+    e9_tmp = "/tmp/e9_tmp.jxl"
+    with (
+        patch("core.downscale.getUniqueTmpFilePath", side_effect=[proxy_src, e9_tmp]) as mock_getUniqueTmpFilePath,
+        patch("core.downscale._downscaleToPercent") as mock__downscaleToPercent,
+        patch("core.downscale._getFileSize", side_effect=[500_000, 200_000, 300_000, 300_000, 305_000]) as mock__getFileSize,
+        patch("core.downscale.runBinary", new=RunBinaryRecorder()) as mock_runBinary,
+        patch("core.downscale.QMutexLocker") as mock_QMutexLocker,
+        patch("core.downscale._checkForSuccess") as mock__checkForSuccess,
+        patch("core.downscale._deleteFile") as mock__deleteFile,
+        patch("core.downscale._extrapolateScale", return_value=150) as mock__extrapolatedScale,
+        patch("core.downscale.os.remove", side_effect=OSError) as mock_remove,
+        patch("core.downscale.os.rename") as mock_rename,
+        patch("core.downscale.cleanUp") as mock_cleanUp,
+    ):
+        downscale._downscaleToFileSize(params_fixture, mutex)
+        assert mock__deleteFile.call_args_list[4] == call(proxy_src, raising=True, exc_id="D21")
+        assert mock_runBinary.call_args_list[2] == call(
+            IMAGE_MAGICK_PATH,
+            [],
+            params_fixture["src"],
+            proxy_src,
+            args_after_input=True,
+            delete_if_canceled=[proxy_src],
+        )
+        assert mock__checkForSuccess.call_args_list[4] == call("D5", proxy_src)
+        assert mock_runBinary.call_args_list[3] == call(
+            params_fixture["enc"],
+            params_fixture["args"],
+            proxy_src,
+            params_fixture["dst"],
+            args_after_input=False,
+            delete_if_canceled=[proxy_src, params_fixture["dst"]],
+        )
+        assert mock__checkForSuccess.call_args_list[5] == call("D6", params_fixture["dst"], [proxy_src])
+        assert mock__deleteFile.call_args_list[5] == call(proxy_src, raising=True, exc_id="D22")
+
 @pytest.mark.parametrize("resample,expected_filter", [
     ("Default", None),
     ("Lanczos", "-filter Lanczos"),
