@@ -184,7 +184,6 @@ def _downscaleToFileSize(params, mutex):
             )
             _checkForSuccess("D26", params["dst"], [proxy_src])
         else:
-            _deleteFile(proxy_src, raising=True, exc_id="D21")
             runBinary(
                 IMAGE_MAGICK_PATH,
                 [],

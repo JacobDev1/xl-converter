@@ -441,7 +441,6 @@ def test__downscaleToFileSize_do_not_downscale_uncommon_formats(params_fixture):
         patch("core.downscale.cleanUp") as mock_cleanUp,
     ):
         downscale._downscaleToFileSize(params_fixture, mutex)
-        assert mock__deleteFile.call_args_list[4] == call(proxy_src, raising=True, exc_id="D21")
         assert mock_runBinary.call_args_list[2] == call(
             IMAGE_MAGICK_PATH,
             [],
@@ -460,7 +459,7 @@ def test__downscaleToFileSize_do_not_downscale_uncommon_formats(params_fixture):
             delete_if_canceled=[proxy_src, params_fixture["dst"]],
         )
         assert mock__checkForSuccess.call_args_list[5] == call("D6", params_fixture["dst"], [proxy_src])
-        assert mock__deleteFile.call_args_list[5] == call(proxy_src, raising=True, exc_id="D22")
+        assert mock__deleteFile.call_args_list[4] == call(proxy_src, raising=True, exc_id="D22")
 
 @pytest.mark.parametrize("resample,expected_filter", [
     ("Default", None),
