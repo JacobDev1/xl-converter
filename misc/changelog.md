@@ -6,7 +6,7 @@
 
 ### Fixed
 
--
+- Clean up temp file if downscaling was canceled.
 
 ### Changed
 

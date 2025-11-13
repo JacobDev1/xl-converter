@@ -114,6 +114,12 @@ def test_run_started(mock_wasCanceled, worker):
     worker.run()
     assert spy_started.count() == 1
 
+def test_run_finally(worker):
+    spy_completed = QSignalSpy(worker.signals.completed)
+    worker.run()
+    worker.proxy.cleanUp.assert_called_once_with(raising=False)
+    spy_completed.count() == 1
+
 @patch("core.worker.os.path.isfile", return_value=False)
 def test_runChecks_file_not_found(mock_isfile, worker):
     with pytest.raises(FileException) as exc:
@@ -549,7 +555,7 @@ def test_finishConversion_proxy(finishConversion_patches):
     worker.finishConversion()
     
     worker.proxy.proxyExists.assert_called_once()
-    worker.proxy.cleanup.assert_called_once()
+    worker.proxy.cleanUp.assert_called_once()
     assert worker.item_abs_path == "org_item_abs_path"
 
 def test_finishConversion_no_proxy(finishConversion_patches):
@@ -560,7 +566,7 @@ def test_finishConversion_no_proxy(finishConversion_patches):
     worker.finishConversion()
 
     worker.proxy.proxyExists.assert_called_once()
-    worker.proxy.cleanup.assert_not_called()
+    worker.proxy.cleanUp.assert_not_called()
 
 def test_finishConversion_no_output(finishConversion_patches):
     worker, mocks = finishConversion_patches

@@ -135,8 +135,9 @@ class Worker(QRunnable):
             self.logException("OSError", str(err))
         except Exception as err:
             self.logException("Exception", str(err))
-
-        self.signals.completed.emit(self.n, self.skipped)
+        finally:
+            self.proxy.cleanUp(raising=False)     # Cleans up proxy if it wasn't cleaned up before. A no-op if no proxy exists.
+            self.signals.completed.emit(self.n, self.skipped)
     
     def runChecks(self):
         # Input was moved / deleted
@@ -412,7 +413,7 @@ class Worker(QRunnable):
     def finishConversion(self):
         if self.proxy.proxyExists():
             try:
-                self.proxy.cleanup()
+                self.proxy.cleanUp()
             except OSError as err:
                 raise FileException("F0", f"Failed to delete proxy. {err}")
             self.item_abs_path = self.org_item_abs_path   # Redirect the source back to original file

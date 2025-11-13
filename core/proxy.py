@@ -16,6 +16,8 @@ from core.pathing import getUniqueTmpFilePath
 from core.convert import getDecoder, runBinary
 from core.exceptions import FileException
 
+logger = logging.getLogger(__name__)
+
 class Proxy():
     def __init__(self):
         self.proxy_path = None
@@ -83,11 +85,17 @@ class Proxy():
     def proxyExists(self) -> bool:
         return self.proxy_path is not None
 
-    def cleanup(self) -> None:
+    def cleanUp(self, raising: bool = True) -> None:
         """Delete a proxy If one exists."""
-        if self.proxy_path is not None:
-            try:
-                os.remove(self.proxy_path)
-            except OSError as e:
+        if self.proxy_path is None:
+            return
+
+        try:
+            os.remove(self.proxy_path)
+        except OSError as e:
+            if raising:
                 raise FileException("Proxy2", f"Failed to clean up proxy. {e}")
-        self.proxy_path = None
+            else:
+                logger.error(f"Failed to clean up proxy. {e}")
+        finally:
+            self.proxy_path = None
