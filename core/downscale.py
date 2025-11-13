@@ -126,7 +126,7 @@ def _downscaleToFileSize(params, mutex):
         params["resample"],
         [proxy_src, params["dst"]],
     )
-    _checkForSuccess("D0", proxy_src, [proxy_src, params["dst"]])
+    _checkForSuccess("D0", proxy_src, [params["dst"]])
     runBinary(
         params["enc"],
         params["args"],
@@ -141,6 +141,8 @@ def _downscaleToFileSize(params, mutex):
     size_samples.append([file_size, 66])
 
     _deleteFile(proxy_src, raising=True, exc_id="D28")
+    _deleteFile(params["dst"], raising=True, exc_id="D30")
+
     _downscaleToPercent(
         params["src"],
         proxy_src,
@@ -162,12 +164,12 @@ def _downscaleToFileSize(params, mutex):
     file_size = _getFileSize(params["dst"], [proxy_src, params["dst"]])
     size_samples.append([file_size, 33])
 
+    _deleteFile(proxy_src, raising=True, exc_id="D32")
     _deleteFile(params["dst"], raising=True, exc_id="D25")
 
     # Use gathered data
     extrapolated_scale = _extrapolateScale(size_samples, params["max_size"] * 1024)
-
-    if extrapolated_scale < 0:          # Error
+    if extrapolated_scale < 1:          # Error
         _deleteFile(proxy_src, raising=True, exc_id="D13")
         raise GenericException("D14", f"Extrapolated scale cannot be negative ({extrapolated_scale})")
     elif extrapolated_scale >= 100:     # Non-downscaled conversion
@@ -188,6 +190,7 @@ def _downscaleToFileSize(params, mutex):
                 [],
                 params["src"],
                 proxy_src,
+                args_after_input=True,
                 delete_if_canceled=[proxy_src],
             )
             _checkForSuccess("D5", proxy_src)
@@ -202,7 +205,7 @@ def _downscaleToFileSize(params, mutex):
             _checkForSuccess("D6", params["dst"], [proxy_src])
             _deleteFile(proxy_src, raising=True, exc_id="D22")
     else:
-        while extrapolated_scale > 1:
+        while True:
             _downscaleToPercent(
                 params["src"],
                 proxy_src,
@@ -221,14 +224,17 @@ def _downscaleToFileSize(params, mutex):
             )
             _checkForSuccess("D15", params["dst"], [proxy_src])
 
-            extrapolated_scale -= 10
-            if extrapolated_scale < 1:
-                extrapolated_scale = 1
-            
             threshold = params["max_size"] * 1024 * (1 + fault_tolerance)
             file_size = _getFileSize(params["dst"], [proxy_src, params["dst"]])
             if file_size < threshold:
                 break
+
+            if extrapolated_scale == 1:
+                break
+
+            extrapolated_scale -= 10
+            if extrapolated_scale < 1:
+                extrapolated_scale = 1
 
         # JPEG XL - intelligent effort
         if params["format"] == "JPEG XL" and params["jxl_int_e"]:
@@ -260,8 +266,6 @@ def _downscaleToFileSize(params, mutex):
             
         # Cleanup
         _deleteFile(proxy_src, raising=True, exc_id="D31")
-
-        return True
 
 def _downscaleManualModes(params, mutex):
     """Internal wrapper for all regular downscaling modes."""
