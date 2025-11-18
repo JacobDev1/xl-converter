@@ -1,10 +1,12 @@
 import subprocess
 import logging
 from unittest.mock import patch, MagicMock
+import importlib
 
 import pytest
 
 from data.process_manager import ProcessManager, ProcessPriority, ProcessPriorityManager
+import data.process_manager as process_manager
 
 @pytest.fixture(autouse=True)
 def reset():
@@ -71,6 +73,15 @@ def test_clear():
         assert ProcessManager.processes == []
         mock_lock.__enter__.assert_called_once()
         mock_lock.__exit__.assert_called_once()
+
+@pytest.mark.parametrize("platform, max_niceness", [
+    ("Linux", 19),
+    ("Darwin", 20),
+])
+def test_ProcessPriorityManager_idle_niceness(platform, max_niceness, monkeypatch):
+    monkeypatch.setattr("platform.system", lambda: platform)
+    importlib.reload(process_manager)
+    assert process_manager.ProcessPriorityManager._PROCESS_PRIORITY_MAP[ProcessPriority.IDLE] == max_niceness
 
 def test_ProcessPriorityManager_setPriority_update_state(monkeypatch):
     mock_lock = MagicMock()

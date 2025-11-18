@@ -73,7 +73,7 @@ class ProcessPriorityManager:
         }
     elif SYSTEM in ("Linux", "Darwin"):
         _PROCESS_PRIORITY_MAP: dict[ProcessPriority, int] = {
-            ProcessPriority.IDLE: 19 if SYSTEM == "Linux" else 19,
+            ProcessPriority.IDLE: 19 if SYSTEM == "Linux" else 20,
             ProcessPriority.BELOW_NORMAL: 10,
             ProcessPriority.NORMAL: 0,
             # IMPORTANT: Negative niceness requires elevated privileges on Unix.
