@@ -6,6 +6,7 @@
 
 ### Fixed
 
+- Fix performance issues on 128-thread CPUs (#122).
 - Clean up temp file if downscaling was canceled.
 
 ### Changed

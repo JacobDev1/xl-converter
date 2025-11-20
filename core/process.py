@@ -6,6 +6,8 @@ import psutil
 
 from data.process_manager import ProcessManager, ProcessPriorityManager
 
+SYSTEM = platform.system()
+
 def runProcess2(*cmd: str, cwd: str | None = None) -> (str, str):
     """Replacement for runProcess() and runProcessOutput().
     
@@ -14,7 +16,19 @@ def runProcess2(*cmd: str, cwd: str | None = None) -> (str, str):
     """
     logging.info(f"[runProcess2] {cmd}")
 
-    process = psutil.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo(), cwd=cwd)
+    if SYSTEM == "Windows":
+        creationflags = subprocess.CREATE_NO_WINDOW
+    else:
+        creationflags = 0
+
+    process = psutil.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=cwd,
+        creationflags=creationflags,
+    )
+
     _setProcessPriority(process, ProcessPriorityManager.getPriorityFlag())
     ProcessManager.addProcess(process)
     stdout, stderr = process.communicate()
@@ -45,15 +59,6 @@ def _setProcessPriority(process: psutil.Popen, priority: int | None) -> None:
         logging.error(f"[_setProcessPriority] Failed to set process priority: {e}")
         return
 
-def _getStartupInfo():
-    """Get startup info for Windows. Prevents console window from showing."""
-    startupinfo = None
-    if platform.system() == 'Windows':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        startupinfo.wShowWindow = subprocess.SW_HIDE
-    return startupinfo
-
 def runProcessOutput(*cmd, cwd=None) -> (str, str):
     """Run process then return its output.
     
@@ -61,7 +66,18 @@ def runProcessOutput(*cmd, cwd=None) -> (str, str):
     """
     logging.info(f"[runProcessOutput] {cmd}")
 
-    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_getStartupInfo(), cwd=cwd)
+    if SYSTEM == "Windows":
+        creationflags = subprocess.CREATE_NO_WINDOW
+    else:
+        creationflags = 0
+
+    process = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        creationflags=creationflags,
+        cwd=cwd
+    )
 
     try:
         stdout, stderr = "", ""

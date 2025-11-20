@@ -2,31 +2,13 @@ from unittest.mock import patch, MagicMock, ANY, call
 import subprocess
 import os
 import logging
+from contextlib import ExitStack
+import importlib
 
 import pytest
 import psutil
 
 import core.process as process
-
-def test___getStartupInfo_posix():
-    with patch("core.process.platform.system", return_value="Linux"):
-        assert process._getStartupInfo() is None
-
-def test___getStartupInfo_windows():
-    startupinfo_instance = MagicMock()
-    startupinfo_instance.dwFlags = 0
-    startupinfo_instance.wShowWindow = 0
-
-    with (
-        patch("core.process.subprocess.STARTUPINFO", return_value=startupinfo_instance, create=True) as mock_startupinfo,
-        patch("core.process.subprocess.STARTF_USESHOWWINDOW", 1, create=True),
-        patch("core.process.subprocess.SW_HIDE", 2, create=True),
-        patch("core.process.platform.system", return_value="Windows"),
-    ):
-        assert process._getStartupInfo() is startupinfo_instance
-        assert startupinfo_instance.dwFlags == 1
-        assert startupinfo_instance.wShowWindow == 2
-        mock_startupinfo.assert_called_once()
 
 def test_runProcessOutput():
     with (
@@ -36,6 +18,24 @@ def test_runProcessOutput():
         mock_run.return_value = subprocess.CompletedProcess(args=["echo", "test"], stdout=b"test", stderr=b"err", returncode=0)
 
         assert process.runProcessOutput(["echo", "test"]) == ("test", "err")
+
+@pytest.fixture
+def runProcess2_patches():
+    mock_popen = MagicMock()
+    mock_popen.communicate.return_value = (b"stdout", b"")
+
+    patches = {
+        "Popen": patch("core.process.psutil.Popen", return_value=mock_popen),
+        "logging.info": patch("core.process.logging.info"),
+        "ProcessManager.addProcess": patch("data.process_manager.ProcessManager.addProcess"),
+        "ProcessManager.removeProcess": patch("data.process_manager.ProcessManager.removeProcess"),
+        "_setProcessPriority": patch("core.process._setProcessPriority"),
+        "ProcessPriorityManager.getPriorityFlag": patch("data.process_manager.ProcessPriorityManager.getPriorityFlag", return_value=0b10),
+
+    }
+    with ExitStack() as stack:
+        _mocks = { name: stack.enter_context(patcher) for name, patcher in patches.items() }
+        yield _mocks
 
 def test_runProcess2_happy_path():
     cmd = ("echo", "Hello world")
@@ -55,7 +55,13 @@ def test_runProcess2_happy_path():
 
         process.runProcess2(*cmd)
 
-        mock_popen.assert_called_once_with(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=ANY, cwd=None)
+        mock_popen.assert_called_once_with(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            creationflags=ANY,
+            cwd=None,
+        )
         mock__setProcessPriority.assert_called_once_with(mock_popen.return_value, 0b10)
         mock_addProcess.assert_called_once_with(mock_process)
         mock_removeProcess.assert_called_once_with(mock_process)
@@ -76,6 +82,26 @@ def test_runProcess2_no_output():
         mock_popen.return_value.communicate.return_value = (None, None)
 
         assert process.runProcess2(["bin", "-arg", "sample.png"]) == ("", "")
+
+CREATE_NO_WINDOW_FLAG = 0x08000000      # Undefined on POSIX 
+
+@pytest.mark.parametrize("system, expected_creationflags", [
+    ("Windows", CREATE_NO_WINDOW_FLAG),
+    ("Linux", 0),
+])
+def test_runProcess2_creationflags(system, expected_creationflags, runProcess2_patches, monkeypatch):
+    monkeypatch.setattr(process, "SYSTEM", system)
+    monkeypatch.setattr(subprocess, "CREATE_NO_WINDOW", CREATE_NO_WINDOW_FLAG, raising=False)
+
+    process.runProcess2("echo", "test")
+
+    runProcess2_patches["Popen"].assert_called_once_with(
+        ("echo", "test"),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=None,
+        creationflags=expected_creationflags,
+    )
 
 def test__setProcessPriority_none(caplog):
     with caplog.at_level(logging.ERROR):
