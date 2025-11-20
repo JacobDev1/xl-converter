@@ -37,51 +37,37 @@ def runProcess2_patches():
         _mocks = { name: stack.enter_context(patcher) for name, patcher in patches.items() }
         yield _mocks
 
-def test_runProcess2_happy_path():
+def test_runProcess2_happy_path(runProcess2_patches):
     cmd = ("echo", "Hello world")
     stdout = b"Hello world\n"
     stderr = b""
 
-    with (
-        patch("core.process.psutil.Popen") as mock_popen,
-        patch("core.process.logging.info") as mock_logging_info,
-        patch("data.process_manager.ProcessManager.addProcess") as mock_addProcess,
-        patch("data.process_manager.ProcessManager.removeProcess") as mock_removeProcess,
-        patch("core.process._setProcessPriority") as mock__setProcessPriority,
-        patch("data.process_manager.ProcessPriorityManager.getPriorityFlag", return_value=0b10),
-    ):
-        mock_process = mock_popen.return_value
-        mock_process.communicate.return_value = (stdout, stderr)
+    mock_process = runProcess2_patches["Popen"].return_value
+    mock_process.communicate.return_value = (stdout, stderr)
 
-        process.runProcess2(*cmd)
+    process.runProcess2(*cmd)
 
-        mock_popen.assert_called_once_with(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            creationflags=ANY,
-            cwd=None,
-        )
-        mock__setProcessPriority.assert_called_once_with(mock_popen.return_value, 0b10)
-        mock_addProcess.assert_called_once_with(mock_process)
-        mock_removeProcess.assert_called_once_with(mock_process)
-        mock_process.communicate.assert_called_once()
-        assert len(mock_logging_info.call_args_list) == 2
-        assert mock_logging_info.call_args_list[0][0][0] == f"[runProcess2] {cmd}"
-        assert mock_logging_info.call_args_list[1][0][0] == f"[runProcess2] {stdout.decode('utf-8')}"
+    runProcess2_patches["Popen"].assert_called_once_with(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        creationflags=ANY,
+        cwd=None,
+    )
 
-def test_runProcess2_no_output():
-    with (
-        patch("core.process.psutil.Popen") as mock_popen,
-        patch("core.process.logging.info"),
-        patch("data.process_manager.ProcessManager.addProcess"),
-        patch("data.process_manager.ProcessManager.removeProcess"),
-        patch("core.process._setProcessPriority"),
-        patch("data.process_manager.ProcessPriorityManager.getPriorityFlag", return_value=0b10),
-    ):
-        mock_popen.return_value.communicate.return_value = (None, None)
+    runProcess2_patches["_setProcessPriority"].assert_called_once_with(mock_process, 0b10)
+    runProcess2_patches["ProcessManager.addProcess"].assert_called_once_with(mock_process)
+    runProcess2_patches["ProcessManager.removeProcess"].assert_called_once_with(mock_process)
+    mock_process.communicate.assert_called_once()
 
-        assert process.runProcess2(["bin", "-arg", "sample.png"]) == ("", "")
+    mock_logging_info = runProcess2_patches["logging.info"]
+    assert len(mock_logging_info.call_args_list) == 2
+    assert mock_logging_info.call_args_list[0][0][0] == f"[runProcess2] {cmd}"
+    assert mock_logging_info.call_args_list[1][0][0] == f"[runProcess2] {stdout.decode('utf-8')}"
+
+def test_runProcess2_no_output(runProcess2_patches):
+    runProcess2_patches["Popen"].return_value.communicate.return_value = (None, None)
+    assert process.runProcess2(["bin", "-arg", "sample.png"]) == ("", "")
 
 CREATE_NO_WINDOW_FLAG = 0x08000000      # Undefined on POSIX 
 
