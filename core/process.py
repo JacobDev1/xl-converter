@@ -55,6 +55,8 @@ def _setProcessPriority(process: psutil.Popen, priority: int | None) -> None:
 
     try:
         process.nice(priority)
+    except psutil.NoSuchProcess:
+        return
     except (psutil.Error, ValueError) as e:
         logging.error(f"[_setProcessPriority] Failed to set process priority: {e}")
         return
