@@ -34,7 +34,6 @@ import data.task_status as task_status
 from core.exceptions import CancellationException, GenericException, FileException
 import core.conflicts as conflicts
 from core.utils import getFreeSpaceLeft, remove
-from core.process import runProcessOutput
 import core.lossless_jpeg as lossless_jpeg
 from core.ram_optimizer import RAMOptimizer
 import core.timestamps as timestamps

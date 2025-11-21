@@ -126,7 +126,7 @@ def reset_data():
 def test_isExifToolAvailable(reset_data, system, output, expected):
     with (
         patch("platform.system", return_value=system),
-        patch("core.metadata.runProcessOutput", return_value=output)
+        patch("core.metadata.runProcess2", return_value=output)
     ):
         is_available, err_msg = metadata.isExifToolAvailable()
         assert is_available == expected[0]

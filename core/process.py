@@ -60,36 +60,3 @@ def _setProcessPriority(process: psutil.Popen, priority: int | None) -> None:
     except (psutil.Error, ValueError) as e:
         logging.error(f"[_setProcessPriority] Failed to set process priority: {e}")
         return
-
-def runProcessOutput(*cmd, cwd=None) -> (str, str):
-    """Run process then return its output.
-    
-    Output: (stdout, stderr)
-    """
-    logging.info(f"[runProcessOutput] {cmd}")
-
-    if SYSTEM == "Windows":
-        creationflags = subprocess.CREATE_NO_WINDOW
-    else:
-        creationflags = 0
-
-    process = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        creationflags=creationflags,
-        cwd=cwd
-    )
-
-    try:
-        stdout, stderr = "", ""
-        if process.stdout:
-            stdout = process.stdout.decode("utf-8")
-            logging.info(f"[runProcessOutput] {stdout}")
-        if process.stderr:
-            stderr = process.stderr.decode("utf-8")
-            logging.info(f"[runProcessOutput] {stderr}")
-    except Exception as err:
-        logging.error(f"Failed to decode process output. {err}")
-
-    return (stdout, stderr)

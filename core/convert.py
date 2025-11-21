@@ -12,7 +12,7 @@ from data.constants import (
     AVIFENC_PATH,
     JPEGTRAN_PATH,
 )
-from core.process import runProcessOutput, runProcess2
+from core.process import runProcess2
 from core.exceptions import GenericException, CancellationException
 import data.task_status as task_status
 
@@ -93,7 +93,7 @@ def runJPEGtran(
 
 def getExtensionJxl(src_path: str) -> Literal["jpg", "png"]:
     """Assign extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
-    if "JPEG bitstream reconstruction data available" in runProcessOutput(JXLINFO_PATH, src_path)[0]:
+    if "JPEG bitstream reconstruction data available" in runProcess2(JXLINFO_PATH, src_path)[0]:
         return "jpg"
     else:
         return "png"

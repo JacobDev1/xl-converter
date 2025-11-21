@@ -10,15 +10,6 @@ import psutil
 
 import core.process as process
 
-def test_runProcessOutput():
-    with (
-        patch("core.process.subprocess.run") as mock_run,
-        patch("core.process.logging") as mock_logging,
-    ):
-        mock_run.return_value = subprocess.CompletedProcess(args=["echo", "test"], stdout=b"test", stderr=b"err", returncode=0)
-
-        assert process.runProcessOutput(["echo", "test"]) == ("test", "err")
-
 @pytest.fixture
 def runProcess2_patches():
     mock_popen = MagicMock()

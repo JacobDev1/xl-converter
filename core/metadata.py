@@ -10,7 +10,7 @@ from data.constants import (
     AVIFENC_PATH,
     OXIPNG_PATH
 )
-from core.process import runProcess2, runProcessOutput
+from core.process import runProcess2
 from core.exceptions import GenericException, FileException
 
 class Data:
@@ -88,11 +88,11 @@ def isExifToolAvailable() -> tuple[bool, str]:
 
     match platform.system():
         case "Linux" | "Darwin":
-            Data.exiftool_available = not "not found" in runProcessOutput("bash", "-c", "type exiftool")[1]
+            Data.exiftool_available = "not found" not in runProcess2("bash", "-c", "type exiftool")[1]
             if Data.exiftool_available == False:
                 Data.exiftool_err_msg = "ExifTool not found. Please install ExifTool on your system and restart the program."
         case "Windows":
-            proc_output = runProcessOutput(EXIFTOOL_PATH, "-ver")
+            proc_output = runProcess2(EXIFTOOL_PATH, "-ver")
             if proc_output[0].strip() == "" or "assertion failed" in proc_output[1]:
                 Data.exiftool_available = False
                 Data.exiftool_err_msg = "Please reinstall this program in a location without special characters to use ExifTool."

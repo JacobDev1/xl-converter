@@ -166,11 +166,11 @@ def test_runJPEGtran_sad_path():
     )
 
 def test_getExtensionJxl_jpg():
-    with patch("core.convert.runProcessOutput", return_value=("JPEG bitstream reconstruction data available", "")):
+    with patch("core.convert.runProcess2", return_value=("JPEG bitstream reconstruction data available", "")):
         assert convert.getExtensionJxl("src.jxl") == "jpg"
 
 def test_getExtensionJxl_png():
-    with patch("core.convert.runProcessOutput", return_value=("", "")):
+    with patch("core.convert.runProcess2", return_value=("", "")):
         assert convert.getExtensionJxl("src.jxl") == "png"
 
 def test_parseArgs():
