@@ -11,7 +11,7 @@
 
 ### Changed
 
-- 
+- Improve conversion start and cancel times.
 
 ## 1.2.3 - 2025-10-02
 

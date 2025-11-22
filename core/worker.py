@@ -38,7 +38,7 @@ import core.lossless_jpeg as lossless_jpeg
 from core.ram_optimizer import RAMOptimizer
 import core.timestamps as timestamps
 
-class Signals(QObject):
+class WorkerSignals(QObject):
     started = Signal(int)
     completed = Signal(int, bool)
     canceled = Signal(int)
@@ -52,10 +52,11 @@ class Worker(QRunnable):
             params: Dict,
             settings: Dict,
             available_threads: int,
-            mutex: QMutex
+            mutex: QMutex,
+            signals: WorkerSignals,
         ):
         super().__init__()
-        self.signals = Signals()
+        self.signals = signals
         self.params = copy.deepcopy(params)
         self.settings = settings    # reference, do not modify
 

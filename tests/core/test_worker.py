@@ -6,13 +6,14 @@ import pytest
 from PySide6.QtCore import QMutex
 from PySide6.QtTest import QSignalSpy
 
-from core.worker import Worker
+from core.worker import Worker, WorkerSignals
 from core.proxy import Proxy
 from core.exceptions import FileException, GenericException, CancellationException
 
 @pytest.fixture
 def worker():
     mutex = QMutex()
+    worker_signals = WorkerSignals()
     w = Worker(
         0,
         Path("/path/to/images/image.png"),
@@ -78,6 +79,7 @@ def worker():
         },
         4,
         mutex,
+        worker_signals,
     )
     w.proxy = MagicMock(spec=Proxy)
     w.scl_params = {}

@@ -208,13 +208,6 @@ def test_startProcessing(controller, output_tab_settings, modify_tab_settings, s
         patch.object(controller.threadpool, "start") as mock_threadpool_start,
         patch.object(controller.time_left, "startCounting") as mock_startCounting,
     ):
-        mock_worker.return_value.signals = Mock(
-            started=Mock(),
-            completed=Mock(),
-            canceled=Mock(),
-            exception=Mock(),
-        )
-
         controller.startProcessing(output_tab_settings, modify_tab_settings, settings_tab_settings, 4)
 
         mock_configure.assert_called_once_with(
@@ -243,11 +236,7 @@ def test_startProcessing(controller, output_tab_settings, modify_tab_settings, s
             assert args[4] == settings_tab_settings
             assert args[5] == 4
             assert args[6] == controller.mutex
-
-        assert mock_worker.return_value.signals.started.connect.call_count == 100
-        assert mock_worker.return_value.signals.completed.connect.call_count == 100
-        assert mock_worker.return_value.signals.canceled.connect.call_count == 100
-        assert mock_worker.return_value.signals.exception.connect.call_count == 100
+            assert args[7] == controller.worker_signals
         assert mock_threadpool_start.call_count == 100
         assert processing_started_spy.count() == 1
         assert update_progress_line1_spy.at(0)[0] == "Starting the conversion..."

@@ -20,7 +20,7 @@ from data.thread_manager import ThreadManager
 from data.items import Items
 from data.process_manager import ProcessManager
 import data.task_status as task_status
-from core.worker import Worker
+from core.worker import Worker, WorkerSignals
 from core.pathing import UniquePathStore
 from core.metadata import isExifToolAvailable
 
@@ -68,6 +68,11 @@ class Controller(QObject):
         self.finish_emitted = False     # debounce
 
         # Signals
+        self.worker_signals = WorkerSignals()
+        self.worker_signals.started.connect(self.workerStarted)
+        self.worker_signals.completed.connect(self.workerCompleted)
+        self.worker_signals.canceled.connect(self.workerCanceled)
+        self.worker_signals.exception.connect(self.exception)
         self.time_left.update_time_left.connect(self.update_progress_line2)
 
         # Misc.
@@ -197,7 +202,7 @@ class Controller(QObject):
         self.finish_emitted = False
 
         # Loader
-        worker_data = []
+        workers = []
         params = output_tab_settings | modify_tab_settings
         for i in range(self.items.getItemCount()):
             abs_path, anchor_path = self.items.getItem(i)
@@ -208,17 +213,12 @@ class Controller(QObject):
                 params,
                 settings_tab_settings,
                 self.thread_manager.getAvailableThreads(i),
-                self.mutex
+                self.mutex,
+                self.worker_signals,
             )
-            worker_data.append((worker, worker.signals))
+            workers.append(worker)
         
-        for _, signals in worker_data:
-            signals.started.connect(self.workerStarted)
-            signals.completed.connect(self.workerCompleted)
-            signals.canceled.connect(self.workerCanceled)
-            signals.exception.connect(self.exception)
-            
-        for worker, _ in worker_data:
+        for worker in workers:
             self.threadpool.start(worker)
 
         self.time_left.startCounting(self.items.getItemCount())
