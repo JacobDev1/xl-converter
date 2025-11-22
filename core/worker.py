@@ -109,7 +109,7 @@ class Worker(QRunnable):
             self.setupConversion()
 
             if self.skip:
-                self.signals.completed.emit(self.n, True)
+                self.skipped = True
                 return
             
             self.runDynamicRamOptimizer()
