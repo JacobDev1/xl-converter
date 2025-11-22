@@ -39,10 +39,18 @@ class ProcessManager:
             cls.processes.clear()
 
         for process in processes_to_terminate:
-            process.terminate()
+            try:
+                process.terminate()
+            except psutil.NoSuchProcess:
+                pass
+            except Exception as e:
+                logger.error(f"Failed to terminate process: {e}")
 
         for process in processes_to_terminate:
-            process.wait()
+            try:
+                process.wait()
+            except psutil.NoSuchProcess:
+                pass
 
     @classmethod
     def clear(cls) -> None:

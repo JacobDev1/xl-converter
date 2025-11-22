@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 import importlib
 
 import pytest
+import psutil
 
 from data.process_manager import ProcessManager, ProcessPriority, ProcessPriorityManager
 import data.process_manager as process_manager
@@ -64,6 +65,27 @@ def test_terminateAll_empty():
     ProcessManager.processes = []
     ProcessManager.terminateAll()
     # Nothing raised
+
+def test_terminateAll_no_such_process():
+    mock_process = MagicMock(spec=psutil.Popen)
+    mock_process.terminate.side_effect = psutil.NoSuchProcess(pid=123)
+    ProcessManager.processes = [mock_process]
+
+    ProcessManager.terminateAll()
+    # Nothing raised
+
+    assert ProcessManager.processes == []
+    mock_process.terminate.assert_called_once()
+    mock_process.wait.assert_called_once()
+
+def test_terminateAll_sad_path(caplog):
+    mock_process = MagicMock(spec=psutil.Popen)
+    mock_process.terminate.side_effect = psutil.AccessDenied(pid=123)
+    ProcessManager.processes = [mock_process]
+
+    ProcessManager.terminateAll()
+
+    assert "Failed to terminate process" in caplog.text
 
 def test_clear():
     ProcessManager.processes = [MagicMock(spec=subprocess.Popen) for _ in range(3)]
