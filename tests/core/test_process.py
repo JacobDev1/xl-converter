@@ -46,7 +46,6 @@ def test_runProcess2_happy_path(runProcess2_patches):
         cwd=None,
     )
 
-    runProcess2_patches["_setProcessPriority"].assert_called_once_with(mock_process, 0b10)
     runProcess2_patches["ProcessManager.addProcess"].assert_called_once_with(mock_process)
     runProcess2_patches["ProcessManager.removeProcess"].assert_called_once_with(mock_process)
     mock_process.communicate.assert_called_once()
@@ -58,17 +57,59 @@ def test_runProcess2_happy_path(runProcess2_patches):
 
 def test_runProcess2_no_output(runProcess2_patches):
     runProcess2_patches["Popen"].return_value.communicate.return_value = (None, None)
-    assert process.runProcess2(["bin", "-arg", "sample.png"]) == ("", "")
+    assert process.runProcess2("bin", "-arg", "sample.png") == ("", "")
 
-CREATE_NO_WINDOW_FLAG = 0x08000000      # Undefined on POSIX 
+CREATE_NO_WINDOW_FLAG = 0x08000000
+BELOW_NORMAL_PRIORITY_CLASS = 0x00004000
 
-@pytest.mark.parametrize("system, expected_creationflags", [
-    ("Windows", CREATE_NO_WINDOW_FLAG),
-    ("Linux", 0),
-])
-def test_runProcess2_creationflags(system, expected_creationflags, runProcess2_patches, monkeypatch):
-    monkeypatch.setattr(process, "SYSTEM", system)
+def test_runProcess2_creationflags_valid_priority_win(runProcess2_patches, monkeypatch):
+    monkeypatch.setattr(process, "SYSTEM", "Windows")
     monkeypatch.setattr(subprocess, "CREATE_NO_WINDOW", CREATE_NO_WINDOW_FLAG, raising=False)
+    runProcess2_patches["ProcessPriorityManager.getPriorityFlag"].return_value = BELOW_NORMAL_PRIORITY_CLASS
+    
+    process.runProcess2("echo", "test")
+
+    runProcess2_patches["Popen"].assert_called_once_with(
+        ("echo", "test"),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=None,
+        creationflags=(
+            CREATE_NO_WINDOW_FLAG
+            | BELOW_NORMAL_PRIORITY_CLASS
+        ),
+    )
+
+def test_runProcess2_creationflags_none_priority_win(runProcess2_patches, monkeypatch):
+    monkeypatch.setattr(process, "SYSTEM", "Windows")
+    monkeypatch.setattr(subprocess, "CREATE_NO_WINDOW", CREATE_NO_WINDOW_FLAG, raising=False)
+    runProcess2_patches["ProcessPriorityManager.getPriorityFlag"].return_value = None
+    
+    process.runProcess2("echo", "test")
+
+    runProcess2_patches["Popen"].assert_called_once_with(
+        ("echo", "test"),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=None,
+        creationflags=(
+            CREATE_NO_WINDOW_FLAG
+        ),
+    )
+
+def test_runProcess2__setProcessPriority_posix(runProcess2_patches, monkeypatch):
+    monkeypatch.setattr(process, "SYSTEM", "Linux")
+    runProcess2_patches["ProcessPriorityManager.getPriorityFlag"].return_value = BELOW_NORMAL_PRIORITY_CLASS
+    
+    process.runProcess2("echo", "test")
+
+    runProcess2_patches["_setProcessPriority"].assert_called_once_with(
+        runProcess2_patches["Popen"].return_value,
+        BELOW_NORMAL_PRIORITY_CLASS,
+    )
+
+def test_runProcess2_posix(runProcess2_patches, monkeypatch):
+    monkeypatch.setattr(process, "SYSTEM", "Linux")
 
     process.runProcess2("echo", "test")
 
@@ -77,8 +118,40 @@ def test_runProcess2_creationflags(system, expected_creationflags, runProcess2_p
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=None,
-        creationflags=expected_creationflags,
+        creationflags=0,
     )
+
+def test_runProcess2_popen_exc(runProcess2_patches, caplog):
+    runProcess2_patches["Popen"].side_effect = OSError("Executable not found")
+    caplog.set_level(logging.ERROR)
+
+    stdout, stderr = process.runProcess2("echo", "test")
+
+    assert stdout == "" and stderr == ""
+    assert "Failed to spawn a process" in caplog.text
+    assert "Executable not found" in caplog.text
+
+def test_runProcess2_communicate_exc(runProcess2_patches, caplog):
+    mock_process = runProcess2_patches["Popen"].return_value
+    mock_process.communicate.side_effect = Exception("Process crashed")
+    caplog.set_level(logging.ERROR)
+
+    stdout, stderr = process.runProcess2("echo", "test")
+
+    assert stdout == "" and stderr == ""
+    assert "process.communicate() failed" in caplog.text
+    assert "Process crashed" in caplog.text
+    runProcess2_patches["ProcessManager.removeProcess"].assert_called_once_with(mock_process)
+
+def test_runProcess2_decoding_exc(runProcess2_patches, caplog):
+    runProcess2_patches["Popen"].return_value.communicate.return_value = (b"\x80", b"")
+    caplog.set_level(logging.ERROR)
+
+    stdout, stderr = process.runProcess2("echo", "test")
+
+    assert stdout == "" and stderr == ""
+    assert "Failed to decode process output" in caplog.text
+    assert "invalid start byte" in caplog.text
 
 def test__setProcessPriority_none(caplog):
     with caplog.at_level(logging.ERROR):

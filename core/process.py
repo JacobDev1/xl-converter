@@ -18,21 +18,33 @@ def runProcess2(*cmd: str, cwd: str | None = None) -> (str, str):
 
     if SYSTEM == "Windows":
         creationflags = subprocess.CREATE_NO_WINDOW
+        creationflags |= ProcessPriorityManager.getPriorityFlag() or 0
     else:
         creationflags = 0
 
-    process = psutil.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=cwd,
-        creationflags=creationflags,
-    )
+    try:
+        process = psutil.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=cwd,
+            creationflags=creationflags,
+        )
+    except Exception as e:
+        logging.error(f"[runProcess2] Failed to spawn a process. {e}")
+        return ("", "")
 
-    _setProcessPriority(process, ProcessPriorityManager.getPriorityFlag())
-    ProcessManager.addProcess(process)
-    stdout, stderr = process.communicate()
-    ProcessManager.removeProcess(process)
+    if SYSTEM != "Windows":
+        _setProcessPriority(process, ProcessPriorityManager.getPriorityFlag())
+
+    try:
+        ProcessManager.addProcess(process)
+        stdout, stderr = process.communicate()
+    except Exception as e:
+        logging.error(f"[runProcess2] process.communicate() failed. {e}")
+        return ("", "")
+    finally:
+        ProcessManager.removeProcess(process)
 
     try:
         if stdout:
@@ -44,6 +56,7 @@ def runProcess2(*cmd: str, cwd: str | None = None) -> (str, str):
             logging.info(f"[runProcess2] {stderr}")
     except Exception as err:
         logging.error(f"[runProcess2] Failed to decode process output. {err}")
+        return ("", "")
 
     return (stdout or "", stderr or "")
 
