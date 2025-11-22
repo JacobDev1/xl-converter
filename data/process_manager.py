@@ -48,9 +48,13 @@ class ProcessManager:
 
         for process in processes_to_terminate:
             try:
-                process.wait()
+                process.wait(timeout=2)
             except psutil.NoSuchProcess:
                 pass
+            except (subprocess.TimeoutExpired, psutil.TimeoutExpired):
+                logger.warning(f"Process {process.pid} did not exit in expected timeframe.")
+            except Exception as e:
+                logger.error(f"Unexpected error for process {process.pid}: {e}")
 
     @classmethod
     def clear(cls) -> None:

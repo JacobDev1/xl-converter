@@ -59,7 +59,7 @@ def test_terminateAll_full():
     assert ProcessManager.processes == []
     for mock_process in mock_processes:
         mock_process.terminate.assert_called_once()
-        mock_process.wait.assert_called_once()
+        mock_process.wait.assert_called_once_with(timeout=2)
 
 def test_terminateAll_empty():
     ProcessManager.processes = []
@@ -76,7 +76,7 @@ def test_terminateAll_no_such_process():
 
     assert ProcessManager.processes == []
     mock_process.terminate.assert_called_once()
-    mock_process.wait.assert_called_once()
+    mock_process.wait.assert_called_once_with(timeout=2)
 
 def test_terminateAll_sad_path(caplog):
     mock_process = MagicMock(spec=psutil.Popen)
@@ -86,6 +86,16 @@ def test_terminateAll_sad_path(caplog):
     ProcessManager.terminateAll()
 
     assert "Failed to terminate process" in caplog.text
+
+def test_terminateAll_timeout(caplog):
+    mock_process = MagicMock(spec=psutil.Popen)
+    mock_process.pid = 123
+    mock_process.wait.side_effect = psutil.TimeoutExpired(seconds=2)
+    ProcessManager.processes = [mock_process]
+
+    ProcessManager.terminateAll()
+
+    assert "Process 123 did not exit in expected timeframe" in caplog.text
 
 def test_clear():
     ProcessManager.processes = [MagicMock(spec=subprocess.Popen) for _ in range(3)]
