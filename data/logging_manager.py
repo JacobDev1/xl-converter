@@ -45,9 +45,11 @@ class LoggingManager:   # Singleton
             logger.error(f"Failed to create logs dir. {e}")
             return
         
-        if self.file_handler is None:
-            self.file_handler = logging.FileHandler(LOGS_PATH, encoding="utf-8", mode="w")
-            self.file_handler.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
+        if self.file_handler is not None:
+            return
+
+        self.file_handler = logging.FileHandler(LOGS_PATH, encoding="utf-8", mode="w")
+        self.file_handler.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
     
     def setLevel(self, level: str) -> None:
         """Set root logger level."""
