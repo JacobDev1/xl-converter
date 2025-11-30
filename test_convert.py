@@ -6,6 +6,7 @@ from pathlib import Path
 import platform
 from unittest.mock import patch
 import os
+from tempfile import TemporaryDirectory
 
 from PySide6.QtGui import (
     QDropEvent,
@@ -284,14 +285,25 @@ def windows_only(test_func):
 
 class TestMainWindow(unittest.TestCase):
     def setUp(self):
+        self._setupPatches()
         self.app = Interact(MainWindow())
         self.data = Data(SAMPLE_IMG_FOLDER, TMP_IMG_FOLDER)
         self.app.reset_to_default()
         self.app.clear_list()
+
+    def _setupPatches(self):
+        self.config_temp_dir = TemporaryDirectory()
+        self.config_mock = patch(
+            "ui.lib.widget_manager.CONFIG_LOCATION",
+            self.config_temp_dir.name,
+        )
+        self.config_mock.start()
+        self.addCleanup(self.config_mock.stop)
     
     def tearDown(self):
         self.data.cleanup()
         self.app.tear_down()
+        self.config_temp_dir.cleanup()
 
     def test_dependencies(self):
         FILES = (
