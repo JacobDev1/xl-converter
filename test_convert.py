@@ -30,9 +30,6 @@ from main import MainWindow
 from data.constants import *
 import core.controller as controller 
 
-# CONFIG
-SAMPLE_IMG_FOLDER = Path(".").resolve() / "_sample_img"
-TMP_IMG_FOLDER = Path(".").resolve() / "_unit_tests_tmp"
 app = QApplication(sys.argv)
 
 # ---------------------------------------------------------------
@@ -76,9 +73,9 @@ def test_dict(data):
     
     return True
 
-def create_sample_img():
-    sample_img_path = SAMPLE_IMG_FOLDER / "sample_img.png"
-
+def create_sample_img(output_dir: str):
+    output_dir.mkdir(exist_ok=True)
+    sample_img_path = output_dir / "sample_img.png"
     if sample_img_path.exists():
         return
 
@@ -92,7 +89,6 @@ def create_sample_img():
         b = int(36 + (0 - 36) * i / h)
         draw.line([(0, i), (w, i)], fill=(r, g, b))
     
-    SAMPLE_IMG_FOLDER.mkdir(exist_ok=True)
     img.save(sample_img_path)
 
 class Data:
@@ -285,9 +281,14 @@ def windows_only(test_func):
 
 class TestMainWindow(unittest.TestCase):
     def setUp(self):
+        self._temp_dir = TemporaryDirectory()
+        self.sample_dir = Path(self._temp_dir.name) / "samples"
+        self.output_dir = Path(self._temp_dir.name) / "output"
+        create_sample_img(self.sample_dir)
+        self.data = Data(self.sample_dir, self.output_dir)
+
         self._setupPatches()
         self.app = Interact(MainWindow())
-        self.data = Data(SAMPLE_IMG_FOLDER, TMP_IMG_FOLDER)
         self.app.reset_to_default()
         self.app.clear_list()
 
@@ -304,6 +305,7 @@ class TestMainWindow(unittest.TestCase):
         self.data.cleanup()
         self.app.tear_down()
         self.config_temp_dir.cleanup()
+        self._temp_dir.cleanup()
 
     def test_dependencies(self):
         FILES = (
@@ -536,5 +538,4 @@ class TestMainWindow(unittest.TestCase):
         assert len(self.data.get_tmp_folder_content()) == 2
 
 if __name__ == "__main__":
-    create_sample_img()
     unittest.main(failfast=True)
