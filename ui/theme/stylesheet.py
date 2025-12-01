@@ -490,4 +490,17 @@ def getStyleSheet(theme: Theme) -> str:
         font-weight: 700;
         font-size: 13px;
     }}
+
+    /* Settings tab */
+    QLabel[class="min_width_l"] {{
+        min-width: 84px;
+    }}
+
+    QComboBox[class="min_width_cmb"] {{
+        min-width: 116px;
+    }}
+
+    QSpinBox[class="min_width_sb"] {{
+        min-width: 84px;
+    }}
     """

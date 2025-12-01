@@ -65,7 +65,7 @@ class SettingsTab(QWidget):
         self.setupWidgets()
         self.setupLayouts()
         self.setupSignals()
-        self.setSizes()
+        self.setStyles()
         self.setToolTips()
 
         # Init states
@@ -264,21 +264,8 @@ class SettingsTab(QWidget):
         # All
         self.settings_lt.addStretch()
 
-    def setSizes(self):
-        self.play_sound_on_finish_vol_sb.setStyleSheet("min-width: 90px;")   # In the newer Qt 6.8 vs 6.6, setting size of this widget does not work unless done this way.
-
-        for label in (
-            self.exiftool_wipe_l,
-            self.exiftool_preserve_l,
-            self.exiftool_unsafe_wipe_l,
-            self.exiftool_custom_l,
-            self.avifenc_args_l,
-            self.cjpegli_args_l,
-            self.cjxl_args_l,
-            self.im_args_l,
-            self.process_priority_l,
-        ):
-            label.setMinimumWidth(90)
+    def setStyles(self):
+        self.play_sound_on_finish_vol_sb.setProperty("class", "min_width_sb")
 
         for hbox in (
             self.jpg_encoder_hb,
@@ -292,18 +279,25 @@ class SettingsTab(QWidget):
             # self.avif_aom_tune_hb,
         ):
             hbox.setAlignment(Qt.AlignLeft)
+
+        self.exiftool_wipe_l.setProperty("class", "min_width_l")
+        self.exiftool_preserve_l.setProperty("class", "min_width_l")
+        self.exiftool_unsafe_wipe_l.setProperty("class", "min_width_l")
+        self.exiftool_custom_l.setProperty("class", "min_width_l")
+
+        self.avifenc_args_l.setProperty("class", "min_width_l")
+        self.cjpegli_args_l.setProperty("class", "min_width_l")
+        self.cjxl_args_l.setProperty("class", "min_width_l")
+        self.im_args_l.setProperty("class", "min_width_l")
         
-        for cmb in (
-            self.jpg_encoder_cmb,
-            self.avif_encoder_cmb,
-            self.avif_bit_depth_cmb,
-            self.theme_cmb,
-            self.ram_optimizer_cmb,
-            self.processing_order_cmb,
-            self.process_priority_cmb,
-            # self.avif_aom_tune_cmb,
-        ):
-            cmb.setMinimumWidth(150)
+        self.jpg_encoder_cmb.setProperty("class", "min_width_cmb")
+        self.avif_encoder_cmb.setProperty("class", "min_width_cmb")
+        self.avif_bit_depth_cmb.setProperty("class", "min_width_cmb")
+        self.theme_cmb.setProperty("class", "min_width_cmb")
+        self.ram_optimizer_cmb.setProperty("class", "min_width_cmb")
+        self.processing_order_cmb.setProperty("class", "min_width_cmb")
+        self.process_priority_cmb.setProperty("class", "min_width_cmb")
+        # self.avif_aom_tune_cmb.setProperty("class", "min_width_cmb")
 
     def setupSignals(self):
         self.custom_args_cb.toggled.connect(self.onCustomArgsToggled)
