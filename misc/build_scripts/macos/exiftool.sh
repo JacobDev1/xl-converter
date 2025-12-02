@@ -27,7 +27,7 @@ chmod +x ./build_tag_lookup && ./build_tag_lookup
 # Reference: https://github.com/exiftool/exiftool/blob/master/META.json
 perl_packages=(
     IO::Compress::Brotli IO::Uncompress::Brotli Archive::Zip Compress::Zlib IO::Compress::Bzip2 IO::Compress::RawDeflate IO::Uncompress::RawInflate Compress::Raw::Lzma
-    Digest::SHA Digest::MD5 Digest::SHA Time::Piece POSIX::strptime Time::HiRes
+    Digest::MD5 Digest::SHA Time::Piece POSIX::strptime Time::HiRes
     Unicode::LineBreak
 )
 
