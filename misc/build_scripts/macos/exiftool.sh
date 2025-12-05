@@ -71,8 +71,9 @@ is_rosetta_available() {
 }
 
 pull_arm64_prebuild() {
-    # TODO
     local output="$1"
+    local url="https://github.com/JacobDev1/exiftool-macos-build/releases/download/13.39/exiftool-macos-arm64.tar.xz"
+    curl -fsSL "${url}" -o - | tar -xJf - -O > "${output}"
 }
 
 x86_64_slice="${TEMP_DIR}/exiftool.x86_64"
@@ -82,10 +83,11 @@ exiftool_bin="${TEMP_DIR}/exiftool_build_export"
 case "$(uname -m)" in
     x86_64)
         build_exiftool x86_64 "${x86_64_slice}"
-        # pull_arm64_prebuild "${arm64_slice}"
-        # lipo -create "${x86_64_slice}" "${arm64_slice}" -output "${exiftool_bin}"
-        mv "$x86_64_slice" "$exiftool_bin"
-        echo "Generated binary will be thin. This script is a work-in-progress."
+        # Building this for arm64 on x86_64 requires patching XS modules and the loader.
+        # This is very difficult and unmaintainable.
+        # CI is used instead.
+        pull_arm64_prebuild "${arm64_slice}"
+        lipo -create "${x86_64_slice}" "${arm64_slice}" -output "${exiftool_bin}"
         ;;
     arm64)
         if is_rosetta_available; then
@@ -107,7 +109,7 @@ case "$(uname -m)" in
         ;;
 esac
 
-
 mkdir -p "${OUTPUT_DIR}"
 mv "${exiftool_bin}" "${OUTPUT_DIR}/exiftool"
+chmod +x "${OUTPUT_DIR}/exiftool"
 echo "The build artifact copied to: ${OUTPUT_DIR}"
