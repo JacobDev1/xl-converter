@@ -22,34 +22,34 @@ def test_runExifTool():
             "-overwrite_original"
         )
 
-@pytest.mark.parametrize("system", [ "Linux", "Darwin" ])
-def test__runExifTool_posix(system):
+# @pytest.mark.parametrize("system", [ "Linux", "Darwin" ])
+# def test__runExifTool_posix(system):
+#     with (
+#         patch("platform.system", return_value=system),
+#         patch("core.metadata.runProcess2") as mock_runProcess2,
+#     ):
+#         et_args = "-arg1", "-arg2"
+#         metadata._runExifTool(et_args)
+#         mock_runProcess2.assert_called_once_with("exiftool", et_args)
+
+def test__runExifTool_linux():
     with (
-        patch("platform.system", return_value=system),
+        patch("platform.system", return_value="Linux"),
         patch("core.metadata.runProcess2") as mock_runProcess2,
     ):
         et_args = "-arg1", "-arg2"
         metadata._runExifTool(et_args)
         mock_runProcess2.assert_called_once_with("exiftool", et_args)
 
-# def test__runExifTool_linux():
-#     with (
-#         patch("platform.system", return_value="Linux"),
-#         patch("core.metadata.runProcess") as mock_runProcess,
-#     ):
-#         et_args = "-arg1", "-arg2"
-#         metadata._runExifTool(et_args)
-#         mock_runProcess.assert_called_once_with("exiftool", et_args)
-
-# def test__runExifTool_darwin():
-#     with (
-#         patch("platform.system", return_value="Darwin"),
-#         patch("core.metadata.runProcess") as mock_runProcess,
-#         patch("core.metadata.EXIFTOOL_PATH", "/tmp/exiftool") as var_EXIFTOOL_PATH,
-#     ):
-#         et_args = "-arg1", "-arg2"
-#         metadata._runExifTool(et_args)
-#         mock_runProcess.assert_called_once_with(var_EXIFTOOL_PATH, et_args)
+def test__runExifTool_darwin():
+    with (
+        patch("platform.system", return_value="Darwin"),
+        patch("core.metadata.runProcess2") as mock_runProcess2,
+        patch("core.metadata.EXIFTOOL_PATH", "/tmp/exiftool") as var_EXIFTOOL_PATH,
+    ):
+        et_args = "-arg1", "-arg2"
+        metadata._runExifTool(et_args)
+        mock_runProcess2.assert_called_once_with(var_EXIFTOOL_PATH, et_args)
 
 def test__runExifTool_windows():
     with (
@@ -117,8 +117,7 @@ def reset_data():
 @pytest.mark.parametrize("system, output, expected", [
     ("Linux", ("", "exiftool is /usr/bin/exiftool"), (True, "")),
     ("Linux", ("", "bash: type: exiftool: not found"), (False, "ExifTool not found.")),
-    ("Darwin", ("", "exiftool is /usr/bin/exiftool"), (True, "")),
-    ("Darwin", ("", "bash: type: exiftool: not found"), (False, "ExifTool not found.")),
+    ("Darwin", ("", ""), (True, "")),
     ("Windows", ("12.40",""), (True, "")),
     ("Windows", ("",""), (False, "Please reinstall this program")),
     ("Windows", ("","assertion failed"), (False, "Please reinstall this program")),

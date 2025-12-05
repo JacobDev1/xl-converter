@@ -82,7 +82,7 @@ elif platform.system() == "Darwin":
     AVIFENC_PATH = os.path.join(BASE_PATH, "libavif", "avifenc")
     AVIFDEC_PATH = os.path.join(BASE_PATH, "libavif", "avifdec")
     OXIPNG_PATH = os.path.join(BASE_PATH, "oxipng")
-    EXIFTOOL_PATH = os.path.join(BASE_PATH, "exiftool", "exiftool")
+    EXIFTOOL_PATH = os.path.join(BASE_PATH, "exiftool")
     JPEGTRAN_PATH = os.path.join(BASE_PATH, "jpegtran")
 
     CONFIG_LOCATION = os.path.normpath(os.path.expanduser("~/Library/Application Support/eu.codepoems.xl-converter"))

@@ -65,15 +65,10 @@ def _runExifTool(*args):
             except Exception as e:
                 raise FileException("M1", f"Failed to clean up an argfile. {e}")
             # ExifTool does not support UTF-8 paths on Windows, unless you put them in an argfile.
-        case "Linux" | "Darwin":
+        case "Linux":
             runProcess2("exiftool", *args)
-            # ExifTool is no longer included due to a bug in its handling of JPEG XL in the platform-independent Perl library.
-            # If you try to process JPEG XL from Worker via an absolute path, you get:
-            # (stderr): Warning: Install IO::Uncompress::Brotli to decode Brotli-compressed metadata
-        # case "Darwin":
-            # The problem described above is still an issue on macOS.
-            # Do not enable unless it's fixed.
-            # runProcess(EXIFTOOL_PATH, *args)
+        case "Darwin":
+            runProcess2(EXIFTOOL_PATH, *args)
         case _:
             logging.error("[metadata - _runExifTool] Not implemented")
 
@@ -87,7 +82,7 @@ def isExifToolAvailable() -> tuple[bool, str]:
         return (Data.exiftool_available, Data.exiftool_err_msg)
 
     match platform.system():
-        case "Linux" | "Darwin":
+        case "Linux":
             Data.exiftool_available = "not found" not in runProcess2("bash", "-c", "type exiftool")[1]
             if Data.exiftool_available == False:
                 Data.exiftool_err_msg = "ExifTool not found. Please install ExifTool on your system and restart the program."
