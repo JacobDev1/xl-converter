@@ -8,11 +8,16 @@ from data.process_manager import ProcessManager, ProcessPriorityManager
 
 SYSTEM = platform.system()
 
-def runProcess2(*cmd: str, cwd: str | None = None) -> (str, str):
+def runProcess2(*cmd: str, cwd: str | None = None) -> tuple[str, str]:
     """Replacement for runProcess() and runProcessOutput().
     
     Returns:
         (stdout, stderr)
+
+    Raises:
+        PermissionError
+        FileNotFoundError
+        OSError
     """
     logging.info(f"[runProcess2] {cmd}")
 
@@ -22,17 +27,14 @@ def runProcess2(*cmd: str, cwd: str | None = None) -> (str, str):
     else:
         creationflags = 0
 
-    try:
-        process = psutil.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=cwd,
-            creationflags=creationflags,
-        )
-    except Exception as e:
-        logging.error(f"[runProcess2] Failed to spawn a process. {e}")
-        return ("", "")
+    # No try / except to avoid masking exceptions.
+    process = psutil.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=cwd,
+        creationflags=creationflags,
+    )
 
     if SYSTEM != "Windows":
         _setProcessPriority(process, ProcessPriorityManager.getPriorityFlag())
@@ -46,19 +48,13 @@ def runProcess2(*cmd: str, cwd: str | None = None) -> (str, str):
     finally:
         ProcessManager.removeProcess(process)
 
-    try:
-        if stdout:
-            stdout = stdout.decode("utf-8")
-            logging.info(f"[runProcess2] {stdout}")
+    stdout = stdout.decode("utf-8", errors="replace") if stdout else ""
+    stderr = stderr.decode("utf-8", errors="replace") if stderr else ""
 
-        if stderr:
-            stderr = stderr.decode("utf-8")
-            logging.info(f"[runProcess2] {stderr}")
-    except Exception as err:
-        logging.error(f"[runProcess2] Failed to decode process output. {err}")
-        return ("", "")
+    if stdout: logging.info(f"[runProcess2] {stdout}")
+    if stderr: logging.info(f"[runProcess2] {stderr}")
 
-    return (stdout or "", stderr or "")
+    return stdout, stderr
 
 def _setProcessPriority(process: psutil.Popen, priority: int | None) -> None:
     """An internal function for setting the priority of a given process."""

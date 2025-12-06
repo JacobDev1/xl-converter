@@ -25,7 +25,7 @@ def runBinary(
     dst_path: str | None = None,
     args_after_input: bool = False,
     delete_if_canceled: list[str] = [],
-) -> (str, str):
+) -> tuple[str, str]:
     """A universal method for running binaries.
 
     Args:
@@ -41,6 +41,9 @@ def runBinary(
 
     Raises:
         CancellationException: if task_status is canceled
+        PermissionError
+        FileNotFoundError
+        OSError
     """
     cmd = [bin_path]
     if args_after_input:
@@ -70,7 +73,7 @@ def runJPEGtran(
     args: list[str],
     src_path: str,
     dst_path: str,
-) -> (str, str):
+) -> tuple[str, str]:
     """Runs jpegtran.
 
     Args:

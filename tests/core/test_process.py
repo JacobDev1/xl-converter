@@ -125,11 +125,8 @@ def test_runProcess2_popen_exc(runProcess2_patches, caplog):
     runProcess2_patches["Popen"].side_effect = OSError("Executable not found")
     caplog.set_level(logging.ERROR)
 
-    stdout, stderr = process.runProcess2("echo", "test")
-
-    assert stdout == "" and stderr == ""
-    assert "Failed to spawn a process" in caplog.text
-    assert "Executable not found" in caplog.text
+    with pytest.raises(OSError, match="Executable not found"):
+        stdout, stderr = process.runProcess2("echo", "test")
 
 def test_runProcess2_communicate_exc(runProcess2_patches, caplog):
     mock_process = runProcess2_patches["Popen"].return_value
@@ -149,9 +146,7 @@ def test_runProcess2_decoding_exc(runProcess2_patches, caplog):
 
     stdout, stderr = process.runProcess2("echo", "test")
 
-    assert stdout == "" and stderr == ""
-    assert "Failed to decode process output" in caplog.text
-    assert "invalid start byte" in caplog.text
+    assert stdout == "\ufffd" and stderr == ""
 
 def test__setProcessPriority_none(caplog):
     with caplog.at_level(logging.ERROR):

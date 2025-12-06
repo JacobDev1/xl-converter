@@ -124,6 +124,20 @@ def test_runBinary_delete_if_canceled_empty():
         mock_isfile.assert_not_called()
         mock_remove.assert_not_called()
 
+def test_runBinary_runProcess2_exc():
+    with (
+        patch("core.convert.runProcess2", side_effect=PermissionError) as mock_runProcess2,
+        pytest.raises(PermissionError),
+    ):
+        convert.runBinary(
+            "path/bin",
+            ["-arg1", "-arg2"],
+            "path/src.png",
+            "path/dst.jxl",
+            args_after_input=False,
+            delete_if_canceled=[],
+        )
+
 def test_runJPEGtran_happy_path():
     stdout, stderr = "completed", "test"
     with (
