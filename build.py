@@ -100,9 +100,9 @@ def blake2(path):
 class Downloader():
     """Downloads dependencies."""
     def __init__(self):
-        self.appimagetool_url = "https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage"
+        self.appimagetool_url = "https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage"
         self.appimagetool_dst = "misc/appimagetool"
-        self.appimagetool_blake2 = "83db0c2644d992045f974592099fdbf69c690f20d8440e773bfb76fff199d4abf9a3b19a72279e63b9aa37ef46b201ced2a106138c0404e2a03de2f7b390c4a5"
+        self.appimagetool_blake2 = "31e2a6f1bc6f9428842e535914d94b27f91483e04bef39f03953e1cb960e9615945751cecc3dc98002e1e6f3bfa64f0358b4b539f7dd5834616fe3f7dcd00923"
 
     def download(self, url, dst, checksum = None):
         dst = Path(dst)
