@@ -58,7 +58,16 @@ for arch in x86_64 arm64; do
     )
 
     if [ "${arch}" = "x86_64" ]; then
-        cmake_flags+=("-DCMAKE_ASM_NASM_FLAGS=-f macho64")
+        # Workaround shim for "multipass optimization not supported" error.
+        nasm_shim="${TEMP_DIR}/nasm_shim_x64"
+        echo "#!/bin/bash" > "${nasm_shim}"
+        echo '/opt/local/bin/nasm -f macho64 "$@"' >> "${nasm_shim}"
+        chmod +x "${nasm_shim}"
+
+        cmake_flags+=(
+            -DCMAKE_ASM_NASM_COMPILER="${nasm_shim}"
+            -DENABLE_NASM=ON
+        )
     else
         cmake_flags+=("-DENABLE_NASM=OFF")
     fi
