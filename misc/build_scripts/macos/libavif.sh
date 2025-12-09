@@ -58,6 +58,13 @@ for arch in x86_64 arm64; do
         -DCMAKE_ASM_NASM_COMPILER="$(which yasm)"
     )
 
+    if [ "${arch}" = "x86_64" ]; then
+        cmake_flags+=(
+            -DCMAKE_TOOLCHAIN_FILE="${TEMP_DIR}/libavif/ext/aom/build/cmake/toolchains/x86-macos.cmake"
+            -DHAVE_NEON=0
+        )
+    fi
+
     cmake "${cmake_flags[@]}"
     cmake --build "aom/build.libaom.${arch}" --config Release --parallel
 done
