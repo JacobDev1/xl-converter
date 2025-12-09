@@ -55,9 +55,7 @@ for arch in x86_64 arm64; do
         -DENABLE_TESTDATA=0
         -DENABLE_TESTS=0
         -DENABLE_TOOLS=0
-        # Bypasses a NASM issue when building on AppleSilicon.
-        # Error: Unsupported nasm: multipass optimization not supported.
-        -DENABLE_NASM=OFF
+        -DCMAKE_ASM_NASM_COMPILER="$(which yasm)"
     )
 
     cmake "${cmake_flags[@]}"
