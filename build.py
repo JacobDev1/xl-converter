@@ -319,8 +319,6 @@ class Builder():
             self._appendUpdateFile()
         
         print(f"[Building] Finished (built to {self.dst_dir}/{self.project_name})")
-        if platform.system() == "Darwin":
-            print("[Warning] macOS build support is experimental. Some tools in ./bin/macos are not self-contained. This bundle will not work on another machine! Use for testing only.")
 
     def _prepare(self):
         if platform.system() == "Windows":
@@ -349,7 +347,16 @@ class Builder():
     def _copyDependencies(self):
         print("[Building] Copying dependencies")
         bin_dir = self.bin_dir[platform.system()]
-        shutil.copytree(Path(bin_dir), Path(self.internal_dir, bin_dir))
+
+        if platform.system() == "Darwin":
+            dst = os.path.join(
+                os.path.join(self.dst_dir, self.macos_app_bundle_name, "Contents", "Frameworks"),
+                bin_dir
+            )
+        else:
+            dst = os.path.join(self.internal_dir, bin_dir)
+
+        shutil.copytree(Path(bin_dir), dst)
     
     def _appendInstaller(self):
         installer_dir = self.installer_path[platform.system()]

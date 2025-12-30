@@ -49,5 +49,5 @@ check_commands() {
 
 # Yellow text
 warning() {
-    printf '\033[33m%b\033[0m\n' "$*"
+    printf '\033[33m%b\033[0m\n' "$*" >&2
 }

@@ -204,7 +204,9 @@ for arch in x86_64 arm64; do
         -DAVIF_LIBXML2=LOCAL \
         -DCMAKE_EXE_LINKER_FLAGS="/opt/local/lib/libiconv.a" \
         -DAVIF_CODEC_SVT=LOCAL \
-        -DAVIF_CODEC_AOM=LOCAL \
+        -DAVIF_CODEC_AOM=SYSTEM \
+        -DAOM_INCLUDE_DIR="${TEMP_DIR}/libavif/ext/aom" \
+        -DAOM_LIBRARY="${TEMP_DIR}/libavif/ext/aom/build.libaom.${arch}/libaom.a" \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         "${TEMP_DIR}/libavif"
 

@@ -285,12 +285,18 @@ ${binary}
     fi
     BUNDLED_PATHS="${BUNDLED_PATHS}
 ${binary}"
+    
+    chmod +w "${binary}"
 
-    strip_external_rpaths "${binary}"
+    local deps
+    deps=$(otool -L "${binary}" | sed 1d | grep -v ':$' | awk '{print $1}' | sort -u)
     
     while IFS= read -r dep; do
         [[ -z "${dep}" ]] && continue
-        if [[ "${dep}" == /usr/lib/* || "${dep}" == /System/* ]]; then
+
+        if [[ "${dep}" == /usr/lib/* ||
+            "${dep}" == /System/* ||
+            "${dep}" == "${binary}" ]]; then
             continue
         fi
 
@@ -318,7 +324,10 @@ ${binary}"
         fi
 
         bundle_binary "${lib_target}" "${lib_dir}"
-    done < <(otool -L "${binary}" | sed 1d | awk '{print $1}')
+
+    done <<< "${deps}"
+
+    strip_external_rpaths "${binary}"
 }
 
 update_ids() {
@@ -371,10 +380,12 @@ validate() {
         | awk '{print $1}' \
         | grep '^/' \
         | grep -Ev '^/(usr/lib/|System)' \
+        | grep -Fv "${OUTPUT_DIR}/magick" \
         || true)
 
     if [[ -n "${exe_deps}" ]]; then
         warning "The magick binary has external dependencies. It will not work on another system."
+        warning "Disallowed dependencies: ${exe_deps}"
     fi
 
     local exe_bad_rpaths
