@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EXIFTOOL_TAG="13.37"
+EXIFTOOL_TAG="13.45"
 
 RUN_DIR=$(pwd)
 OUTPUT_DIR="${RUN_DIR}/bin/win/exiftool"
@@ -16,7 +16,7 @@ check_commands 7z git wget
 
 # Prepare
 cd "$TEMP_DIR"
-wget "https://exiftool.org/exiftool-${EXIFTOOL_TAG}_64.zip" -O exiftool.zip
+wget "https://sourceforge.net/projects/exiftool/files/exiftool-${EXIFTOOL_TAG}_64.zip/download" -O exiftool.zip
 7z x exiftool.zip
 cd "exiftool-${EXIFTOOL_TAG}_64"
 mv "exiftool(-k).exe" exiftool.exe

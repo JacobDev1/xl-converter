@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LIBJPEG_TURBO_TAG="3.1.0"
-MT_PATH="/c/Program Files (x86)/Windows Kits/10/bin/10.0.20348.0/x64/mt.exe"   # `cmd /c ""C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" & where mt"`
+MT_PATH=$(ls -1 "/c/Program Files (x86)/Windows Kits/10/bin/"*"/x64/mt.exe" 2>/dev/null | sort -V | tail -n 1)
 RUN_DIR=$(pwd)
 OUTPUT_DIR="${RUN_DIR}/bin/win/jpegtran"
 TEMP_DIR=$(mktemp -d)
@@ -17,11 +17,11 @@ check_packages \
     git \
     cmake \
     mingw-w64-x86_64-ninja \
-    mingw-w64-x86_64-nasm \
+    nasm \
     mingw-w64-x86_64-gcc \
     mingw-w64-x86_64-make
 
-if [ ! -f "${MT_PATH}" ]; then
+if [ -z "$MT_PATH" ]; then
     echo "mt.exe not found. Install Windows SDK through Visual Studio, change MT_PATH in this script, and try again."
     exit 1
 fi

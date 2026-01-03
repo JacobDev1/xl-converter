@@ -20,9 +20,9 @@ check_packages \
     mingw-w64-x86_64-toolchain \
     mingw-w64-x86_64-ninja \
     mingw-w64-x86_64-libjpeg-turbo \
+    nasm \
     cmake \
-    make \
-    nasm
+    make
 
 # Prepare repo
 cd "${TEMP_DIR}"

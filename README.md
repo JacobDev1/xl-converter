@@ -67,8 +67,11 @@ pacman -S --needed \
     cmake \
     wget \
     make \
-    nasm \
     base-devel \
+    autoconf \
+    automake \
+    libtool \
+    nasm \
     mingw-w64-x86_64-gcc \
     mingw-w64-x86_64-toolchain \
     mingw-w64-x86_64-cmake \
@@ -78,7 +81,10 @@ pacman -S --needed \
     mingw-w64-x86_64-libpng \
     mingw-w64-x86_64-libjpeg-turbo \
     mingw-w64-x86_64-rust \
-    mingw-w64-x86_64-7zip
+    mingw-w64-x86_64-7zip \
+    mingw-w64-x86_64-imagemagick \
+    mingw-w64-x86_64-libjxl \
+    mingw-w64-x86_64-aom
 ```
 
 Relaunch MSYS2 MINGW64 again.

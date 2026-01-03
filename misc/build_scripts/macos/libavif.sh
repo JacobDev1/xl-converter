@@ -22,7 +22,7 @@ check_packages \
     jpeg-turbo \
     cmake \
     make \
-    nasm \
+    yasm \
     webp \
     zlib \
     libpng \
