@@ -89,11 +89,12 @@ $(TOOLS): %: build-%-$(PLAT)
 
 .PHONY: deps
 deps: $(TOOLS)
+
 ifeq ($(PLAT),win)
-  deps += build-exiftool-win
+deps: build-exiftool-win
 endif
 ifeq ($(PLAT),macos)
-  deps += build-exiftool-macos
+deps: build-exiftool-macos
 endif
 
 .PHONY: build
