@@ -99,7 +99,41 @@ ALLOWED_INPUT_AVIFENC = JPEG_ALIASES + ["png"]
 ALLOWED_INPUT_AVIFDEC = ["avif"]
 ALLOWED_INPUT_OXIPNG = ["png"]
 ALLOWED_INPUT = removeDuplicatesHashable(ALLOWED_INPUT_DJXL + ALLOWED_INPUT_CJXL + ALLOWED_INPUT_IMAGE_MAGICK + ALLOWED_INPUT_AVIFENC + ALLOWED_INPUT_AVIFDEC + ALLOWED_INPUT_OXIPNG)
-ALLOWED_RESAMPLING = ("Lanczos", "Point", "Box", "Cubic", "Hermite", "Gaussian", "Catrom", "Triangle", "Quadratic", "Mitchell", "CubicSpline", "Hamming", "Parzen", "Blackman", "Kaiser", "Welsh", "Hanning", "Bartlett", "Bohman")
+ALLOWED_RESAMPLING = (
+    "Lanczos",
+    "Point",
+    "Triangle",
+    "Mitchell",
+    "MagicKernelSharp2021",
+    "MagicKernelSharp2013",
+    "Bartlett",
+    "Blackman",
+    "Bohman",
+    "Box",
+    "Catrom",
+    "Cosine",
+    "Cubic",
+    "CubicSpline",
+    "Gaussian",
+    "Hamming",
+    "Hann",
+    "Hermite",
+    "Jinc",
+    "Kaiser",
+    "Lagrange",
+    "Lanczos2",
+    "Lanczos2Sharp",
+    "LanczosRadius",
+    "LanczosSharp",
+    "Parzen",
+    "Quadratic",
+    "Robidoux",
+    "RobidouxSharp",
+    "Sinc",
+    "SincFast",
+    "Spline",
+    "Welch",
+)
 
 ALLOWED_INPUT_FILTERS = [
     listToFilter("Supported Images", ALLOWED_INPUT),

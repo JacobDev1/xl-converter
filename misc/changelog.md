@@ -3,6 +3,7 @@
 ### Added
 
 - Add process priority option.
+- Add more resampling algorithms (#129).
 
 ### Fixed
 
