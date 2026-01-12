@@ -29,7 +29,7 @@ class AboutTab(QWidget):
     def setupWidgets(self):
         # Labels
         self.title_l = QLabel(f"XL Converter")
-        self.version_l = QLabel(f"Version beta-25-01-12")
+        self.version_l = QLabel(f"Version beta-26-01-12")
         self.credits_l = StyledLabel(f"""
             <div style='line-height: 120%;'>
                 <a href=\"https://codepoems.eu\" >website</a>
