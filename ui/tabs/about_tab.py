@@ -29,7 +29,7 @@ class AboutTab(QWidget):
     def setupWidgets(self):
         # Labels
         self.title_l = QLabel(f"XL Converter")
-        self.version_l = QLabel(f"Version {constants.VERSION}")
+        self.version_l = QLabel(f"Version beta-25-01-12")
         self.credits_l = StyledLabel(f"""
             <div style='line-height: 120%;'>
                 <a href=\"https://codepoems.eu\" >website</a>
@@ -49,7 +49,7 @@ class AboutTab(QWidget):
         self.update_btn = QPushButton("Check for Updates", clicked=self.checkForUpdate)
         self.update_checker.finished.connect(lambda: self.update_btn.setEnabled(True))
         self.manual_btn = QPushButton("Manual", clicked=lambda: openRemoteUrl("https://xl-docs.codepoems.eu/"))
-        self.report_bug_btn = QPushButton("Report Bug", clicked=lambda: openRemoteUrl("https://github.com/JacobDev1/xl-converter/issues"))
+        self.report_bug_btn = QPushButton("Report Bug", clicked=lambda: openRemoteUrl("https://github.com/JacobDev1/xl-converter-beta/issues"))
 
     def setupLayouts(self):
         # Labels
