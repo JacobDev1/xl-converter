@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QProgressDialog
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Signal, QObject, QPoint
+from PySide6.QtCore import Signal, QObject, QPoint, Qt
 
 from data.constants import ICON_SVG
 
@@ -43,6 +43,13 @@ class ProgressDialog(QObject):
 
         self.dlg.setMinimumWidth(350)
         self.dlg.setMinimumHeight(115)
+        self.dlg.setWindowModality(Qt.ApplicationModal)
+        self.dlg.setWindowFlags(
+            Qt.Dialog |
+            Qt.WindowTitleHint |
+            Qt.WindowCloseButtonHint |
+            Qt.CustomizeWindowHint
+        )
         self.dlg.show()
         self.is_processing = True
         self.updatePosition()
