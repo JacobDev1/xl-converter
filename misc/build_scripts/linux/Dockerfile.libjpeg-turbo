@@ -2,6 +2,7 @@ FROM ubuntu:22.04
 
 ARG LIBJPEG_TURBO_TAG="3.1.0"
 
+ARG BUILD_JOBS
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY ./misc/build_scripts/linux/sources.list /etc/apt/sources.list
@@ -21,7 +22,7 @@ RUN mkdir build && cd ./build && \
         -DENABLE_STATIC=TRUE \
         ..
 WORKDIR /src/libjpeg-turbo/build
-RUN make
+RUN make -j${BUILD_JOBS}
 RUN mkdir /src/bin && \
     cp jpegtran-static /src/bin/jpegtran
 WORKDIR /src/bin

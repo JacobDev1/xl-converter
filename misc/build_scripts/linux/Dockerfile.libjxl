@@ -4,6 +4,7 @@ FROM ubuntu:22.04
 
 ARG LIBJXL_TAG=v0.11.1
 
+ARG BUILD_JOBS
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY ./misc/build_scripts/linux/sources.list /etc/apt/sources.list
@@ -27,9 +28,8 @@ WORKDIR /src
 RUN git clone -b ${LIBJXL_TAG} --depth 1 https://github.com/libjxl/libjxl.git libjxl
 WORKDIR /src/libjxl/
 RUN ./deps.sh
-# Avoid building docs
-RUN sed -i '/^TARGETS=/s/all doc/all/' /src/libjxl/ci.sh
-RUN ./ci.sh release \
+RUN TARGETS="-j ${BUILD_JOBS} all" \
+    ./ci.sh release \
     -DJPEGXL_STATIC=ON \
     -DBUILD_TESTING=OFF \
     -DJPEGXL_ENABLE_JPEGLI_LIBJPEG=OFF \

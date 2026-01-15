@@ -2,6 +2,7 @@ FROM ubuntu:22.04
 
 ARG OXIPNG_TAG="v9.1.5"
 
+ARG BUILD_JOBS
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY ./misc/build_scripts/linux/sources.list /etc/apt/sources.list
@@ -16,7 +17,7 @@ WORKDIR /src
 RUN git clone -b "$OXIPNG_TAG" --depth 1 https://github.com/shssoichiro/oxipng.git
 WORKDIR /src/oxipng
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN cargo build --release
+RUN cargo build --release --jobs ${BUILD_JOBS}
 WORKDIR /src/bin
 RUN cp /src/oxipng/target/release/oxipng /src/bin/
 CMD ["/bin/bash"]

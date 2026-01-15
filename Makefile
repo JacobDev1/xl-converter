@@ -14,10 +14,10 @@ ifeq ($(UNAME_S),Linux)
 else ifeq ($(UNAME_S),Darwin)
   PLAT ?= macos
 else ifneq (,$(MSYSTEM))
-	ifneq ($(MSYSTEM),MINGW64)
-	  $(error Please run this Makefile in a MINGW64 shell. Current shell: $(MSYSTEM))
-	endif
-	PLAT ?= win
+  ifneq ($(MSYSTEM),MINGW64)
+    $(error Please run this Makefile in a MINGW64 shell. Current shell: $(MSYSTEM))
+  endif
+  PLAT ?= win
 else ifneq (,$(findstring CYGWIN,$(UNAME_S)))
   PLAT ?= win
 else
@@ -73,13 +73,14 @@ help:
 	@echo "    other: deps build build-all"
 
 # Prevent Linux DE from freezing.
-BUILD_JOBS := $(shell nproc)
-ifneq ($(XDG_CURRENT_DESKTOP),)
-  ifneq ($(BUILD_JOBS),1)
-    BUILD_JOBS := $(shell expr $(BUILD_JOBS) - 1)
+ifeq ($(PLAT),linux)
+  BUILD_JOBS := $(shell nproc 2>/dev/null || echo 1)
+  ifneq ($(XDG_CURRENT_DESKTOP),)
+    ifneq ($(BUILD_JOBS),1)
+      BUILD_JOBS := $(shell expr $(BUILD_JOBS) - 1)
+    endif
   endif
 endif
-export BUILD_JOBS
 
 # Usage: docker_build <Dockerfile> <src> <dst>
 define docker_build

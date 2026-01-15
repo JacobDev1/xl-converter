@@ -5,6 +5,7 @@ ARG LIBAVIF_TAG=v1.3.0
 ARG AOM_AV1_TAG=v3.13.1
 ARG SVT_AV1_PSY_TAG=v3.0.2
 
+ARG BUILD_JOBS
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY ./misc/build_scripts/linux/sources.list /etc/apt/sources.list
@@ -26,7 +27,9 @@ RUN git clone -b ${LIBAVIF_TAG} --depth 1 https://aomedia.googlesource.com/libav
 WORKDIR /src/libavif/ext
 RUN sed -i -E "s/v[0-9]+\.[0-9]+\.[0-9]+/${AOM_AV1_TAG}/" aom.cmd && \
     sed -i -E "s#https://gitlab.com/AOMediaCodec/SVT-AV1\.git#https://github.com/psy-ex/svt-av1-psy.git SVT-AV1#" svt.sh && \
-    sed -i -E "s/v[0-9]+\.[0-9]+\.[0-9]+/${SVT_AV1_PSY_TAG}/" svt.sh
+    sed -i -E "s/v[0-9]+\.[0-9]+\.[0-9]+/${SVT_AV1_PSY_TAG}/" svt.sh && \
+    sed -i -E "s/--parallel/--parallel ${BUILD_JOBS}/" aom.cmd && \
+    sed -i -E "s#./build.sh#./build.sh jobs=${BUILD_JOBS}#" svt.sh
 
 RUN chmod +x libyuv.cmd libsharpyuv.cmd libjpeg.cmd zlibpng.cmd svt.sh aom.cmd
 
@@ -49,7 +52,7 @@ RUN cmake \
     -DAVIF_CODEC_SVT=LOCAL \
     -DAVIF_CODEC_AOM=LOCAL \
     .. && \
-    cmake --build . --parallel
+    cmake --build . --parallel ${BUILD_JOBS}
 WORKDIR /src/bin/
 RUN cp /src/libavif/build/avifenc /src/bin/ && \
     cp /src/libavif/build/avifdec /src/bin/
