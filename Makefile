@@ -72,10 +72,19 @@ help:
 	@echo "    tools: $(TOOLS)"
 	@echo "    other: deps build build-all"
 
+# Prevent Linux DE from freezing.
+BUILD_JOBS := $(shell nproc)
+ifneq ($(XDG_CURRENT_DESKTOP),)
+  ifneq ($(BUILD_JOBS),1)
+    BUILD_JOBS := $(shell expr $(BUILD_JOBS) - 1)
+  endif
+endif
+export BUILD_JOBS
+
 # Usage: docker_build <Dockerfile> <src> <dst>
 define docker_build
 	mkdir -p $(3)
-	docker build -f $(1) --progress=plain --iidfile tmp.txt . && \
+	docker build --build-arg BUILD_JOBS=$(BUILD_JOBS) -f $(1) --progress=plain --iidfile tmp.txt . && \
 	image_id=$$(cat tmp.txt) && \
 	container_id=$$(docker create $${image_id}) && \
 	docker cp $${container_id}:$(2) $(3) && \

@@ -3,6 +3,7 @@ FROM ubuntu:22.04
 ARG IMAGEMAGICK_TAG="7.1.2-3"
 ARG LIBHEIF_TAG="v1.20.2"
 ARG LIBJXL_VERSION="0.11.1"
+ARG BUILD_JOBS
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -61,7 +62,7 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release \
     -DJPEGXL_ENABLE_VIEWERS=OFF \
     -DJPEGXL_ENABLE_DEVTOOLS=OFF \
     ..
-RUN cmake --build . --parallel
+RUN cmake --build . --parallel ${BUILD_JOBS}
 RUN make install
 
 # Compile libheif without proprietary standards (like HEVC) to avoid licensing issues.
@@ -104,7 +105,7 @@ RUN cmake \
     -DWITH_SvtEnc=OFF \
     -DWITH_SvtEnc_PLUGIN=OFF \
     ..
-RUN cmake --build . --parallel
+RUN cmake --build . --parallel ${BUILD_JOBS}
 RUN cmake --install .
 
 # Build
@@ -137,7 +138,7 @@ RUN ./configure \
     --without-openexr \
     --without-raqm \
     --without-jbig
-RUN make
+RUN make -j${BUILD_JOBS}
 WORKDIR /src/bin
 RUN cp /src/ImageMagick/utilities/magick /src/bin/ && \
     mkdir /src/bin/lib
