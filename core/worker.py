@@ -70,10 +70,11 @@ class Worker(QRunnable):
         
         # Item info - always points to the original file
         self.org_item_abs_path = str(abs_path)         # path -> str cast is done for legacy reasons
+        self.org_item_ext = abs_path.suffix[1:]        # Original case
         
         # Item info - can be (carefully) reassigned
         self.item_name = abs_path.stem
-        self.item_ext = abs_path.suffix[1:].lower()
+        self.item_ext = self.org_item_ext.lower()
         self.item_dir = str(abs_path.parent)
         self.item_abs_path = str(abs_path)
 
@@ -195,7 +196,7 @@ class Worker(QRunnable):
         elif self.params["format"] == "PNG Optimization":
             if self.item_ext != "png":
                 raise FileException("S7", "Only PNG images are allowed.")
-            self.output_ext = "png"
+            self.output_ext = self.org_item_ext
         else:
             self.output_ext = getExtension(self.params["format"])
         
