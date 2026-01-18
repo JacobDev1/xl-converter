@@ -101,7 +101,7 @@ def runJPEGtran(
 def runOxipng(
     args: list[str],
     src_path: str,
-    dst_path: str = None,
+    dst_path: str | None = None,
     inplace: bool = False,
 ) -> tuple[str, str]:
     """Runs Oxipng."""
@@ -120,7 +120,7 @@ def getExtensionJxl(src_path: str) -> Literal["jpg", "png"]:
     else:
         return "png"
 
-def parseArgs(args: str) -> list[str]:
+def parseArgs(args: list[str]) -> list[str]:
     """Splits arguments by spaces and flattens them into a list."""
     tmp = []
     for arg in args:
@@ -144,7 +144,7 @@ def getDecoder(ext: str) -> str:
             else:
                 raise GenericException("C4", f"Decoder for {ext} was not found")
 
-def getDecoderArgs(decoder_path: str, threads: int) -> list:
+def getDecoderArgs(decoder_path: str, threads: int) -> list[str]:
     if decoder_path == AVIFDEC_PATH:
         return [f"-j {threads}"]
     elif decoder_path == DJXL_PATH:
@@ -152,7 +152,7 @@ def getDecoderArgs(decoder_path: str, threads: int) -> list:
     else:
         return []
 
-def getImageRes(image_path: str) -> (int, int):
+def getImageRes(image_path: str) -> tuple[int, int]:
     """Returns resolution of an image or (-1, -1) if one cannot be determined."""
     out, err = runBinary(
         IMAGE_MAGICK_PATH,
@@ -162,18 +162,18 @@ def getImageRes(image_path: str) -> (int, int):
     res_match = re.match(r"^(\d+)x(\d+)(?=\D|$)", out)
 
     if not res_match:
-        logging.error(f"[getImageResMp] Cannot determine resolution. {err}")
+        logging.error(f"[getImageRes] Cannot determine resolution. {err}")
         return (-1, -1)
 
     try:
         width = int(res_match.group(1))
         height = int(res_match.group(2))
     except (AttributeError, ValueError):
-        logging.error(f"[getImageResMp] Failed to parse resolution. {out}")
+        logging.error(f"[getImageRes] Failed to parse resolution. {out}")
         return (-1, -1)
 
     if min(width, height) < 1:
-        logging.error(f"[getImageResMp] Cannot determine resolution. {err}")
+        logging.error(f"[getImageRes] Cannot determine resolution. {err}")
         return (-1, -1)
 
     return (width, height)
@@ -187,7 +187,7 @@ def getImageResMp(image_path: str) -> float:
     else:
         return width * height / 1_000_000
 
-def getImageCount(image_path: str) -> (int, str):
+def getImageCount(image_path: str) -> tuple[int, str]:
     """Returns image count (frame or page count) and stderr. If it cannot be determined, returns -1."""
     out, err = runBinary(
         IMAGE_MAGICK_PATH,
