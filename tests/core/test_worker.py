@@ -240,6 +240,15 @@ def test_setupConversion_jpeg_reconstruction_bad_input(setupConversion_patches, 
 
     assert "Only JPEG XL images are allowed" in exc.value.msg
 
+def test_setupConversion_png_opt_reconstruction_bad_input(setupConversion_patches, worker):
+    worker.params["format"] = "PNG Optimization"
+    worker.item_ext = "jpg"
+
+    with pytest.raises(FileException) as exc:
+        worker.setupConversion()
+
+    assert "Only PNG images are allowed" in exc.value.msg
+
 def test_setupConversion_assign_output_path(setupConversion_patches, worker):
     mock_getUniqueTmpFilePath, mock_getOutputDir = setupConversion_patches[0], setupConversion_patches[1]
     mock_getUniqueTmpFilePath.return_value = normalizePath("/tmp/path/image.jxl")
@@ -1283,3 +1292,44 @@ def test_runDynamicRamOptimizer_disabled(worker):
     ):
         worker.runDynamicRamOptimizer()
         mock_run.assert_not_called()
+
+def test_PNGOptimization_happy_path(worker):
+    level = 4
+    available_threads = 3
+    worker.params["effort"] = level
+    worker.available_threads = 3
+    worker.params["misc"]["keep_metadata"] = "Encoder - Wipe"
+    worker.output = "/tmp/out.png"
+
+    with (
+        patch("core.worker.runOxipng", return_value=("", "")) as mock_runOxipng,
+        patch("core.worker.os.path.isfile", return_value=True),
+    ):
+        worker.PNGOptimization()
+        mock_runOxipng.assert_called_once_with(
+            [
+                f"-o {level}",
+                f"-t {available_threads}",
+                "--np", "--nc",
+                "--strip", "safe",
+            ],
+            worker.item_abs_path,
+            worker.output,
+        )
+
+def test_PNGOptimization_sad_path(worker):
+    level = 4
+    available_threads = 3
+    stderr = "error"
+    worker.params["effort"] = level
+
+    with (
+        patch("core.worker.runOxipng", return_value=("", stderr)) as mock_runOxipng,
+        patch("core.worker.os.path.isfile", return_value=False),
+        pytest.raises(FileException) as exc_info,
+    ):
+        worker.PNGOptimization()
+
+    mock_runOxipng.assert_called_once()
+    assert exc_info.value.id == "png_opt_0"
+    assert exc_info.value.msg == f"Optimization failed. {stderr}"

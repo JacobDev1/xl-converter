@@ -23,6 +23,7 @@ def test_isProxyNeeded_png(proxy):
     ("WebP", "png", False),
     ("WebP", "exr", True),
     ("Smallest Lossless", "png", True),
+    ("PNG Optimization", "png", False),
 ])
 def test_test_isProxyNeeded_base(proxy, file_format, src_ext, expected):
     assert proxy.isProxyNeeded(file_format, src_ext) == expected

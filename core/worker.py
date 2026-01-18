@@ -27,7 +27,7 @@ from data.constants import (
 
 from core.proxy import Proxy
 from core.pathing import getUniqueFilePath, getExtension, getOutputDir, getUniqueTmpFilePath, removeFile
-from core.convert import getDecoder, getDecoderArgs, getExtensionJxl, runBinary, cleanUp
+from core.convert import getDecoder, getDecoderArgs, getExtensionJxl, runBinary, cleanUp, runOxipng
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
@@ -121,6 +121,8 @@ class Worker(QRunnable):
                     self.reconstructJPEG()
                 case "Smallest Lossless":
                     self.smallestLossless()
+                case "PNG Optimization":
+                    self.PNGOptimization()
                 case _:
                     self.convert()
             
@@ -190,6 +192,10 @@ class Worker(QRunnable):
             if self.item_ext not in JPEG_ALIASES:
                 raise FileException("S5", "Only JPEG images are allowed.")
             self.output_ext = "jxl"
+        elif self.params["format"] == "PNG Optimization":
+            if self.item_ext != "png":
+                raise FileException("S7", "Only PNG images are allowed.")
+            self.output_ext = "png"
         else:
             self.output_ext = getExtension(self.params["format"])
         
@@ -705,3 +711,20 @@ class Worker(QRunnable):
 
         if not success:
             raise FileException("reconstruct_0", f"Reconstruction failed. {stderr}")
+    
+    def PNGOptimization(self):
+        args = [
+            f"-o {self.params['effort']}",
+            f"-t {self.available_threads}",
+            "--np", "--nc",
+        ]
+        args.extend(
+            metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"])
+        )
+        stdout, stderr = runOxipng(
+            args,
+            self.item_abs_path,
+            self.output,
+        )
+        if not os.path.isfile(self.output):
+            raise FileException("png_opt_0", f"Optimization failed. {stderr}")

@@ -104,6 +104,7 @@ class OutputTab(QWidget):
             "Lossless JPEG Transcoding",
             "JPEG Reconstruction",
             "Smallest Lossless",
+            "PNG Optimization",
         )))
         self.effort_l = self.wm.addWidget("effort_l", QLabel("Effort"), "effort")
         self.effort_sb = self.wm.addWidget("effort_sb", SpinBox(), "effort")
@@ -247,6 +248,8 @@ class OutputTab(QWidget):
                 setToolTip("quality_jpeg", self.quality_sl, self.quality_sb)
             case "Lossless JPEG Transcoding":
                 setToolTip("effort_jpeg_recomp", self.effort_sb)
+            case "PNG Optimization":
+                setToolTip("oxipng_level", self.effort_sb)
 
     # //////////////////////////////////////////////////////////
     # /                      Getters
@@ -328,7 +331,7 @@ class OutputTab(QWidget):
         # Visible
         self.wm.setVisibleByTag("quality_all", cur_format in ("JPEG XL", "AVIF", "WebP", "JPEG"))
         self.int_effort_cb.setVisible(cur_format == "JPEG XL" and self.jxl_int_effort_visible)
-        self.wm.setVisibleByTag("effort", cur_format in ("JPEG XL", "AVIF", "WebP", "Lossless JPEG Transcoding"))
+        self.wm.setVisibleByTag("effort", cur_format in ("JPEG XL", "AVIF", "WebP", "Lossless JPEG Transcoding", "PNG Optimization"))
         self.wm.setVisibleByTag("jxl_losssy_modular", cur_format == "JPEG XL" and self.jxl_lossy_modular_visible)
         self.wm.setVisibleByTag("lossless", cur_format in ("JPEG XL", "WebP"))
         self.wm.setVisibleByTag("smallest_lossless", cur_format == "Smallest Lossless")
@@ -352,6 +355,9 @@ class OutputTab(QWidget):
         elif cur_format == "WebP":
             self.effort_sb.setRange(0, 6)
             self.effort_l.setText("Method")
+        elif cur_format == "PNG Optimization":
+            self.effort_sb.setRange(0, 4)
+            self.effort_l.setText("Level")
 
         if cur_format in ("JPEG XL", "AVIF"):
             self._setQualityRange(0, 99)
@@ -450,6 +456,8 @@ class OutputTab(QWidget):
                 self.effort_sb.setValue(6)
             case "Lossless JPEG Transcoding":
                 self.effort_sb.setValue(7)
+            case "PNG Optimization":
+                self.effort_sb.setValue(2)
         
         self.int_effort_cb.setChecked(False)
         self.jxl_modular_cb.setChecked(False)
@@ -507,6 +515,8 @@ class OutputTab(QWidget):
                 self.wm.setVar("jpg_quality", self.quality_sl.value())
             case "Lossless JPEG Transcoding":
                 self.wm.setVar("jxl_lossless_jpeg_effort", self.effort_sb.value())
+            case "PNG Optimization":
+                self.wm.setVar("oxipng_level", self.effort_sb.value())
 
     def _loadFormatVars(self):
         match self.prev_format:
@@ -525,6 +535,8 @@ class OutputTab(QWidget):
                 self.wm.applyVar("jpg_quality", "quality_sl", 90)
             case "Lossless JPEG Transcoding":
                 self.wm.applyVar("jxl_lossless_jpeg_effort", "effort_sb", 7)
+            case "PNG Optimization":
+                self.wm.applyVar("oxipng_level", "effort_sb", 2)
 
     def saveState(self, new_states: Optional[Dict] = None) -> None:
         if new_states is None or new_states != self.cached_states:

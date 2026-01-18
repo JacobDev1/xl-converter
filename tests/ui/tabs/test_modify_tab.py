@@ -168,6 +168,7 @@ def test_updateDownscalingWidgets_metadata(
     ("JPEG Reconstruction", True, False),
     ("Smallest Lossless", True, False),
     ("JPEG XL", True, True),
+    ("PNG Optimization", True, False),
 ])
 def test_updateDownscalingWidgets_downscaling(
     file_format,

@@ -38,7 +38,7 @@ class Proxy():
         match _format:
             case "JPEG XL":
                 if src_ext in ALLOWED_INPUT_CJXL:
-                    return False          
+                    return False
             case "AVIF":
                 if src_ext in ALLOWED_INPUT_AVIFENC:
                     return False
@@ -55,6 +55,8 @@ class Proxy():
             case "Lossless JPEG Transcoding":
                 return False
             case "JPEG Reconstruction":
+                return False
+            case "PNG Optimization":
                 return False
             case _:
                 raise FileException("Proxy0", f"Unrecognized format ({src_ext})")

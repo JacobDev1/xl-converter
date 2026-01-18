@@ -275,7 +275,7 @@ class ModifyTab(QWidget):
 
     def _updateDownscalingWidgets(self) -> None:
         metadata_allowed = self.file_format not in ("Lossless JPEG Transcoding", "JPEG Reconstruction")
-        downscaling_allowed = self.file_format not in ("Lossless JPEG Transcoding", "JPEG Reconstruction", "Smallest Lossless")
+        downscaling_allowed = self.file_format not in ("Lossless JPEG Transcoding", "JPEG Reconstruction", "Smallest Lossless", "PNG Optimization")
         downscaling_enabled = downscaling_allowed and self.downscale_cb.isChecked()
 
         self.metadata_cmb.setEnabled(metadata_allowed)

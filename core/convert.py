@@ -11,6 +11,7 @@ from data.constants import (
     JXLINFO_PATH,
     AVIFENC_PATH,
     JPEGTRAN_PATH,
+    OXIPNG_PATH,
 )
 from core.process import runProcess2
 from core.exceptions import GenericException, CancellationException
@@ -44,6 +45,9 @@ def runBinary(
         PermissionError
         FileNotFoundError
         OSError
+
+    Caveats:
+        args will be split so do not put paths in there.
     """
     cmd = [bin_path]
     if args_after_input:
@@ -94,6 +98,21 @@ def runJPEGtran(
 
     return (stdout, stderr)
 
+def runOxipng(
+    args: list[str],
+    src_path: str,
+    dst_path: str = None,
+    inplace: bool = False,
+) -> tuple[str, str]:
+    """Runs Oxipng."""
+    if not inplace and dst_path is None:
+        raise ValueError("dst_path is required if inplace is False.")
+
+    if inplace:
+        return runProcess2(OXIPNG_PATH, *parseArgs(args), src_path)
+    else:
+        return runProcess2(OXIPNG_PATH, *parseArgs(args), src_path, "--out", dst_path)
+
 def getExtensionJxl(src_path: str) -> Literal["jpg", "png"]:
     """Assign extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
     if "JPEG bitstream reconstruction data available" in runProcess2(JXLINFO_PATH, src_path)[0]:
@@ -101,11 +120,11 @@ def getExtensionJxl(src_path: str) -> Literal["jpg", "png"]:
     else:
         return "png"
 
-def parseArgs(args):
+def parseArgs(args: str) -> list[str]:
     """Splits arguments by spaces and flattens them into a list."""
     tmp = []
     for arg in args:
-        tmp.extend(arg.split())
+        tmp.extend(str(arg).split())
     return tmp
 
 def getDecoder(ext: str) -> str:

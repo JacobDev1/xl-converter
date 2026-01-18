@@ -117,7 +117,7 @@ def getArgs(encoder, mode, jpg_to_jxl_lossless=False) -> list[str]:
             elif encoder == AVIFENC_PATH:
                 return  ["--ignore-exif", "--ignore-xmp"]
             elif encoder == OXIPNG_PATH:
-                return ["--strip safe"]
+                return ["--strip", "safe"]
             else:
                 return []   # DJXL, CJPEGLI, AVIFDEC - unavailable or undocumented
         case "Encoder - Preserve":

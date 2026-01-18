@@ -5,7 +5,7 @@ import pytest
 
 import core.convert as convert
 from core.exceptions import GenericException
-from data.constants import AVIFENC_PATH, IMAGE_MAGICK_PATH, DJXL_PATH, AVIFDEC_PATH, ALLOWED_INPUT_IMAGE_MAGICK
+from data.constants import AVIFENC_PATH, IMAGE_MAGICK_PATH, DJXL_PATH, AVIFDEC_PATH, ALLOWED_INPUT_IMAGE_MAGICK, OXIPNG_PATH
 from core.exceptions import CancellationException
 
 def test_runBinary_happy_path():
@@ -178,6 +178,48 @@ def test_runJPEGtran_sad_path():
         "path/dst.jpg",
         "path/src.jpg",
     )
+
+def test_runOxipng_inplace_false():
+    args = ["--nc", "--np"]
+    src_path = "/tmp/src.png"
+    dst_path = "/tmp/dst.png"
+    runProcess2_return = ("stdout", "")
+
+    with (
+        patch("core.convert.runProcess2", return_value=runProcess2_return) as mock_runProcess2
+    ):
+        assert convert.runOxipng(args, src_path, dst_path) == runProcess2_return
+        mock_runProcess2.assert_called_once_with(
+            OXIPNG_PATH,
+            *args,
+            src_path,
+            "--out", dst_path,
+        )
+
+def test_runOxipng_inplace_false_no_dst():
+    src_path = "/tmp/src.png"
+
+    with (
+        patch("core.convert.runProcess2") as mock_runProcess2,
+        pytest.raises(ValueError, match="dst_path is required if inplace is False."),
+    ):
+        assert convert.runOxipng([], src_path)
+        mock_runProcess2.assert_not_called()
+
+def test_runOxipng_inplace_true():
+    args = ["--nc", "--np"]
+    src_path = "/tmp/src.png"
+    runProcess2_return = ("stdout", "")
+
+    with (
+        patch("core.convert.runProcess2", return_value=runProcess2_return) as mock_runProcess2
+    ):
+        assert convert.runOxipng(args, src_path, inplace=True) == runProcess2_return
+        mock_runProcess2.assert_called_once_with(
+            OXIPNG_PATH,
+            *args,
+            src_path,
+        )
 
 def test_getExtensionJxl_jpg():
     with patch("core.convert.runProcess2", return_value=("JPEG bitstream reconstruction data available", "")):

@@ -39,6 +39,7 @@ Always - all sources will be normalized.""",
     "smallest_lossless_webp": "Supported bit depth: 8",
     "smallest_lossless_jpeg_xl": "Supported bit depth: 16",
     "smallest_lossless_max_comp": "Results in a lower file size and slower transcoding.",
+    "oxipng_level": "Higher level has better compression, but it's slower.",
 
     # Modify tab
     "keep_timestamps": """Preserves original date & time file attributes.""",

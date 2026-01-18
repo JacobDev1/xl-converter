@@ -4,6 +4,7 @@
 
 - Add process priority option.
 - Add more resampling algorithms (#129).
+- Add PNG Optimization mode (#101).
 
 ### Fixed
 
