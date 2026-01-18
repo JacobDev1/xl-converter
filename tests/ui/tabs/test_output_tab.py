@@ -358,3 +358,41 @@ def test_onAVIFEncoderChanged_other_format(app):
 
     assert not app.chroma_subsampling_svt_av1_psy_cmb.isVisibleTo(app)
     assert not app.chroma_subsampling_aom_av1_cmb.isVisibleTo(app)
+
+def test_oxipng_inplace_macro(app):
+    app.duplicates_cmb.setCurrentText("Rename")
+    app.choose_output_ct_rb.setChecked(True)
+
+    app.oxipng_inplace_cb.click()
+
+    assert app.oxipng_inplace_cb.isChecked()
+    assert app.duplicates_cmb.currentText() == "Replace"
+    assert app.choose_output_src_rb.isChecked()
+
+def test_oxipng_inplace_sync_on(app):
+    app.duplicates_cmb.setCurrentText("Replace")
+    app.choose_output_src_rb.setChecked(True)
+
+    assert app.oxipng_inplace_cb.isChecked()
+
+def test_oxipng_inplace_sync_off_duplicates(app):
+    app.oxipng_inplace_cb.setChecked(True)
+
+    app.duplicates_cmb.setCurrentText("Skip")
+
+    assert not app.oxipng_inplace_cb.isChecked()
+
+def test_oxipng_inplace_sync_off_output(app):
+    app.oxipng_inplace_cb.setChecked(True)
+
+    app.choose_output_ct_rb.setChecked(True)
+
+    assert not app.oxipng_inplace_cb.isChecked()
+
+def test_oxipng_inplace_uncheck(app):
+    app.oxipng_inplace_cb.setChecked(True)
+    app.duplicates_cmb.setCurrentText("Replace")
+
+    app.oxipng_inplace_cb.click()
+
+    assert app.duplicates_cmb.currentText() == "Rename"
