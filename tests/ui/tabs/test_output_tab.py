@@ -318,6 +318,32 @@ def test_getSettings_special(widget_name, variable_name, associated_key, app):
     setattr(app, variable_name, True)
     assert app.getSettings()[associated_key]
 
+def test_getSettings_no_png_opt(app):
+    app.duplicates_cmb.setCurrentText("Rename")
+    app.choose_output_src_rb.setChecked(True)
+    app.delete_original_cb.setChecked(True)
+    app.format_cmb.setCurrentText("JPEG")
+    app.oxipng_inplace_cb.setChecked(True)
+
+    settings = app.getSettings()
+
+    assert settings["if_file_exists"] == "Rename"
+    assert settings["custom_output_dir"] == False
+    assert settings["delete_original"] == True
+
+def test_getSettings_png_opt(app):
+    app.duplicates_cmb.setCurrentText("Rename")
+    app.choose_output_ct_rb.setChecked(False)
+    app.delete_original_cb.setChecked(True)
+    app.format_cmb.setCurrentText("PNG Optimization")
+    app.oxipng_inplace_cb.setChecked(True)
+
+    settings = app.getSettings()
+
+    assert settings["if_file_exists"] == "Replace"
+    assert settings["custom_output_dir"] == False
+    assert settings["delete_original"] == False
+
 def test__onJXLNormalizeClicked_no_var(app):
     with (
         patch.object(app.wm, "getVar", return_value=None) as mock_getVar,
@@ -357,42 +383,58 @@ def test_onAVIFEncoderChanged_other_format(app):
     app.onAVIFEncoderChanged("AOM AV1")
 
     assert not app.chroma_subsampling_svt_av1_psy_cmb.isVisibleTo(app)
-    assert not app.chroma_subsampling_aom_av1_cmb.isVisibleTo(app)
+    not app.chroma_subsampling_aom_av1_cmb.isVisibleTo(app)
 
-def test_oxipng_inplace_macro(app):
-    app.duplicates_cmb.setCurrentText("Rename")
-    app.choose_output_ct_rb.setChecked(True)
-
-    app.oxipng_inplace_cb.click()
-
-    assert app.oxipng_inplace_cb.isChecked()
-    assert app.duplicates_cmb.currentText() == "Replace"
-    assert app.choose_output_src_rb.isChecked()
-
-def test_oxipng_inplace_sync_on(app):
-    app.duplicates_cmb.setCurrentText("Replace")
-    app.choose_output_src_rb.setChecked(True)
-
-    assert app.oxipng_inplace_cb.isChecked()
-
-def test_oxipng_inplace_sync_off_duplicates(app):
+def test_png_opt_inplace_happy_path(app):
+    # PNG Optimization / inplace on
+    app.format_cmb.setCurrentText("PNG Optimization")
+    app.delete_original_cb.setChecked(False)
     app.oxipng_inplace_cb.setChecked(True)
+    assert not app.output_grp.isEnabled()
+    assert not app.duplicates_l.isEnabled()
+    assert not app.duplicates_cmb.isEnabled()
+    assert not app.delete_original_cb.isEnabled()
+    assert not app.delete_original_cmb.isEnabled()
 
-    app.duplicates_cmb.setCurrentText("Skip")
+    # PNG Optimization / inplace off
+    app.oxipng_inplace_cb.setChecked(False)
+    assert app.output_grp.isEnabled()
+    assert app.duplicates_l.isEnabled()
+    assert app.duplicates_cmb.isEnabled()
+    assert app.delete_original_cb.isEnabled()
+    assert not app.delete_original_cmb.isEnabled()
 
-    assert not app.oxipng_inplace_cb.isChecked()
-
-def test_oxipng_inplace_sync_off_output(app):
+    # JPEG / reference
     app.oxipng_inplace_cb.setChecked(True)
+    app.format_cmb.setCurrentText("JPEG")
+    assert app.output_grp.isEnabled()
+    assert app.duplicates_l.isEnabled()
+    assert app.duplicates_cmb.isEnabled()
+    assert app.delete_original_cb.isEnabled()
+    assert not app.delete_original_cmb.isEnabled()
 
-    app.choose_output_ct_rb.setChecked(True)
+def test_delete_original_happy_path(app):
+    # Default behavior
+    app.format_cmb.setCurrentText("JPEG")
+    app.delete_original_cb.setChecked(True)
+    assert app.delete_original_cmb.isEnabled()
+    app.delete_original_cb.setChecked(False)
+    assert not app.delete_original_cmb.isEnabled()
 
-    assert not app.oxipng_inplace_cb.isChecked()
-
-def test_oxipng_inplace_uncheck(app):
+    # PNG Optimization
+    app.format_cmb.setCurrentText("PNG Optimization")
     app.oxipng_inplace_cb.setChecked(True)
-    app.duplicates_cmb.setCurrentText("Replace")
+    assert not app.delete_original_cb.isEnabled()
+    assert not app.delete_original_cmb.isEnabled()
+    app.oxipng_inplace_cb.setChecked(False)
+    app.delete_original_cb.setChecked(False)
+    assert app.delete_original_cb.isEnabled()
+    assert not app.delete_original_cmb.isEnabled()
 
-    app.oxipng_inplace_cb.click()
-
-    assert app.duplicates_cmb.currentText() == "Rename"
+    # Verify default behavior
+    app.format_cmb.setCurrentText("JPEG")
+    assert app.delete_original_cb.isEnabled()
+    assert not app.delete_original_cmb.isEnabled()
+    app.delete_original_cb.setChecked(True)
+    assert app.delete_original_cb.isEnabled()
+    assert app.delete_original_cmb.isEnabled()

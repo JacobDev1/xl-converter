@@ -64,9 +64,7 @@ class OutputTab(QWidget):
         self.onQualityPrecisionSnappingEnabled(settings["enable_quality_precision_snapping"])
 
         self._onFormatChange()
-        self._onDeleteOriginalChanged()
         self._onJXLNormalizeToggled()
-        self._onOutputToggled()
         self._onSmLBitDepthChanged()
 
         # Variables
@@ -138,7 +136,8 @@ class OutputTab(QWidget):
         # Conversion
         self.conv_grp = QGroupBox("Conversion")
         self.conv_grp_lt = QVBoxLayout(self.conv_grp)
-        self.conv_grp_lt.addLayout(createQHBoxLayout(QLabel("If Output Exists"), self.duplicates_cmb))
+        self.duplicates_l = QLabel("If Output Exists")
+        self.conv_grp_lt.addLayout(createQHBoxLayout(self.duplicates_l, self.duplicates_cmb))
         self.conv_grp_lt.addLayout(createQHBoxLayout(QLabel("Threads"), self.threads_sl, self.threads_sb))
 
         # After conversion
@@ -193,9 +192,9 @@ class OutputTab(QWidget):
     def _setupSignals(self):
         self.threads_sl.valueChanged.connect(lambda n: self.threads_sb.setValue(n))
         self.threads_sb.valueChanged.connect(lambda n: self.threads_sl.setValue(n))
-        self.delete_original_cb.stateChanged.connect(self._onDeleteOriginalChanged)
+        self.delete_original_cb.stateChanged.connect(self._updateOutputStates)
         self.choose_output_ct_btn.clicked.connect(self._chooseOutput)
-        self.choose_output_ct_rb.toggled.connect(self._onOutputToggled)
+        self.choose_output_ct_rb.toggled.connect(self._updateOutputStates)
         self.format_cmb.currentIndexChanged.connect(self._onFormatChange)
         self.format_cmb.currentTextChanged.connect(self.file_format_changed)
         self.int_effort_cb.toggled.connect(self._onEffortToggled)
@@ -207,9 +206,7 @@ class OutputTab(QWidget):
         self.jxl_normalize_enable_cb.toggled.connect(self._onJXLNormalizeToggled)
         self.jxl_normalize_enable_cb.clicked.connect(self._onJXLNormalizeClicked)
         self.smallest_lossless_webp_cb.toggled.connect(self._onSmLBitDepthChanged)
-        self.oxipng_inplace_cb.clicked.connect(self._onOxipngInplaceToggled)
-        self.duplicates_cmb.currentTextChanged.connect(self._syncInplaceCheckbox)
-        self.choose_output_src_rb.toggled.connect(self._syncInplaceCheckbox)
+        self.oxipng_inplace_cb.toggled.connect(self._updateOutputStates)
 
     def _setToolTipsStatic(self):
         """Sets tooltips at once at startup."""
@@ -275,7 +272,7 @@ class OutputTab(QWidget):
         return empty
 
     def getSettings(self):
-        return {
+        settings = {
             "format": self.format_cmb.currentText(),
             "quality": self.quality_sb.value(),
             "lossless": self.lossless_cb.isChecked(),
@@ -303,6 +300,16 @@ class OutputTab(QWidget):
             "jxl_png_fallback": self.jxl_png_fallback_cb.isChecked(),
         }
 
+        if (
+            self.format_cmb.currentText() == "PNG Optimization" and
+            self.oxipng_inplace_cb.isChecked()
+        ):
+            settings["if_file_exists"] = "Replace"
+            settings["custom_output_dir"] = False
+            settings["delete_original"] = False
+
+        return settings
+
     # //////////////////////////////////////////////////////////
     # /                      Handlers
     # //////////////////////////////////////////////////////////
@@ -323,11 +330,6 @@ class OutputTab(QWidget):
             self.wm.setVar("choose_output_last_dir", dlg.directory().absolutePath())
             self.choose_output_ct_le.setText(dlg.selectedFiles()[0])
 
-    def _onOutputToggled(self):
-        src_checked = self.choose_output_src_rb.isChecked()
-        self.wm.setEnabledByTag("output_ct", not src_checked)
-        self.keep_dir_struct_cb.setEnabled(not src_checked)
-        
     def _onFormatChange(self):
         self._saveFormatVars()
         
@@ -377,12 +379,9 @@ class OutputTab(QWidget):
         self.wm.setCheckedByTag("lossless", False)
         self.effort_sb.setEnabled(cur_format in ("JPEG XL", "AVIF", "WebP", "Lossless JPEG Transcoding"))
         self._onEffortToggled()  # It's very important to update int_effort_cb to avoid issues when changing formats while it's enabled
-
+        self._updateOutputStates()
         self._loadFormatVars()
         self._setToolTipsDynamic()
-    
-    def _onDeleteOriginalChanged(self):
-        self.delete_original_cmb.setEnabled(self.delete_original_cb.isChecked())
 
     def _onEffortToggled(self):
         if self.format_cmb.currentText() == "JPEG XL" and self.jxl_int_effort_visible:
@@ -441,19 +440,22 @@ class OutputTab(QWidget):
             self.chroma_subsampling_svt_av1_psy_cmb.setVisible(encoder == "SVT-AV1-PSY")
             self.chroma_subsampling_aom_av1_cmb.setVisible(encoder == "AOM AV1")
 
-    def _onOxipngInplaceToggled(self, enabled: bool) -> None:
-        if enabled:
-            self.duplicates_cmb.setCurrentText("Replace")
-            self.choose_output_src_rb.setChecked(True)
-        elif self.duplicates_cmb.currentText() == "Replace":
-            self.duplicates_cmb.setCurrentText("Rename")
+    def _updateOutputStates(self) -> None:
+        inplace = self.format_cmb.currentText() == "PNG Optimization" and self.oxipng_inplace_cb.isChecked()
 
-    def _syncInplaceCheckbox(self) -> None:
-        enabled = (
-            self.duplicates_cmb.currentText() == "Replace" and
-            self.choose_output_src_rb.isChecked()
+        self.output_grp.setDisabled(inplace)
+        if not inplace:
+            src_checked = self.choose_output_src_rb.isChecked()
+            self.wm.setEnabledByTag("output_ct", not src_checked)
+            self.keep_dir_struct_cb.setEnabled(not src_checked)
+
+        self.duplicates_l.setDisabled(inplace)
+        self.duplicates_cmb.setDisabled(inplace)
+
+        self.delete_original_cb.setDisabled(inplace)
+        self.delete_original_cmb.setEnabled(
+            self.delete_original_cb.isChecked() and not inplace
         )
-        self.oxipng_inplace_cb.setChecked(enabled)
 
     # //////////////////////////////////////////////////////////
     # /                   Actions / Utils
@@ -510,6 +512,7 @@ class OutputTab(QWidget):
             i.setChecked(True)
         
         self.jxl_png_fallback_cb.setChecked(False)
+        self.oxipng_inplace_cb.setChecked(False)
 
     def _setQualityRange(self, _min: int, _max: int) -> None:
         for i in self.wm.getWidgetsByTag("quality"):
