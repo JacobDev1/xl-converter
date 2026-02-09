@@ -14,7 +14,7 @@ def app(qtbot):
         patch("ui.tabs.settings_tab.WidgetManager.loadState"),
         patch("ui.tabs.settings_tab.WidgetManager.saveState"),
         patch("ui.tabs.settings_tab.setTheme"),
-        patch.object(SettingsTab, "runMigrations"),
+        patch.object(SettingsTab, "runMigrations", autospec=True),
     ):
         tab = SettingsTab()
         qtbot.addWidget(tab)
@@ -28,7 +28,7 @@ def app_migrations(qtbot):
         patch("ui.tabs.settings_tab.WidgetManager.saveState"),
         patch("ui.tabs.settings_tab.setTheme"),
     ):
-        with patch.object(SettingsTab, "runMigrations"):    # Prevents running in __init__
+        with patch.object(SettingsTab, "runMigrations", autospec=True):    # Prevents running in __init__
             tab = SettingsTab()
             qtbot.addWidget(tab)
         return tab
