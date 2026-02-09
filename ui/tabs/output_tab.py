@@ -188,6 +188,8 @@ class OutputTab(QWidget):
         self.after_conv_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.output_grp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.format_cmb.setMinimumWidth(220)
+        self.threads_sb.setFixedWidth(55)
+        self.quality_sb.setFixedWidth(55)
 
     def _setupSignals(self):
         self.threads_sl.valueChanged.connect(lambda n: self.threads_sb.setValue(n))

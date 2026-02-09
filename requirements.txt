@@ -1,4 +1,4 @@
-pyside6==6.8.2.1
+pyside6==6.10.2
 send2trash==1.8.3
 requests~=2.32.3
 dmgbuild==1.6.5 ; sys_platform == "darwin"

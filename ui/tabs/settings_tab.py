@@ -299,6 +299,8 @@ class SettingsTab(QWidget):
         self.process_priority_cmb.setProperty("class", "min_width_cmb")
         # self.avif_aom_tune_cmb.setProperty("class", "min_width_cmb")
 
+        self.settings_lt.setSpacing(6)
+
     def setupSignals(self):
         self.custom_args_cb.toggled.connect(self.onCustomArgsToggled)
         self.play_sound_on_finish_cb.toggled.connect(self.onPlaySoundOnFinishVolumeToggled)
