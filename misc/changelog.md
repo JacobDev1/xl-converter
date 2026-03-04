@@ -14,6 +14,7 @@
 ### Changed
 
 - Improve conversion start and cancel times.
+- Limit AVIF tune scope to color only, leave alpha default.
 
 ## 1.2.3 - 2025-10-02
 

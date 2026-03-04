@@ -359,10 +359,10 @@ def test_convert_jpeg_xl_error_default(worker_convert_patches):
     assert "Error message" in exc_info.value.msg 
 
 @pytest.mark.parametrize("encoder, quality, speed, chroma_subsampling, expected_args", [
-    ("AOM AV1", 80, 6, "Default", ["-q 80", "-s 6", "-j 4", "-c aom"]),
-    ("AOM AV1", 80, 6, "4:4:4", ["-q 80", "-s 6", "-j 4", "-c aom", "-y 444"]),
-    ("AOM AV1", 80, 6, "4:2:2", ["-q 80", "-s 6", "-j 4", "-c aom", "-y 422"]),
-    ("AOM AV1", 80, 6, "4:2:0", ["-q 80", "-s 6", "-j 4", "-c aom", "-y 420"]),
+    ("AOM AV1", 80, 6, "Default", ["-q 80", "-s 6", "-j 4", "-c aom", "-a c:tune=ssim"]),
+    ("AOM AV1", 80, 6, "4:4:4", ["-q 80", "-s 6", "-j 4", "-c aom", "-y 444", "-a c:tune=ssim"]),
+    ("AOM AV1", 80, 6, "4:2:2", ["-q 80", "-s 6", "-j 4", "-c aom", "-y 422", "-a c:tune=ssim"]),
+    ("AOM AV1", 80, 6, "4:2:0", ["-q 80", "-s 6", "-j 4", "-c aom", "-y 420", "-a c:tune=ssim"]),
     ("SVT-AV1-PSY", 90, 5, "4:4:4", ["-q 90", "-s 5", "-j 4", "-c svt", "-y 420", "-a tune=4"]),
 ])
 def test_convert_args_avif(encoder, quality, speed, chroma_subsampling, expected_args, worker_convert_patches):
@@ -405,7 +405,7 @@ def test_avif_iq_tune(iq_tune, worker_convert_patches):
 
     worker.convert()
 
-    assert ("-a tune=iq" in mocks["runBinary"].call_args[0][1]) == iq_tune
+    assert ("-a c:tune=iq" in mocks["runBinary"].call_args[0][1]) == iq_tune
 
 @pytest.mark.parametrize("quality, encoder, chroma_subsampling, disable_progressive_jpegli, expected_args", [
     (80, "JPEGLI", "Default", False, ["-q 80"]),

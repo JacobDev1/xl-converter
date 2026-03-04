@@ -294,8 +294,12 @@ class Worker(QRunnable):
                         args.append("-c aom")
                         if self.params["aom_av1_chroma_subsampling"] != "Default":
                             args.append(f"-y {self.params['aom_av1_chroma_subsampling'].replace(':', '')}")
+                        # Affects color only, alpha uses the default.
                         if self.settings["avif_aom_iq_tune"]:  # libaom version >= v3.12.0
-                            args.append("-a tune=iq")
+                            args.append("-a c:tune=iq")
+                        else:
+                            args.append("-a c:tune=ssim")
+
                     case "SVT-AV1-PSY":             # Assuming SVT-AV1 was swapped before compilation
                         args.append("-c svt")
                         args.append("-y 420")       # SVT-AV1 only supports YUV:4:2:0
