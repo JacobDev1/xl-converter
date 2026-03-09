@@ -19,11 +19,9 @@ import stat
 PYTHON_PATH = Path().home() / 'AppData' / 'Local' / 'Programs' / 'Python' / 'Python313' / 'python.exe'
 INNOSETUP_PATH = Path('C:/Program Files (x86)/Inno Setup 6/ISCC.exe')
 SEVENZIP_PATH = Path('C:/Program Files/7-Zip/7z.exe')     # Used by the other build.py
-PYINSTALLER_TAG = 'v6.11.1'
 RUN_DIR = Path.cwd()
 ENV_DEV = RUN_DIR / 'env_dev'
 ENV_BUILD = RUN_DIR / 'env_build'
-PYINSTALLER_DIR = RUN_DIR / 'misc' / 'pyinstaller'
 SUPPORTED_PYTHON_3_MINOR_VER = (12, 13)
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -135,11 +133,6 @@ def build_cli(argv: list[str] | None = None) -> argparse.Namespace:
         default=INNOSETUP_PATH,
         help='Path to Inno Setup compiler (ISCC.exe).'
     )
-    parser.add_argument(
-        '--pyinstaller-tag',
-        default=PYINSTALLER_TAG,
-        help='PyInstaller git tag.'
-    )
     return parser.parse_args(argv)
 
 def main() -> None:
@@ -160,7 +153,7 @@ def main() -> None:
 
     # Clean
     if args.force_clean:
-        for d in (ENV_DEV, ENV_BUILD, PYINSTALLER_DIR):
+        for d in (ENV_DEV, ENV_BUILD):
             if d.exists():
                 rmtree(d)
 
@@ -180,15 +173,14 @@ def main() -> None:
     pip_install(build_py, Path('requirements.txt'))
     if subprocess.run(     # PyInstaller not installed
         [str(build_py), '-m', 'pip', 'show', 'pyinstaller'],
-        stdout=subprocess.DEVNULL
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     ).returncode != 0:
-        if not PYINSTALLER_DIR.exists():
-            run(['git', 'clone', '--depth', '1', '-b', PYINSTALLER_TAG, 'https://github.com/pyinstaller/pyinstaller.git', PYINSTALLER_DIR])
-        bootloader = PYINSTALLER_DIR / 'bootloader'
-
         # Build bootloader
-        run([str(build_py), str(bootloader / 'waf'), 'all'], cwd=bootloader)
-        run([str(build_py), '-m', 'pip', 'install', '.'], cwd=PYINSTALLER_DIR)
+        run([
+            'cmd', '/c', 'call',
+            Path('misc/build_scripts/windows/pyinstaller.cmd')
+        ], cwd=RUN_DIR)
 
     # Build
     with tempfile.TemporaryDirectory() as tmp_dir:

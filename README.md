@@ -128,14 +128,7 @@ Launch CMD, and setup PyInstaller:
 
 ```cmd
 cd C:\msys64\home\user\xl-converter
-env_build\Scripts\activate
-%comspec% /k "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
-git clone -b v6.11.1 --depth 1 https://github.com/pyinstaller/pyinstaller.git misc\pyinstaller
-cd misc\pyinstaller\bootloader
-python waf all
-cd ..
-pip install .
-cd ..\..
+call misc\build_scripts\windows\pyinstaller.cmd
 env_build\Scripts\activate
 ```
 
@@ -215,7 +208,7 @@ Setup PyInstaller:
 source env_build/bin/activate
 ```
 
-The last line reloads the environment to avoid the `ModuleNotFoundError` error.
+The last line reloads the environment to avoid the `ModuleNotFoundError`.
 
 Build:
 
