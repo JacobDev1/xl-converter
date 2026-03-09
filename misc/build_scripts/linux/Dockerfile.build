@@ -1,7 +1,6 @@
 # Using oldest maintained version for best GLIBC compatibility.
 FROM ubuntu:22.04
 
-ARG PYINSTALLER_TAG=v6.11.1
 ARG RUN_TESTS=True
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -83,12 +82,8 @@ RUN python -m venv /build/env_build && \
     pip install -r /build/requirements.txt
 
 # Setup PyInstaller
-RUN . /build/env_build/bin/activate && \
-    git clone -b ${PYINSTALLER_TAG} --depth 1 https://github.com/pyinstaller/pyinstaller.git /build/misc/pyinstaller && \
-    cd /build/misc/pyinstaller/bootloader && \
-    python waf all --gcc && \
-    cd .. && \
-    pip install .
+RUN cd /build && \
+    ./misc/build_scripts/linux/pyinstaller.sh
 
 # Build
 RUN mkdir -p /export

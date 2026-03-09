@@ -211,13 +211,7 @@ python main.py
 Setup PyInstaller:
 
 ```bash
-source env_build/bin/activate
-git clone -b v6.11.1 --depth 1 https://github.com/pyinstaller/pyinstaller.git misc/pyinstaller
-cd misc/pyinstaller/bootloader
-python waf all --gcc
-cd ..
-pip install .
-cd ../..
+./misc/build_scripts/linux/pyinstaller.sh
 source env_build/bin/activate
 ```
 
