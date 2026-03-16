@@ -973,7 +973,7 @@ def test_smallestLossless_args(jxl_auto_lossless_jpeg, smallestLossless_patches_
     assert mocks["runBinary"].call_args_list[0][0][1] == [
         "-o 2",
         "-t 4",
-        "--np", "--nc",
+        "--np", "--nc", "--fast",
         "--metadata_arg"
     ]
     assert mocks["runBinary"].call_args_list[1][0][1] == [
@@ -1310,7 +1310,7 @@ def test_PNGOptimization_happy_path(worker):
             [
                 f"-o {level}",
                 f"-t {available_threads}",
-                "--np", "--nc",
+                "--np", "--nc", "--fast",
                 "--strip", "safe",
             ],
             worker.item_abs_path,

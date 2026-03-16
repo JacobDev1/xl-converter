@@ -546,7 +546,7 @@ class Worker(QRunnable):
             "png": [
                 "-o 4" if self.params["max_compression"] else "-o 2",
                 f"-t {self.available_threads}",
-                "--np", "--nc",
+                "--np", "--nc", "--fast",
                 ],
             "webp": [
                 f"-define webp:thread-level={1 if self.available_threads > 1 else 0}",
@@ -721,7 +721,7 @@ class Worker(QRunnable):
         args = [
             f"-o {self.params['effort']}",
             f"-t {self.available_threads}",
-            "--np", "--nc",
+            "--np", "--nc", "--fast",
         ]
         args.extend(
             metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"])
