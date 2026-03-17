@@ -146,6 +146,8 @@ def _pathCompareKey(path: str) -> str:
 
     return os.path.normcase(normalized_path)
 
+# Replacement for os.path.samefile; more reliable on virtual drives on Windows.
+# https://github.com/JacobDev1/xl-converter/issues/134
 def isSamePath(path1: str, path2: str) -> bool:
     """Resolves and compares paths."""
     return _pathCompareKey(path1) == _pathCompareKey(path2)
