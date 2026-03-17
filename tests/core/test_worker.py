@@ -549,7 +549,7 @@ def finishConversion_patches(worker):
         "isfile": patch("core.worker.os.path.isfile", side_effect=[True, True, True]),
         "getUniqueFilePath": patch("core.worker.getUniqueFilePath", return_value="final/path/img.jpg"),
         "copyfile": patch("core.worker.shutil.copyfile"),
-        "samefile": patch("core.worker.os.path.samefile", return_value=False),
+        "isSamePath": patch("core.worker.isSamePath", return_value=False),
     }
 
     with ExitStack() as stack:
@@ -629,7 +629,7 @@ def test_finishConversion_replace_edge_case_delete_original(delete_original_mode
     worker.params["custom_output_dir"] = False
     worker.params["delete_original"] = True
     worker.params["delete_original_mode"] = delete_original_mode
-    mocks["samefile"].return_value = True
+    mocks["isSamePath"].return_value = True
 
     worker.finishConversion()
 
@@ -717,7 +717,7 @@ def postConversionRoutines_patched(worker):
         "remove": patch("core.worker.os.remove"),
         "removeFile": patch("core.worker.removeFile"),
         "send2trash": patch("core.worker.send2trash"),
-        "samefile": patch("core.worker.os.path.samefile", return_value=False),
+        "isSamePath": patch("core.worker.isSamePath", return_value=False),
     }
 
     with ExitStack() as stack:

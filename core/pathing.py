@@ -134,3 +134,18 @@ def removeFile(path: str, ignore_missing: bool = True) -> None:
             os.remove(path)
         else:
             raise
+
+def _pathCompareKey(path: str) -> str:
+    try:
+        normalized_path = str(Path(path).resolve(strict=False))
+    except (OSError, RuntimeError):
+        try:
+            normalized_path = os.path.abspath(path)
+        except OSError:
+            normalized_path = str(path)
+
+    return os.path.normcase(normalized_path)
+
+def isSamePath(path1: str, path2: str) -> bool:
+    """Resolves and compares paths."""
+    return _pathCompareKey(path1) == _pathCompareKey(path2)

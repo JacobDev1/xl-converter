@@ -26,7 +26,7 @@ from data.constants import (
 )
 
 from core.proxy import Proxy
-from core.pathing import getUniqueFilePath, getExtension, getOutputDir, getUniqueTmpFilePath, removeFile
+from core.pathing import getUniqueFilePath, getExtension, getOutputDir, getUniqueTmpFilePath, removeFile, isSamePath
 from core.convert import getDecoder, getDecoderArgs, getExtensionJxl, runBinary, cleanUp, runOxipng
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
@@ -454,13 +454,13 @@ class Worker(QRunnable):
                         if (
                             (self.settings["keep_if_larger"] or self.settings["copy_if_larger"]) and
                             os.path.getsize(self.org_item_abs_path) < os.path.getsize(self.output) and
-                            (os.path.isfile(self.final_output) and os.path.samefile(self.org_item_abs_path, self.final_output))
+                            (os.path.isfile(self.final_output) and isSamePath(self.org_item_abs_path, self.final_output))
                         ):
                             self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.output_ext)
                         elif (
                             not self.params["custom_output_dir"] and
                             self.params["delete_original"] and
-                            (os.path.isfile(self.final_output) and os.path.samefile(self.org_item_abs_path, self.final_output))
+                            (os.path.isfile(self.final_output) and isSamePath(self.org_item_abs_path, self.final_output))
                         ):
                             if self.params["delete_original_mode"] == "To Trash":
                                 send2trash(self.final_output)
@@ -478,7 +478,7 @@ class Worker(QRunnable):
                     self.settings["copy_if_larger"] and
                     os.path.getsize(self.org_item_abs_path) < os.path.getsize(self.final_output) and
                     self.params["format"] not in ("Lossless JPEG Transcoding", "JPEG Reconstruction", "PNG") and
-                    not os.path.samefile(self.org_item_abs_path, self.final_output)
+                    not isSamePath(self.org_item_abs_path, self.final_output)
                 ):
                     os.remove(self.final_output)
                     self.final_output = getUniqueFilePath(self.output_dir, self.item_name, self.item_ext)
@@ -496,7 +496,7 @@ class Worker(QRunnable):
                 not self.settings["keep_if_larger"] or
                 os.path.getsize(self.org_item_abs_path) > os.path.getsize(self.final_output)
             ) and
-            not os.path.samefile(self.org_item_abs_path, self.final_output)
+            not isSamePath(self.org_item_abs_path, self.final_output)
         ):
             try:
                 if self.params["delete_original"]:
