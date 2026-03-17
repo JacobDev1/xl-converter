@@ -120,7 +120,7 @@ def test_run_finally(worker):
     spy_completed = QSignalSpy(worker.signals.completed)
     worker.run()
     worker.proxy.cleanUp.assert_called_once_with(raising=False)
-    spy_completed.count() == 1
+    assert spy_completed.count() == 1
 
 @patch("core.worker.os.path.isfile", return_value=False)
 def test_runChecks_file_not_found(mock_isfile, worker):

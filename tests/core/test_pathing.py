@@ -97,7 +97,7 @@ def test_getUniqueTmpFilePath_happy_path():
         patch("core.pathing.UniquePathStore.exists", return_value=False),
         patch("core.pathing.secrets.token_hex", return_value="abcdef12"),
     ):
-        pathing.getUniqueTmpFilePath(str(Path("/tmp")), "jpg") == str(Path("/tmp", f"tmp_abcdef12.jpg"))
+        assert pathing.getUniqueTmpFilePath(str(Path("/tmp")), "jpg") == str(Path("/tmp", f"tmp_abcdef12.jpg"))
 
 def test_getUniqueTmpFilePath_isfile_true():
     with (
@@ -105,7 +105,7 @@ def test_getUniqueTmpFilePath_isfile_true():
         patch("core.pathing.UniquePathStore.exists", return_value=False),
         patch("core.pathing.secrets.token_hex", side_effect=["1"*8, "2"*8]),
     ):
-        pathing.getUniqueTmpFilePath(str(Path("/tmp")), "jpg") == str(Path("/tmp", f"tmp_{'2'*8}.jpg"))
+        assert pathing.getUniqueTmpFilePath(str(Path("/tmp")), "jpg") == str(Path("/tmp", f"tmp_{'2'*8}.jpg"))
 
 def test_getUniqueTmpFilePath_path_store_exists():
     with (
@@ -113,7 +113,7 @@ def test_getUniqueTmpFilePath_path_store_exists():
         patch("core.pathing.UniquePathStore.exists", side_effect=[True, False]),
         patch("core.pathing.secrets.token_hex", side_effect=["1"*8, "2"*8]),
     ):
-        pathing.getUniqueTmpFilePath(str(Path("/tmp")), "jpg") == str(Path("/tmp", f"tmp_{'2'*8}.jpg"))
+        assert pathing.getUniqueTmpFilePath(str(Path("/tmp")), "jpg") == str(Path("/tmp", f"tmp_{'2'*8}.jpg"))
 
 def test_getUniqueTmpFilePath_path_store_exists_and_isfile_true():
     with (
@@ -121,7 +121,7 @@ def test_getUniqueTmpFilePath_path_store_exists_and_isfile_true():
         patch("core.pathing.UniquePathStore.exists", side_effect=[True, False]),
         patch("core.pathing.secrets.token_hex", side_effect=["1"*8, "2"*8, "3"*8]),
     ):
-        pathing.getUniqueTmpFilePath(str(Path("/tmp")), "jpg") == str(Path("/tmp", f"tmp_{'3'*8}.jpg"))
+        assert pathing.getUniqueTmpFilePath(str(Path("/tmp")), "jpg") == str(Path("/tmp", f"tmp_{'3'*8}.jpg"))
 
 @pytest.mark.parametrize("file_format, extension", [
     ("JPEG XL", "jxl"),
