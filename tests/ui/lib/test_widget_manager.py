@@ -251,10 +251,12 @@ def test__applyValue(widget, value, get_method, caplog, app):
 ])
 def test__applyValue_value_mismatch(widget, value, get_method, caplog, app):
     w = widget()
+    org_value = getattr(w, get_method)()
 
     app.wm.addWidget("widget", w)
     app.wm._applyValue("widget", value)
     assert "Type mismatch" in caplog.text
+    assert getattr(w, get_method)() == org_value
 
 def test__applyValue_unsupported_widget_type(caplog, app):
     app.wm.addWidget("widget", QWidget())

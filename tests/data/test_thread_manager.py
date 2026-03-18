@@ -59,7 +59,7 @@ def test_configure_optimizer_static(configure_patches):
     thread_manager.configure(1, used_thread_count, "Static", "", "", "", 1, False, False, False)
 
     assert thread_manager.burst_threadpool == []
-    thread_manager.threads_per_worker == used_thread_count
+    assert thread_manager.threads_per_worker == used_thread_count
     thread_manager.threadpool.setMaxThreadCount.assert_called_once_with(1)
 
 def test_configure_optimizer_dynamic_args(configure_patches):
@@ -70,8 +70,8 @@ def test_configure_optimizer_dynamic_args(configure_patches):
 
     thread_manager.configure(3, used_thread_count, "Dynamic", rules, dst_format, avif_encoder, 1, False, False, False)
 
-    mocks["RAMOptimizer.setEnabled"].call_count == 2
-    mocks["RAMOptimizer.setEnabled"].call_args_list[1][0][0] == True
+    assert mocks["RAMOptimizer.setEnabled"].call_count == 2
+    assert mocks["RAMOptimizer.setEnabled"].call_args_list[1][0][0] == True
     mocks["RAMOptimizer.setOptimizationRulesStr"].assert_called_once_with(rules)
     mocks["RAMOptimizer.applicableRuleExists"].assert_called_once_with(dst_format, avif_encoder)
     mocks["RAMOptimizer.setUsedThreadCount"].assert_called_once_with(used_thread_count)
@@ -84,8 +84,8 @@ def test_configure_optimizer_dynamic_no_args(configure_patches):
 
     thread_manager.configure(3, 10, "Dynamic", "", "", "", 1, False, False, False)
 
-    mocks["RAMOptimizer.setEnabled"].call_count == 1
-    mocks["RAMOptimizer.setEnabled"].call_args_list[0][0][0] == False
+    assert mocks["RAMOptimizer.setEnabled"].call_count == 1
+    assert mocks["RAMOptimizer.setEnabled"].call_args_list[0][0][0] == False
     mocks["RAMOptimizer.setOptimizationRulesStr"].assert_called_once()
     mocks["RAMOptimizer.applicableRuleExists"].assert_called_once()
     mocks["_getBurstThreadPool"].assert_called_once()

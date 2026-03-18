@@ -130,7 +130,7 @@ def test__checkForSuccess_cleanup():
     assert "ID0" == exc_info.value.id
     assert mock_remove.call_count == 2
     for i, target in enumerate(sample_cleanup_targets):
-        mock_remove.args_call_list[i][0][0] == target
+        assert mock_remove.call_args_list[i][0][0] == target
 
 def test__checkForSuccess_cleanup_failed():
     sample_cleanup_targets = [
@@ -259,7 +259,7 @@ def test__downscaleToFileSize_gather_data(params_fixture):
                 params_fixture["max_size"] * 1024,
         )
         # Downscaling tested in elsewhere...
-        mock__deleteFile.call_args_list[4] == call(proxy_src, raising=True, exc_id="D31")
+        assert mock__deleteFile.call_args_list[4] == call(proxy_src, raising=True, exc_id="D31")
 
 class RunBinaryRecorder:
     def __init__(self):
@@ -355,7 +355,7 @@ def test__downscaleToFileSize_int_e_exception(params_fixture):
         pytest.raises(FileException),
     ):
         downscale._downscaleToFileSize(params_fixture, mutex)
-        mock_cleanUp.assert_called_once_with([params_fixture["dst"], e9_tmp, proxy_src])
+    mock_cleanUp.assert_called_once_with([params_fixture["dst"], e9_tmp, proxy_src])
 
 def test__downscaleToFileSize_negative_extrapolated_scale(params_fixture):
     params_fixture.update({
@@ -684,9 +684,9 @@ def test__downscaleManualModes_no_imagemagick_jxl_int_e_sad_path(params_fixture)
         pytest.raises(FileException) as exc_info,
     ):
         downscale._downscaleManualModes(params_fixture, mutex)
-        mock_cleanUp.assert_called_once_with(["path/to/jxl.jxl", "path/to/jxl_e9.jxl", "/tmp/image.png"])
-        assert "D3" == exc_info.value.id
-        assert "Cannot remove file" == exc_info.value.msg
+    mock_cleanUp.assert_called_once_with(["path/to/jxl.jxl", "path/to/jxl_e9.jxl", "/tmp/image.png"])
+    assert "D3" == exc_info.value.id
+    assert "Cannot remove file" == str(exc_info.value.msg)
 
 # ------------------------------------------------------------
 #                           Public

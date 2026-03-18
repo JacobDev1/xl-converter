@@ -132,8 +132,8 @@ def test_cleanUp_sad_path_raising(proxy):
         pytest.raises(FileException),
     ):
         proxy.cleanUp(raising=True)
-        mock_remove.assert_called_once_with(proxy_file)
-        assert proxy.proxy_path is None
+    mock_remove.assert_called_once_with(proxy_file)
+    assert proxy.proxy_path is None
 
 def test_cleanUp_sad_path_not_raising(proxy, caplog):
     proxy_file = "/proxy/path/proxy.png"

@@ -24,7 +24,7 @@ def test_StyledLabel_updateStyleForAll(app):
         patch("ui.widgets.label.StyledLabel.updateStyle") as mock_updateStyle,
     ):
         labels[0].updateStyleForAll(custom_qss)
-        mock_updateStyle.call_count == len(StyledLabel._instances)
+        assert mock_updateStyle.call_count == len(StyledLabel._instances)
         assert len(StyledLabel._instances) == 2
         assert custom_qss == StyledLabel._style
 
@@ -37,6 +37,6 @@ def test_StyledLabel_updateStyle(app):
 def test_StyledLabel_setStyledText(app):
     with patch("ui.widgets.label.StyledLabel.setText") as mock_setText:
         StyledLabel("").setStyledText("text")
-        mock_setText.call_count == 2    # 1 in the __init__()
+        assert mock_setText.call_count == 2    # 1 in the __init__()
         assert "<style>" in mock_setText.call_args[0][0]
         assert "text" in mock_setText.call_args[0][0]

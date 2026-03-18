@@ -82,9 +82,9 @@ def test_getItems(file_view):
 
 def test_disableSorting(file_view):
     file_view.disableSorting(True)
-    file_view.isSortingEnabled() == False
+    assert file_view.isSortingEnabled() == False
     file_view.disableSorting(False)
-    file_view.isSortingEnabled() == True
+    assert file_view.isSortingEnabled() == True
 
 def test_deleteSelected_one(file_view):
     file_view.addItems(get_sample_items(1))
@@ -370,7 +370,7 @@ def test_movePage_valid_directions(direction, file_view):
 
     file_view.movePage(direction)
 
-    file_view.moveIndexToBottom.assert_called()
+    file_view.moveIndexToBottom.assert_called_once()
 
 @pytest.mark.parametrize("direction", ["up", "down"])
 def test_movePage_no_current_item(direction, file_view):
@@ -378,9 +378,9 @@ def test_movePage_no_current_item(direction, file_view):
     file_view.moveIndexToBottom = MagicMock()
     file_view.indexFromItem = MagicMock()
 
-    file_view.movePage("up")
+    file_view.movePage(direction)
 
-    file_view.moveIndexToBottom.assert_called()
+    file_view.moveIndexToBottom.assert_called_once()
     file_view.indexFromItem.assert_not_called()
 
 @pytest.fixture

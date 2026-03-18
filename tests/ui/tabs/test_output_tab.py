@@ -383,7 +383,7 @@ def test_onAVIFEncoderChanged_other_format(app):
     app.onAVIFEncoderChanged("AOM AV1")
 
     assert not app.chroma_subsampling_svt_av1_psy_cmb.isVisibleTo(app)
-    not app.chroma_subsampling_aom_av1_cmb.isVisibleTo(app)
+    assert not app.chroma_subsampling_aom_av1_cmb.isVisibleTo(app)
 
 def test_png_opt_inplace_happy_path(app):
     # PNG Optimization / inplace on

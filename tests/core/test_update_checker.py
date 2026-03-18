@@ -163,8 +163,8 @@ def test_isVersionNewer_cur_ver_parsing_failed(caplog):
         pytest.raises(ValueError),
         caplog.at_level(logging.ERROR),
     ):
-        assert update_checker.isNewerVersionAvailable("v1.2.0")
-        assert "Failed to parse current version." in caplog.text
+        update_checker.isNewerVersionAvailable("v1.2.0")
+    assert "Failed to parse current version." in caplog.text
 
 def test_isVersionNewer_remote_ver_parsing_failed(caplog):
     with (

@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 import importlib
 import types
 import ctypes
@@ -166,8 +166,8 @@ def test_win32_handle_invalid():
         with timestamps._win32_handle("/tmp/test_file.jpg"):
             pass
         
-        assert "win error" in str(exc.value)
-        mock_CloseHandle.assert_called_once_with(timestamps.INVALID_HANDLE)
+    assert "win error" in str(exc.value)
+    mock_CloseHandle.assert_not_called()
 
 def test_applyTimestamps_file_not_found():
     with (
@@ -176,7 +176,7 @@ def test_applyTimestamps_file_not_found():
     ):
         timestamps.applyTimestamps("/tmp/test_file.jpg", MagicMock())
 
-        mock_isfile.assert_called_once_with("/tmp/test_file.jpg")
+    mock_isfile.assert_called_once_with("/tmp/test_file.jpg")
 
 @pytest.mark.parametrize("created", [True, False])
 def test_applyTimestamps_happy_path_utime(created):
@@ -243,9 +243,11 @@ def test_applyTimestamps_windows_happy_path():
         mock_SetFileTime.assert_called_once()
         call_args = mock_SetFileTime.call_args[0]
         assert call_args[0] is mock_handle
-        mock_unix_to_filetime_ns.call_args_list[0] == 10**9
-        mock_unix_to_filetime_ns.call_args_list[1] == 11**9
-        mock_unix_to_filetime_ns.call_args_list[2] == 12**9
+        assert mock_unix_to_filetime_ns.call_args_list == [
+            call(timestamps_obj.created),
+            call(timestamps_obj.accessed),
+            call(timestamps_obj.modified),
+        ]
 
 
 def test_applyTimestamps_windows_sad_path():
@@ -271,5 +273,5 @@ def test_applyTimestamps_windows_sad_path():
 
         timestamps.applyTimestamps("/tmp/test_file.jpg", timestamps_obj)
         
-        mock_SetFileTime.assert_called_once()
+    mock_SetFileTime.assert_called_once()
 

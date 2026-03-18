@@ -56,7 +56,7 @@ def test_runBinary_canceled():
             "path/src.png",
             "path/dst.jxl"
         )
-        mock_runProcess2.assert_called_once()
+    mock_runProcess2.assert_called_once()
 
 def test_runBinary_args_after_input():
     with (
@@ -203,8 +203,8 @@ def test_runOxipng_inplace_false_no_dst():
         patch("core.convert.runProcess2") as mock_runProcess2,
         pytest.raises(ValueError, match="dst_path is required if inplace is False."),
     ):
-        assert convert.runOxipng([], src_path)
-        mock_runProcess2.assert_not_called()
+        convert.runOxipng([], src_path)
+    mock_runProcess2.assert_not_called()
 
 def test_runOxipng_inplace_true():
     args = ["--nc", "--np"]

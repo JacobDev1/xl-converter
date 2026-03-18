@@ -124,7 +124,7 @@ def test_verifyJPEGXLReconstructionData_happy_path(verifyJPEGXLReconstructionDat
     mocks = verifyJPEGXLReconstructionData_patches
     src, dst, tmp, num_threads = "/path/src.jpg", "/path/dst.jpg", "/path/tmp.jpg", 4
 
-    (True, "stdout", "stderr") == lossless_jpeg.verifyJPEGXLReconstructionData(src, dst, tmp, 4)
+    assert (True, "stdout", "stderr") == lossless_jpeg.verifyJPEGXLReconstructionData(src, dst, tmp, 4)
     
     mocks["reconstructJPEGfromJPEGXL"].assert_called_once_with(src, tmp, num_threads)
 
@@ -193,4 +193,4 @@ def test_reconstructJPEGfromJPEGXL_missing_source():
     ):
         assert (False, "", "Source file not found.") == lossless_jpeg.reconstructJPEGfromJPEGXL(src, dst, 4)
 
-    mock_runBinary.mock_runBinary()
+    mock_runBinary.assert_not_called()

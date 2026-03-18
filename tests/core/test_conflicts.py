@@ -55,7 +55,7 @@ def test_checkForConflicts_no_conflict(src_ext, checkForConflicts_patches):
     mocks = checkForConflicts_patches
     src_image_path = "/tmp/image.jpg"
 
-    conflicts.checkForConflicts("tiff", src_image_path, "JPEG XL", False)
+    conflicts.checkForConflicts(src_ext, src_image_path, "JPEG XL", False)
     mocks["getImageCount"].assert_called_once_with(src_image_path)
 
 def test_checkForConflicts_cannot_detect_page_count(checkForConflicts_patches):
@@ -68,9 +68,9 @@ def test_checkForConflicts_cannot_detect_page_count(checkForConflicts_patches):
     ):
         conflicts.checkForConflicts("tiff", "path/to/src.tiff", "JPEG XL", False)
     
-        assert "CF2" == exc_info.value.id
-        assert "Cannot detect image's page count." in exc_info.value.msg
-        assert stderr in exc_info.value.msg
+    assert "CF2" == exc_info.value.id
+    assert "Cannot detect image's page count." in exc_info.value.msg
+    assert stderr in exc_info.value.msg
 
 def test_checkForConflicts_multipage(checkForConflicts_patches):
     mocks = checkForConflicts_patches
@@ -82,8 +82,8 @@ def test_checkForConflicts_multipage(checkForConflicts_patches):
     ):
         conflicts.checkForConflicts("tiff", "path/to/src.tiff", "JPEG XL", False)
     
-        assert "CF3" == exc_info.value.id
-        assert "Multipage images are not supported" in exc_info.value.msg
+    assert "CF3" == exc_info.value.id
+    assert "Multipage images are not supported" in exc_info.value.msg
 
 def test_checkForConflicts_animated_webp_source(checkForConflicts_patches):
     mocks = checkForConflicts_patches
@@ -95,5 +95,5 @@ def test_checkForConflicts_animated_webp_source(checkForConflicts_patches):
     ):
         conflicts.checkForConflicts("webp", "path/to/src.tiff", "JPEG XL", False)
     
-        assert "CF3" == exc_info.value.id
-        assert "Animated WebP is not supported as input" in exc_info.value.msg
+    assert "CF3" == exc_info.value.id
+    assert "Animated WebP is not supported as input" in exc_info.value.msg

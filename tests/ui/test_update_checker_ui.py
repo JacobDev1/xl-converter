@@ -93,7 +93,7 @@ def test_dialog_show_message_and_url(dialog_show_patched):
 
     mocks["text_l.setText"].assert_called_once_with(sample_msg)
     mocks["link_btn.setText"].assert_called_once_with("Open Link")
-    dialog.link_btn_url == sample_url
+    assert dialog.link_btn_url == sample_url
         
 def test_dialog_show_message_and_url_text(dialog_show_patched):
     dialog, mocks = dialog_show_patched
@@ -106,7 +106,7 @@ def test_dialog_show_message_and_url_text(dialog_show_patched):
 
     mocks["text_l.setText"].assert_called_once_with(sample_msg)
     mocks["link_btn.setText"].assert_called_once_with(sample_url_text)
-    dialog.link_btn_url == sample_url
+    assert dialog.link_btn_url == sample_url
 
 def test_dialog_show_resize_to_content(dialog_show_patched):
     dialog, mocks = dialog_show_patched
@@ -137,19 +137,19 @@ def test_update_checker_init(app):
     mock_parent = QWidget()
     uc = update_checker.UpdateChecker(mock_parent)
     
-    uc.parent == mock_parent
+    assert uc.parent is mock_parent
 
     # Vars
-    uc.dlg = None
-    uc.runner = None
-    uc.update_info = None
+    assert uc.dlg is None
+    assert uc.runner is None
+    assert uc.update_info is None
     
     # Settings
-    uc.prompt_on_update_only = False
+    assert uc.prompt_on_update_only is False
 
     # Flags
-    uc.initialized = False
-    uc.message_viewed = False
+    assert uc.initialized is False
+    assert uc.message_viewed is False
 
 def test_update_checker_lazy_init(update_checker_object):
     mock_dialog = MagicMock(spec=update_checker.Dialog)
@@ -167,7 +167,7 @@ def test_update_checker_lazy_init(update_checker_object):
     assert update_checker_object.initialized == True
     mock_dialog_init.assert_called_once_with(parent=mock_parent)
     mock_dialog.closed.connect.assert_called_once_with(update_checker_object._onDialogClosed)
-    update_checker_object.runner == mock_update_checker_runner
+    assert update_checker_object.runner == mock_update_checker_runner
     mock_update_checker_runner.json_received.connect.assert_called_once_with(update_checker_object._jsonReceived)
     mock_update_checker_runner.error_occurred.connect.assert_called_once_with(update_checker_object._errorOccurred)
 

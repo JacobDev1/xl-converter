@@ -41,7 +41,7 @@ def assert__displayMessageBox(
 def test__displayMessageBox_ok_no_detailed_text(_displayMessageBox_patched):
     mocks, mock_parent = _displayMessageBox_patched
 
-    message_box._displayMessageBox(
+    assert message_box._displayMessageBox(
         mock_parent, "title", "text", None, QMessageBox.StandardButton.Ok
     ) == QMessageBox.StandardButton.Ok
     
@@ -51,7 +51,7 @@ def test__displayMessageBox_ok_no_detailed_text(_displayMessageBox_patched):
 def test__displayMessageBox_ok_detailed_text(_displayMessageBox_patched):
     mocks, mock_parent = _displayMessageBox_patched
 
-    message_box._displayMessageBox(
+    assert message_box._displayMessageBox(
         mock_parent, "title", "text", "detailed text", QMessageBox.StandardButton.Ok
     ) == QMessageBox.StandardButton.Ok
     

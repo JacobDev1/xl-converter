@@ -22,8 +22,8 @@ def test_ConfigManager_lock():
         patch.object(ConfigManager, "_initialize"),
     ):
         ConfigManager()
-        mock_lock.__enter__.assert_called()
-    mock_lock.__exit__.assert_called()
+        mock_lock.__enter__.assert_called_once()
+    mock_lock.__exit__.assert_called_once()
 
 def test__initialize_file_exists():
     mock_path = MagicMock()

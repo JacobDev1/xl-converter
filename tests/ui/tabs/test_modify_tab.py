@@ -149,7 +149,7 @@ def test_onResWidgetToggle(
     widget.setEnabled = MagicMock()
     app.downscale_cb.setEnabled(downscale_enabled)
     app._onResWidgetToggled(widget, True)
-    widget.setEnabled.call_count == setEnabled_call_count_expected
+    assert widget.setEnabled.call_count == setEnabled_call_count_expected
 
 @pytest.mark.parametrize("file_format, allowed", [
     ("Lossless JPEG Transcoding", False),
@@ -202,13 +202,14 @@ def test_updateDownscalingWidgets_pixel_widgets(
     app
 ):
     app.file_format = "JPEG XL" if downscaling_enabled else "Lossless JPEG Transcoding"
+    app.downscale_cb.setChecked(downscaling_enabled)
     app.pixel_w_cb.setChecked(pixel_w_checked)
     app.pixel_h_cb.setChecked(pixel_h_checked)
 
     app._updateDownscalingWidgets()
 
-    app.pixel_w_cb.isEnabled() == expected_w_enabled
-    app.pixel_h_cb.isEnabled() == expected_h_enabled
+    assert app.pixel_w_sb.isEnabled() == expected_w_enabled
+    assert app.pixel_h_sb.isEnabled() == expected_h_enabled
 
 # Testing for resolution widget edge cases.
 @pytest.mark.parametrize("downscaling_cb, width_cb, height_cb, expected_width_sb_enabled, expected_height_sb_enabled", [
