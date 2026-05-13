@@ -3,6 +3,9 @@ from collections.abc import Hashable
 import os
 import re
 from enum import StrEnum, auto
+import platform
+
+SYSTEM = platform.system()
 
 def removeDuplicatesHashable(data: list[Hashable]) -> list[Hashable]:
     """Removes duplicates from a list while preserving order. All entries must be hashable.
@@ -14,10 +17,14 @@ def removeDuplicatesHashable(data: list[Hashable]) -> list[Hashable]:
 
 def _caseInsensitiveExtGlob(ext: str) -> str:
     """A helper function for listToFilter()"""
-    return "*." + "".join(
-        f"[{char.lower()}{char.upper()}]" if char.isalpha() else char
-        for char in ext
-    )
+    if SYSTEM == "Linux":
+        return "*." + "".join(
+            f"[{char.lower()}{char.upper()}]" if char.isalpha() else char
+            for char in ext
+        )
+
+    # Filters are case insensitive on Windows already.
+    return f"*.{ext}"
 
 def listToFilter(title: str, ext: list[str]) -> str:
     """Convert a list of extensions into a name filter for file dialogs."""
