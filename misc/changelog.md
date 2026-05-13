@@ -11,6 +11,7 @@
 - Fix performance issues on 128-thread CPUs (#122).
 - Clean up temp file if downscaling was canceled.
 - Fix Delete Original on virtual drives on Windows (#134).
+- Make extension filters in "Add Files" dialog case-insensitive on Linux (#148).
 
 ### Changed
 
