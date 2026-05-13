@@ -26,10 +26,10 @@ def _caseInsensitiveExtGlob(ext: str) -> str:
     # Filters are case insensitive on Windows already.
     return f"*.{ext}"
 
-def listToFilter(title: str, ext: list[str]) -> str:
+def listToFilter(title: str, ext: list[str] | None = None) -> str:
     """Convert a list of extensions into a name filter for file dialogs."""
-    if len(ext) == 0:
-        return f"All Files (*)"
+    if ext is None:
+        return f"{title} (*)"
     
     filters = [_caseInsensitiveExtGlob(i) for i in ext]
     return f"{title} ({' '.join(filters)})"

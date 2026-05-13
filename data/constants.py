@@ -137,6 +137,7 @@ ALLOWED_RESAMPLING = (
 
 ALLOWED_INPUT_FILTERS = [
     listToFilter("Supported Images", ALLOWED_INPUT),
+    listToFilter("All Files"),
     listToFilter("APNG", ["apng"]),
     listToFilter("AVIF", ["avif"]),
     listToFilter("BMP", ["bmp"]),
