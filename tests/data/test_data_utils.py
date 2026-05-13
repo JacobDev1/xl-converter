@@ -40,23 +40,20 @@ def test_removeDuplicatesHashable_order():
 def test_removeDuplicatesHashable_empty():
     assert utils.removeDuplicatesHashable([]) == []
 
-def test_listToFilter_empty():
-    assert utils.listToFilter(
-        "Images",
-        []
-    ) == "All Files (*)"
-
-def test_listToFilter_single_ext():
-    assert utils.listToFilter(
-        "Image",
-        ["jpg"]
-    ) == "Image (*.jpg)"
-
-def test_listToFilter_multiple_ext():
-    assert utils.listToFilter(
-        "Images",
-        ["jpg", "png", "webp", "jxl", "avif"]
-    ) == "Images (*.jpg *.png *.webp *.jxl *.avif)"
+@pytest.mark.parametrize(
+    "system,title,extensions,expected",
+    (
+        ("Linux", "All Files", None, "All Files (*)"),
+        ("Windows", "All Files", None, "All Files (*)"),
+        ("Windows", "JPEG", ["jpg"], "JPEG (*.jpg)"),
+        ("Linux", "JPEG", ["jpg"], "JPEG (*.[jJ][pP][gG])"),
+        ("Windows", "Supported Images", ["jpg", "png", "jxl"], "Supported Images (*.jpg *.png *.jxl)"),
+        ("Linux", "Supported Images", ["jpg", "png", "jxl"], "Supported Images (*.[jJ][pP][gG] *.[pP][nN][gG] *.[jJ][xX][lL])"),
+    )
+)
+def test_listToFilter(system, title, extensions, expected):
+    with patch("data.utils.SYSTEM", system):
+        assert utils.listToFilter(title, extensions) == expected
 
 def test_isRunningInFlatpak_true():
     with patch("data.utils.os.environ.get", return_value="org.example.app"):
