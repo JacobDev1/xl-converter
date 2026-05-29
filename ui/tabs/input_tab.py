@@ -105,7 +105,7 @@ class InputTab(QWidget):
             )
         
         if FLATPAK and len(file_paths) > 0 and str(file_paths[0][0]).startswith("/run"):
-            message_box.info(self, "Permission Error", "Insufficient Flatpak permissions.\nAdd filesystem permissions to the source directory or volume.")
+            message_box.info(self, "Permission Error", "Insufficient Flatpak permissions.\nAdd filesystem permissions to the source directory or the mounted volume.")
             return
 
         self._addItems(file_paths)

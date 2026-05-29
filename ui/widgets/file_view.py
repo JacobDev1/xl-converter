@@ -166,7 +166,7 @@ class FileView(QTreeWidget):
                         )
 
         if flatpak_permisssion_err:
-            message_box.info(self, "Permission Error", "Insufficient Flatpak permissions.\nAdd filesystem permissions to the source directory or volume.")
+            message_box.info(self, "Permission Error", "Insufficient Flatpak permissions.\nAdd filesystem permissions to the source directory or the mounted volume.")
 
         if not items:
             return
