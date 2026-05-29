@@ -63,7 +63,7 @@ class ExceptionView(QDialog):
     def _setupWidgets(self):
         self.exceptions_t = QTreeWidget(self)
         self.exceptions_t.setRootIsDecorated(False)
-        self.exceptions_t.setHeaderLabels(("ID", "Exception", "Source",))
+        self.exceptions_t.setHeaderLabels(("Err Location", "Exception", "Source",))
         self.exceptions_t.setItemDelegate(ItemDelegate())
         self.exceptions_t.setWordWrap(True)
         self.exceptions_t.setUniformRowHeights(False)
@@ -140,7 +140,7 @@ class ExceptionView(QDialog):
             ("Version", VERSION),
             ("OS", platform.system()),
             ("Exceptions",),
-            ("ID", "Exception", "Filename"),
+            ("Err Location", "Exception", "Filename"),
         ]
 
         rows.extend([

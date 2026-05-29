@@ -75,7 +75,7 @@ def test_saveToFile_happy_path(exception_view):
             ("Version", "version"),
             ("OS", platform.system()),
             ("Exceptions",),
-            ("ID", "Exception", "Filename"),
+            ("Err Location", "Exception", "Filename"),
             *item_data
         ]
         mock__writeCsv.assert_called_once_with(mock_dlg.toLocalFile.return_value, expected_rows)
