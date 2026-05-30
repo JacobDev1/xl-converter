@@ -14,9 +14,9 @@ body:
     attributes:
       label: Detailed Description
       description: |
-        Describe how this feature is intended to work conceptually and what benefits it brings.
+        Describe how this feature is intended to work conceptually.
 
-        For a simple request, like a library update, you can keep it brief. For a new feature, describe how it works thoroughly.
+        For a simple request, like a library update, you can keep it brief. For a new feature, describe thoroughly how it works.
         
         **New features with unclear descriptions will not be considered!**
     validations:

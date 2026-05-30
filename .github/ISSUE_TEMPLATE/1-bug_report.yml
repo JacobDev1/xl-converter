@@ -8,15 +8,11 @@ body:
 
         Make sure to look through [the docs](https://xl-docs.codepoems.eu) first.
         
-        Write `N/A` if a field is unrelated to the problem.
-
-        Well-described issues have a higher chance of being fixed.
-
   - type: input
     id: version
     attributes:
       label: Version
-      description: What version are you using? You will find it in the About tab. You should be using the latest version.
+      description: The version of XL Converter used. You will find it in the About tab.
       placeholder: 1.0.0
     validations:
       required: true
@@ -25,7 +21,7 @@ body:
     id: os
     attributes:
       label: OS
-      description: What operating system are you using?
+      description: The operating system where the issue occurred.
       options:
         - Windows
         - Linux
@@ -72,7 +68,7 @@ body:
       description: What image formats are you converting from? They are listed in the Input tab.
       placeholder: PNG, JPEG
     validations:
-      required: true
+      required: false
     
   - type: input
     id: output-format
@@ -81,7 +77,7 @@ body:
       description: The selected "Format / Mode" option, found in the Output tab.
       placeholder: JPEG XL, Lossless JPEG Transcoding etc.
     validations:
-      required: true
+      required: false
     
   - type: textarea
     id: additional-info
@@ -90,27 +86,3 @@ body:
       description: Include any other relevant information, such as error messages, or screenshots.
     validations:
       required: false
-    
-  - type: markdown
-    attributes:
-      value: |
-        #### Attachments (Optional)
-
-        You can share files (such as logs or images) alongside your issue.
-        
-        Logs can be generated in the settings -- Settings -> Advanced (at the very bottom) -> Start Logging.
-
-        You can share files by uploading them to the "Additional Information" section above. However, this will make them publicly accessible.
-
-        Alternatively, send them to my email. This is much more private.
-
-        1. Upload your files to a file sharing service of your choice.
-        2. Send me an email using the following template:
-
-        ```txt
-        Download link: 
-        GitHub username: 
-        GitHub issue title: 
-        ```
-
-        Email: contact@codepoems.eu
