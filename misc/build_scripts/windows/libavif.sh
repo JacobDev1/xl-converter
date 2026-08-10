@@ -1,7 +1,7 @@
 #!/bin/bash
 
-LIBAVIF_TAG="v1.3.0"
-AOM_AV1_TAG="v3.13.1"
+LIBAVIF_TAG="v1.4.2"
+AOM_AV1_TAG="v3.14.1"
 SVT_AV1_PSY_TAG="v3.0.2"
 
 RUN_DIR=$(pwd)

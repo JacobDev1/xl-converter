@@ -17,6 +17,7 @@
 
 - Improve conversion start and cancel times.
 - Limit AVIF tune scope to color only, leave alpha default.
+- Update AOM AV1 to `v3.14.1` (#153).
 
 ## 1.2.3 - 2025-10-02
 

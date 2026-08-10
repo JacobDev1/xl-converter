@@ -1,10 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-LIBAVIF_TAG="v1.3.0"
-LIBYUV_COMMIT="4db2af62d"        # Update this commit hash when changing LIBAVIF_TAG. It can be found in libavif/ext/libyuv.cmd
-LIBXML2_TAG="v2.14.4"            # libavif/ext/libxml2.cmd
-AOM_AV1_TAG="v3.13.1"
+LIBAVIF_TAG="v1.4.2"
+LIBYUV_COMMIT="644251f25"        # Update this commit hash when changing LIBAVIF_TAG. It can be found in libavif/ext/libyuv.cmd
+LIBXML2_TAG="v2.15.3"            # libavif/ext/libxml2.cmd
+AOM_AV1_TAG="v3.14.1"
 SVT_AV1_PSY_TAG="v3.0.2"
 
 RUN_DIR=$(pwd)
