@@ -2,7 +2,8 @@
 
 FROM ubuntu:22.04
 
-ARG LIBJXL_TAG=v0.11.1
+ARG LIBJXL_TAG=v0.12.0
+ARG JPEGLI_COMMIT=031a0077f5799a6041004267fc12b956c1f52a20  # Full commit hash
 
 ARG BUILD_JOBS
 ENV DEBIAN_FRONTEND=noninteractive
@@ -26,7 +27,7 @@ RUN apt update && apt install -y \
 
 WORKDIR /src
 RUN git clone -b ${LIBJXL_TAG} --depth 1 https://github.com/libjxl/libjxl.git libjxl
-WORKDIR /src/libjxl/
+WORKDIR /src/libjxl
 RUN ./deps.sh
 RUN TARGETS="-j ${BUILD_JOBS} all" \
     ./ci.sh release \
@@ -39,8 +40,39 @@ RUN TARGETS="-j ${BUILD_JOBS} all" \
     -DJPEGXL_ENABLE_DEVTOOLS=OFF \
     -DJPEGXL_ENABLE_DOXYGEN=OFF
 
-WORKDIR /src/libjxl/build/tools/
+WORKDIR /src/libjxl/build/tools
 RUN mkdir /src/bin/ && \
-    cp cjxl djxl jxlinfo cjpegli /src/bin/
-WORKDIR /src/bin/
+    cp cjxl djxl jxlinfo /src/bin/
+
+WORKDIR /src/jpegli
+RUN git init . && \
+    git remote add origin https://github.com/google/jpegli.git && \
+    git fetch --depth 1 origin ${JPEGLI_COMMIT} && \
+    git switch --detach ${JPEGLI_COMMIT}
+RUN git submodule update --init --recursive --depth 1 --recommend-shallow \
+    third_party/highway \
+    third_party/lcms \
+    third_party/libpng \
+    third_party/zlib \
+    third_party/libjpeg-turbo
+RUN cmake -S . -B build/ \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DJPEGLI_STATIC=ON \
+    -DBUILD_TESTING=OFF \
+    -DJPEGLI_ENABLE_TOOLS=ON \
+    -DJPEGLI_ENABLE_JPEGLI_LIBJPEG=OFF \
+    -DJPEGLI_ENABLE_BENCHMARK=OFF \
+    -DJPEGLI_ENABLE_FUZZERS=OFF \
+    -DJPEGLI_ENABLE_JNI=OFF \
+    -DJPEGLI_ENABLE_SJPEG=OFF \
+    -DJPEGLI_ENABLE_OPENEXR=OFF \
+    -DJPEGLI_ENABLE_DEVTOOLS=OFF \
+    -DJPEGLI_ENABLE_DOXYGEN=OFF \
+    -DJPEGLI_BUNDLE_LIBPNG=ON
+RUN cmake --build build/ \
+    --target cjpegli \
+    -j "${BUILD_JOBS}"
+RUN cp build/tools/cjpegli /src/bin/
+
 CMD ["/bin/bash"]
