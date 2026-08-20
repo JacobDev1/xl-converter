@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-OXIPNG_TAG="v9.1.5"
+OXIPNG_TAG="v10.2.0"
 
 RUN_DIR=$(pwd)
 OUTPUT_DIR="${RUN_DIR}/bin/win/oxipng"

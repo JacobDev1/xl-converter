@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-LIBJPEG_TURBO_TAG="3.1.0"
+LIBJPEG_TURBO_TAG="3.2.0"
 RUN_DIR=$(pwd)
 OUTPUT_DIR="${RUN_DIR}/bin/macos"
 TEMP_DIR=$(mktemp -d)

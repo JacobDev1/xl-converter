@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-IMAGEMAGICK_TAG="7.1.2-3"
-LIBHEIF_TAG="v1.20.2"
-LIBAOM_TAG="v3.12.1"
+IMAGEMAGICK_TAG="7.1.2-29"
+LIBHEIF_TAG="v1.23.1"
+LIBAOM_TAG="v3.14.1"
 RUN_DIR=$(pwd)
 OUTPUT_DIR="${RUN_DIR}/bin/macos/imagemagick"
 TEMP_DIR=$(mktemp -d)

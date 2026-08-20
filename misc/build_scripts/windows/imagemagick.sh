@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGEMAGICK_TAG="7.1.2-8"
-LIBHEIF_TAG="v1.20.2"
+IMAGEMAGICK_TAG="7.1.2-29"
+LIBHEIF_TAG="v1.23.1"
 RUN_DIR=$(pwd)
 OUTPUT_DIR="${RUN_DIR}/bin/win/imagemagick"
 TEMP_DIR=$(mktemp -d)

@@ -19,6 +19,7 @@
 - Limit AVIF tune scope to color only, leave alpha default.
 - Update `libjxl` to `v0.12.0` (#152).
 - Update AOM AV1 to `v3.14.1` (#153).
+- Update Oxipng, ExifTool, and ImageMagick.
 
 ## 1.2.3 - 2025-10-02
 
