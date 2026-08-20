@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 LIBAVIF_TAG="v1.4.2"
 AOM_AV1_TAG="v3.14.1"
@@ -10,9 +11,8 @@ TEMP_DIR=$(mktemp -d)
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "${SCRIPT_DIR}/_shared.sh"
-
 trap 'cleanup "${TEMP_DIR}"' EXIT
-set -euo pipefail
+
 check_msys2
 check_packages \
     git \

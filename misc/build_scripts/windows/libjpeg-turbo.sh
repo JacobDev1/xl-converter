@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 LIBJPEG_TURBO_TAG="3.1.0"
 MT_PATH=$(ls -1 "/c/Program Files (x86)/Windows Kits/10/bin/"*"/x64/mt.exe" 2>/dev/null | sort -V | tail -n 1)
@@ -8,9 +9,8 @@ TEMP_DIR=$(mktemp -d)
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "${SCRIPT_DIR}/_shared.sh"
-
 trap 'cleanup "${TEMP_DIR}"' EXIT
-set -euo pipefail
+
 check_msys2
 # If your cmake (mingw-w64-x86_64-cmake) is broken and returns no output -- install the generic one with: pacman -S cmake
 check_packages \

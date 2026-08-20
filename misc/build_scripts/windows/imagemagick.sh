@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 IMAGEMAGICK_TAG="7.1.2-8"
 LIBHEIF_TAG="v1.20.2"
@@ -8,9 +9,8 @@ TEMP_DIR=$(mktemp -d)
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "${SCRIPT_DIR}/_shared.sh"
-
 trap 'cleanup "${TEMP_DIR}"' EXIT
-set -euo pipefail
+
 check_msys2
 check_packages \
     base-devel \

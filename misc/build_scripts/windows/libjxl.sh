@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 LIBJXL_TAG="v0.12.0"
 JPEGLI_COMMIT="031a0077f5799a6041004267fc12b956c1f52a20"  # Full commit hash
@@ -8,9 +9,8 @@ TEMP_DIR=$(mktemp -d)
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "${SCRIPT_DIR}/_shared.sh"
-
 trap 'cleanup "${TEMP_DIR}"' EXIT
-set -euo pipefail
+
 check_msys2
 check_packages \
     git \
