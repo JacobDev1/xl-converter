@@ -8,8 +8,6 @@ from data.constants import (
     IMAGE_MAGICK_PATH,
     AVIFDEC_PATH,
     DJXL_PATH,
-    JXLINFO_PATH,
-    AVIFENC_PATH,
     JPEGTRAN_PATH,
     OXIPNG_PATH,
 )
@@ -112,13 +110,6 @@ def runOxipng(
         return runProcess2(OXIPNG_PATH, *parseArgs(args), src_path)
     else:
         return runProcess2(OXIPNG_PATH, *parseArgs(args), src_path, "--out", dst_path)
-
-def getExtensionJxl(src_path: str) -> Literal["jpg", "png"]:
-    """Assign extension based on If JPEG reconstruction data is available. Only use If src format is jxl."""
-    if "JPEG bitstream reconstruction data available" in runProcess2(JXLINFO_PATH, src_path)[0]:
-        return "jpg"
-    else:
-        return "png"
 
 def parseArgs(args: list[str]) -> list[str]:
     """Splits arguments by spaces and flattens them into a list."""

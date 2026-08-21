@@ -27,7 +27,7 @@ from data.constants import (
 
 from core.proxy import Proxy
 from core.pathing import getUniqueFilePath, getExtension, getOutputDir, getUniqueTmpFilePath, removeFile, isSamePath
-from core.convert import getDecoder, getDecoderArgs, getExtensionJxl, runBinary, cleanUp, runOxipng
+from core.convert import getDecoder, getDecoderArgs, runBinary, cleanUp, runOxipng
 from core.downscale import downscale, decodeAndDownscale
 import core.metadata as metadata
 import data.task_status as task_status
@@ -187,8 +187,8 @@ class Worker(QRunnable):
             if self.item_ext != "jxl":
                 raise FileException("S3", "Only JPEG XL images are allowed.")
             
-            self.output_ext = getExtensionJxl(self.item_abs_path)
-            self.reconstruction_data_found = self.output_ext == "jpg"
+            self.reconstruction_data_found = lossless_jpeg.hasReconstructionData(self.item_abs_path)
+            self.output_ext = "jpg" if self.reconstruction_data_found else "png"
             if not self.reconstruction_data_found and not self.params["jxl_png_fallback"]:
                 raise FileException("S4", "Reconstruction data not found.")
         elif self.params["format"] == "Lossless JPEG Transcoding":

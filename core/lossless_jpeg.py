@@ -1,9 +1,10 @@
 import os
 
-from data.constants import CJXL_PATH, DJXL_PATH
+from data.constants import CJXL_PATH, DJXL_PATH, JXLINFO_PATH
 from core.convert import runBinary, runJPEGtran
 from core.utils import b2sum
 from core.exceptions import FileException
+from core.process import runProcess2
 
 def transcodeJPEGtoJPEGXL(
     src_path: str,
@@ -155,3 +156,6 @@ def reconstructJPEGfromJPEGXL(
     )
     success = os.path.isfile(dst_path)
     return (success, stdout, stderr)
+
+def hasReconstructionData(src_path: str) -> bool:
+    return "JPEG bitstream reconstruction data available" in runProcess2(JXLINFO_PATH, src_path)[0]
