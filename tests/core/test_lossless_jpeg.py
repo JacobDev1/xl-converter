@@ -179,7 +179,7 @@ def test_reconstructJPEGfromJPEGXL_happy_path():
 
     mock_runBinary.assert_called_once_with(
         var_DJXL_PATH,
-        ["--num_threads=4"],
+        ["--num_threads=4", "--reconstruct_jpeg"],
         src,
         dst,
     )

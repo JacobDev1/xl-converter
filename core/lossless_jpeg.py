@@ -142,7 +142,10 @@ def reconstructJPEGfromJPEGXL(
 
     stdout, stderr = runBinary(
         DJXL_PATH,
-        [f"--num_threads={num_threads}"],
+        [
+            f"--num_threads={num_threads}",
+            "--reconstruct_jpeg",
+        ],
         src_path,
         dst_path,
     )
