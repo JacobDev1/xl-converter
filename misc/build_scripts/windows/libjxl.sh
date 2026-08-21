@@ -27,7 +27,15 @@ check_packages \
 cd "${TEMP_DIR}"
 git clone --depth 1 -b "${LIBJXL_TAG}" https://github.com/libjxl/libjxl.git libjxl
 cd libjxl/
-./deps.sh
+git submodule update --init --recursive --depth 1 --recommend-shallow \
+    third_party/brotli \
+    third_party/highway \
+    third_party/lcms \
+    third_party/libjpeg-turbo \
+    third_party/libpng \
+    third_party/sjpeg \
+    third_party/skcms \
+    third_party/zlib
 mkdir build && cd build/
 cmake -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_TESTING=OFF \
@@ -58,8 +66,9 @@ git remote add origin https://github.com/google/jpegli.git
 git fetch --depth 1 origin ${JPEGLI_COMMIT}
 git switch --detach ${JPEGLI_COMMIT}
 git submodule update --init --recursive --depth 1 --recommend-shallow \
-    third_party/highway \
     third_party/lcms \
+    third_party/skcms \
+    third_party/highway \
     third_party/libpng \
     third_party/zlib \
     third_party/libjpeg-turbo

@@ -28,7 +28,15 @@ RUN apt update && apt install -y \
 WORKDIR /src
 RUN git clone -b ${LIBJXL_TAG} --depth 1 https://github.com/libjxl/libjxl.git libjxl
 WORKDIR /src/libjxl
-RUN ./deps.sh
+RUN git submodule update --init --recursive --depth 1 --recommend-shallow \
+    third_party/brotli \
+    third_party/highway \
+    third_party/lcms \
+    third_party/libjpeg-turbo \
+    third_party/libpng \
+    third_party/sjpeg \
+    third_party/skcms \
+    third_party/zlib
 RUN TARGETS="-j ${BUILD_JOBS} all" \
     ./ci.sh release \
     -DJPEGXL_STATIC=ON \
@@ -50,8 +58,9 @@ RUN git init . && \
     git fetch --depth 1 origin ${JPEGLI_COMMIT} && \
     git switch --detach ${JPEGLI_COMMIT}
 RUN git submodule update --init --recursive --depth 1 --recommend-shallow \
-    third_party/highway \
     third_party/lcms \
+    third_party/skcms \
+    third_party/highway \
     third_party/libpng \
     third_party/zlib \
     third_party/libjpeg-turbo

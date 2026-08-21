@@ -28,7 +28,15 @@ check_packages \
 # Build libjxl
 git clone --depth 1 -b "${LIBJXL_TAG}" https://github.com/libjxl/libjxl.git "${TEMP_DIR}/libjxl"
 cd "${TEMP_DIR}/libjxl"
-./deps.sh
+git submodule update --init --recursive --depth 1 --recommend-shallow \
+    third_party/brotli \
+    third_party/highway \
+    third_party/lcms \
+    third_party/libjpeg-turbo \
+    third_party/libpng \
+    third_party/sjpeg \
+    third_party/skcms \
+    third_party/zlib
 for arch in x86_64 arm64; do
     build_dir="${TEMP_DIR}/libjxl/build-${arch}"
     mkdir -p "${build_dir}"
@@ -86,8 +94,9 @@ git remote add origin https://github.com/google/jpegli.git
 git fetch --depth 1 origin ${JPEGLI_COMMIT}
 git switch --detach ${JPEGLI_COMMIT}
 git submodule update --init --recursive --depth 1 --recommend-shallow \
-    third_party/highway \
     third_party/lcms \
+    third_party/skcms \
+    third_party/highway \
     third_party/libpng \
     third_party/zlib \
     third_party/libjpeg-turbo
