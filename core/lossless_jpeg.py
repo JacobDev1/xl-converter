@@ -124,12 +124,15 @@ def reconstructJPEGfromJPEGXL(
     src_path: str,
     dst_path: str,
     num_threads: int,
+    explicit: bool = False,
 ) -> (bool, str, str):
     """Reconstructs the original JPEG image from a JPEG XL image.
 
     Args:
     src_path: source file location. Needs a .jxl extension.
     dst_path: output file location. Needs a .jpg extension.
+    num_threads: how many threads to use for transcoding.
+    explicit: fail if reconstruction data is not present.
 
     Returns:
     (success, stdout, stderr) 
@@ -140,12 +143,13 @@ def reconstructJPEGfromJPEGXL(
     if not os.path.isfile(src_path):
         return (False, "", "Source file not found.")
 
+    args = [f"--num_threads={num_threads}"]
+    if explicit:
+        args.append("--reconstruct_jpeg")
+
     stdout, stderr = runBinary(
         DJXL_PATH,
-        [
-            f"--num_threads={num_threads}",
-            "--reconstruct_jpeg",
-        ],
+        args,
         src_path,
         dst_path,
     )

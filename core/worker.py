@@ -88,6 +88,7 @@ class Worker(QRunnable):
         self.skip = False
         self.skipped = False
         self.lossless_jpeg = False
+        self.reconstruction_data_found = False
 
         # Misc.
         self.scl_params = None
@@ -187,7 +188,8 @@ class Worker(QRunnable):
                 raise FileException("S3", "Only JPEG XL images are allowed.")
             
             self.output_ext = getExtensionJxl(self.item_abs_path)
-            if self.output_ext != "jpg" and not self.params["jxl_png_fallback"]:
+            self.reconstruction_data_found = self.output_ext == "jpg"
+            if not self.reconstruction_data_found and not self.params["jxl_png_fallback"]:
                 raise FileException("S4", "Reconstruction data not found.")
         elif self.params["format"] == "Lossless JPEG Transcoding":
             if self.item_ext not in JPEG_ALIASES:
@@ -712,6 +714,7 @@ class Worker(QRunnable):
             self.org_item_abs_path,
             self.output,
             self.available_threads,
+            explicit=not self.params["jxl_png_fallback"] or self.reconstruction_data_found,
         )
 
         if not success:
