@@ -136,6 +136,7 @@ def test_runChecks(mock_conflicts, mock_isfile, worker):
     worker.runChecks()
     mock_conflicts.checkForConflicts.assert_called_once()
 
+# Deprecated fixture
 @pytest.fixture
 def setupConversion_patches():
     with (
@@ -143,23 +144,42 @@ def setupConversion_patches():
         patch("core.worker.os.makedirs", side_effect=None) as mock_makedirs,
         patch("core.worker.getUniqueTmpFilePath", return_value=normalizePath("/output/dir/image.jpg")) as mock_getUniqueTmpFilePath,
         patch("core.worker.getOutputDir", return_value="/output/dir/") as mock_getOutputDir,
-        patch("core.worker.getExtensionJxl", return_value="jpg") as mock_getExtensionJxl,
         patch("core.worker.os.path.isfile", side_effect=[True, True]) as mock_isfile,
         patch("core.worker.os.path.getsize", return_value=300_000) as mock_getsize,
         patch("core.worker.getFreeSpaceLeft", return_value=300_000_000_000) as mock_getFreeSpaceLeft,
         patch("core.worker.getExtension", return_value="jxl") as mock_getExtension,
+        MagicMock(return_value=None) as mock_deprecated,
     ):
         yield (
-            mock_getUniqueTmpFilePath,     # 0
+            mock_getUniqueTmpFilePath,  # 0
             mock_getOutputDir,          # 1
             mock_isProxyNeeded,         # 2
             mock_makedirs,              # 3
-            mock_getExtensionJxl,       # 4
+            mock_deprecated,            # 4
             mock_isfile,                # 5
             mock_getsize,               # 6
             mock_getFreeSpaceLeft,      # 7
             mock_getExtension,          # 8
         )
+
+@pytest.fixture
+def setupConversion_patches_new():
+    mocks = {
+        "isProxyNeeded": patch("core.worker.Proxy.isProxyNeeded", return_value=False),
+        "makedirs": patch("core.worker.os.makedirs", side_effect=None),
+        "getUniqueTmpFilePath": patch("core.worker.getUniqueTmpFilePath", return_value=normalizePath("/output/dir/image.jpg")),
+        "getOutputDir": patch("core.worker.getOutputDir", return_value="/output/dir/"),
+        "isfile": patch("core.worker.os.path.isfile", side_effect=[True, True]),
+        "getsize": patch("core.worker.os.path.getsize", return_value=300_000),
+        "getFreeSpaceLeft": patch("core.worker.getFreeSpaceLeft", return_value=300_000_000_000),
+        "getExtension": patch("core.worker.getExtension", return_value="jxl"),
+        "hasReconstructionData": patch("core.worker.lossless_jpeg.hasReconstructionData", return_value=True),
+    }
+
+    with ExitStack() as stack:
+        _mock = {name: stack.enter_context(patcher) for name, patcher in mocks.items()}
+        yield _mock
+
 
 def test_setupConversion_regular(setupConversion_patches, worker):
     output = normalizePath("/output/dir/image_unique.jpg")
@@ -201,37 +221,32 @@ def test_setupConversion_space_left_exception(setupConversion_patches, worker):
 
     assert "No space left on device" in exc.value.msg
 
-def test_setupConversion_jpeg_reconstruction_rec_data_found(setupConversion_patches, worker):
+@pytest.mark.parametrize("jxl_png_fallback", [True, False])
+def test_setupConversion_jpeg_reconstruction_rec_data_found(jxl_png_fallback, setupConversion_patches_new, worker):
+    setupConversion_patches_new["hasReconstructionData"].return_value = True
     worker.params["format"] = "JPEG Reconstruction"
+    worker.params["jxl_png_fallback"] = jxl_png_fallback
     worker.item_ext = "jxl"
 
     worker.setupConversion()
     assert worker.output_ext == "jpg"
 
-def test_setupConversion_jpeg_reconstruction_rec_data_not_found(setupConversion_patches, worker):
-    mock_getExtensionJxl = setupConversion_patches[4]
-    mock_getExtensionJxl.return_value = "png"
+@pytest.mark.parametrize("jxl_png_fallback", [True, False])
+def test_setupConversion_jpeg_reconstruction_rec_data_not_found(jxl_png_fallback, setupConversion_patches_new, worker):
     worker.params["format"] = "JPEG Reconstruction"
+    worker.params["jxl_png_fallback"] = jxl_png_fallback
+    setupConversion_patches_new["hasReconstructionData"].return_value = False
     worker.item_ext = "jxl"
 
-    with pytest.raises(FileException) as exc:
+    if jxl_png_fallback:
         worker.setupConversion()
+        assert worker.output_ext == "png"
+    else:
+        with pytest.raises(FileException) as exc:
+            worker.setupConversion()
+        assert "Reconstruction data not found" in exc.value.msg
 
-    assert "Reconstruction data not found" in exc.value.msg
-    assert worker.output_ext == "png"
-
-def test_setupConversion_jpeg_reconstruction_rec_data_not_found_png_fallback(setupConversion_patches, worker):
-    mock_getExtensionJxl = setupConversion_patches[4]
-    mock_getExtensionJxl.return_value = "png"
-    worker.params["format"] = "JPEG Reconstruction"
-    worker.item_ext = "jxl"
-    worker.params["jxl_png_fallback"] = True
-
-    worker.setupConversion()
-
-    assert worker.output_ext == "png"
-
-def test_setupConversion_jpeg_reconstruction_bad_input(setupConversion_patches, worker):
+def test_setupConversion_jpeg_reconstruction_bad_input(setupConversion_patches_new, worker):
     worker.params["format"] = "JPEG Reconstruction"
     worker.item_ext = "jpg"
 
@@ -1231,8 +1246,17 @@ def worker_reconstructJPEG_patched(worker):
         _variables = {name: stack.enter_context(patcher) for name, patcher in variables.items()}
         yield worker, _mocks, _variables
 
-def test_reconstructJPEG_happy_path(worker_reconstructJPEG_patched):
+@pytest.mark.parametrize(
+    "jxl_png_fallback, reconstruction_data_found, explicit_expected", [
+    (True, True, True),
+    (True, False, False),
+    (False, True, True),
+    (False, False, True),
+])
+def test_reconstructJPEG_happy_path(jxl_png_fallback, reconstruction_data_found, explicit_expected, worker_reconstructJPEG_patched):
     worker, mocks, variables = worker_reconstructJPEG_patched
+    worker.params["jxl_png_fallback"] = jxl_png_fallback
+    worker.reconstruction_data_found = reconstruction_data_found
 
     worker.reconstructJPEG()
     
@@ -1240,11 +1264,13 @@ def test_reconstructJPEG_happy_path(worker_reconstructJPEG_patched):
         variables["org_item_abs_path"],
         variables["output"],
         worker.available_threads,
+        explicit=explicit_expected,
     )
     assert worker.lossless_jpeg
 
 def test_reconstructJPEG_sad_path(worker_reconstructJPEG_patched):
     worker, mocks, variables = worker_reconstructJPEG_patched
+    worker.reconstruction_data_found = True
     stdout, stderr = "stdout", "stderr"
     mocks["reconstructJPEGfromJPEGXL"].return_value = (False, stdout, stderr)
 
@@ -1252,7 +1278,7 @@ def test_reconstructJPEG_sad_path(worker_reconstructJPEG_patched):
         pytest.raises(FileException) as excinfo,
     ):
         worker.reconstructJPEG()
-    
+
     assert excinfo.value.id == "reconstruct_0"
     assert stderr in excinfo.value.msg
     assert "Reconstruction failed." in excinfo.value.msg
@@ -1260,6 +1286,7 @@ def test_reconstructJPEG_sad_path(worker_reconstructJPEG_patched):
         variables["org_item_abs_path"],
         variables["output"],
         worker.available_threads,
+        explicit=True,
     )
     assert worker.lossless_jpeg
 
