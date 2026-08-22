@@ -136,34 +136,8 @@ def test_runChecks(mock_conflicts, mock_isfile, worker):
     worker.runChecks()
     mock_conflicts.checkForConflicts.assert_called_once()
 
-# Deprecated fixture
 @pytest.fixture
 def setupConversion_patches():
-    with (
-        patch("core.worker.Proxy.isProxyNeeded", return_value=False) as mock_isProxyNeeded,
-        patch("core.worker.os.makedirs", side_effect=None) as mock_makedirs,
-        patch("core.worker.getUniqueTmpFilePath", return_value=normalizePath("/output/dir/image.jpg")) as mock_getUniqueTmpFilePath,
-        patch("core.worker.getOutputDir", return_value="/output/dir/") as mock_getOutputDir,
-        patch("core.worker.os.path.isfile", side_effect=[True, True]) as mock_isfile,
-        patch("core.worker.os.path.getsize", return_value=300_000) as mock_getsize,
-        patch("core.worker.getFreeSpaceLeft", return_value=300_000_000_000) as mock_getFreeSpaceLeft,
-        patch("core.worker.getExtension", return_value="jxl") as mock_getExtension,
-        MagicMock(return_value=None) as mock_deprecated,
-    ):
-        yield (
-            mock_getUniqueTmpFilePath,  # 0
-            mock_getOutputDir,          # 1
-            mock_isProxyNeeded,         # 2
-            mock_makedirs,              # 3
-            mock_deprecated,            # 4
-            mock_isfile,                # 5
-            mock_getsize,               # 6
-            mock_getFreeSpaceLeft,      # 7
-            mock_getExtension,          # 8
-        )
-
-@pytest.fixture
-def setupConversion_patches_new():
     mocks = {
         "isProxyNeeded": patch("core.worker.Proxy.isProxyNeeded", return_value=False),
         "makedirs": patch("core.worker.os.makedirs", side_effect=None),
@@ -182,17 +156,15 @@ def setupConversion_patches_new():
 
 
 def test_setupConversion_regular(setupConversion_patches, worker):
+    mocks = setupConversion_patches
     output = normalizePath("/output/dir/image_unique.jpg")
     output_dir = normalizePath("/output/dir/")
     final_output = normalizePath("/output/dir/image.jpg")
     worker.item_name = "image"
     worker.params["format"] = "JPEG"
-    mock_getUniqueTmpFilePath = setupConversion_patches[0]
-    mock_getOutputDir = setupConversion_patches[1]
-    mock_getExtension = setupConversion_patches[8]
-    mock_getUniqueTmpFilePath.return_value = output
-    mock_getOutputDir.return_value = output_dir
-    mock_getExtension.return_value = "jpg"
+    mocks["getUniqueTmpFilePath"].return_value = output
+    mocks["getOutputDir"].return_value = output_dir
+    mocks["getExtension"].return_value = "jpg"
 
     worker.setupConversion()
     
@@ -202,8 +174,7 @@ def test_setupConversion_regular(setupConversion_patches, worker):
     assert worker.output_ext == "jpg"
 
 def test_setupConversion_makedirs_error(setupConversion_patches, worker):
-    mock_makedirs = setupConversion_patches[3]
-    mock_makedirs.side_effect = OSError
+    setupConversion_patches["makedirs"].side_effect = OSError
     
     with pytest.raises(FileException) as exc:
         worker.setupConversion()
@@ -214,16 +185,15 @@ def test_setupConversion_space_left_pass(setupConversion_patches, worker):
     worker.setupConversion()
 
 def test_setupConversion_space_left_exception(setupConversion_patches, worker):
-    mock_getFreeSpaceLeft = setupConversion_patches[7]
-    mock_getFreeSpaceLeft.return_value = 10_000
+    setupConversion_patches["getFreeSpaceLeft"].return_value = 10_000
     with pytest.raises(FileException) as exc:
         worker.setupConversion()
 
     assert "No space left on device" in exc.value.msg
 
 @pytest.mark.parametrize("jxl_png_fallback", [True, False])
-def test_setupConversion_jpeg_reconstruction_rec_data_found(jxl_png_fallback, setupConversion_patches_new, worker):
-    setupConversion_patches_new["hasReconstructionData"].return_value = True
+def test_setupConversion_jpeg_reconstruction_rec_data_found(jxl_png_fallback, setupConversion_patches, worker):
+    setupConversion_patches["hasReconstructionData"].return_value = True
     worker.params["format"] = "JPEG Reconstruction"
     worker.params["jxl_png_fallback"] = jxl_png_fallback
     worker.item_ext = "jxl"
@@ -232,10 +202,10 @@ def test_setupConversion_jpeg_reconstruction_rec_data_found(jxl_png_fallback, se
     assert worker.output_ext == "jpg"
 
 @pytest.mark.parametrize("jxl_png_fallback", [True, False])
-def test_setupConversion_jpeg_reconstruction_rec_data_not_found(jxl_png_fallback, setupConversion_patches_new, worker):
+def test_setupConversion_jpeg_reconstruction_rec_data_not_found(jxl_png_fallback, setupConversion_patches, worker):
     worker.params["format"] = "JPEG Reconstruction"
     worker.params["jxl_png_fallback"] = jxl_png_fallback
-    setupConversion_patches_new["hasReconstructionData"].return_value = False
+    setupConversion_patches["hasReconstructionData"].return_value = False
     worker.item_ext = "jxl"
 
     if jxl_png_fallback:
@@ -246,7 +216,7 @@ def test_setupConversion_jpeg_reconstruction_rec_data_not_found(jxl_png_fallback
             worker.setupConversion()
         assert "Reconstruction data not found" in exc.value.msg
 
-def test_setupConversion_jpeg_reconstruction_bad_input(setupConversion_patches_new, worker):
+def test_setupConversion_jpeg_reconstruction_bad_input(setupConversion_patches, worker):
     worker.params["format"] = "JPEG Reconstruction"
     worker.item_ext = "jpg"
 
@@ -265,9 +235,9 @@ def test_setupConversion_png_opt_reconstruction_bad_input(setupConversion_patche
     assert "Only PNG images are allowed" in exc.value.msg
 
 def test_setupConversion_assign_output_path(setupConversion_patches, worker):
-    mock_getUniqueTmpFilePath, mock_getOutputDir = setupConversion_patches[0], setupConversion_patches[1]
-    mock_getUniqueTmpFilePath.return_value = normalizePath("/tmp/path/image.jxl")
-    mock_getOutputDir.return_value = normalizePath("/tmp/path/")
+    mocks = setupConversion_patches
+    mocks["getUniqueTmpFilePath"].return_value = normalizePath("/tmp/path/image.jxl")
+    mocks["getOutputDir"].return_value = normalizePath("/tmp/path/")
     worker.params["format"] = "JPEG XL"
     worker.item_name = "image"
 
@@ -283,9 +253,8 @@ def test_setupConversion_skip(setupConversion_patches, worker):
 
 def test_setupConversion_proxy_needed(setupConversion_patches, worker):
     worker.proxy.isProxyNeeded = MagicMock(return_value=True)
-    mock_isProxyNeeded = setupConversion_patches[2]
     worker.proxy.generate = MagicMock(return_value="/tmp/path/image.png")
-    mock_isProxyNeeded.return_value = True
+    setupConversion_patches["isProxyNeeded"].return_value = True
 
     worker.setupConversion()
 
