@@ -168,29 +168,49 @@ def test_verifyJPEGXLReconstructionData_checksum_mismatch(verifyJPEGXLReconstruc
 
     assert (False, "", "Checksum mismatch.") == lossless_jpeg.verifyJPEGXLReconstructionData("/path/src.jpg", "/path/dst.jpg", "/path/tmp.jpg", 4)
 
-def test_reconstructJPEGfromJPEGXL_happy_path():
-    src, dst = "/path/src.jpg", "/path/dst.jpg"
-    with (
-        patch("core.lossless_jpeg.DJXL_PATH", "djxl") as var_DJXL_PATH,
-        patch("core.lossless_jpeg.os.path.isfile", return_value=True) as mock_isfile,
-        patch("core.lossless_jpeg.runBinary", return_value=("stdout", "stderr")) as mock_runBinary,
-    ):
-        assert (True, "stdout", "stderr") == lossless_jpeg.reconstructJPEGfromJPEGXL(src, dst, 4)
 
-    mock_runBinary.assert_called_once_with(
-        var_DJXL_PATH,
+@pytest.fixture
+def reconstructJPEGfromJPEGXL_patches():
+    mocks = {
+        "DJXL_PATH": patch("core.lossless_jpeg.DJXL_PATH", "djxl"),
+        "isfile": patch("core.lossless_jpeg.os.path.isfile", return_value=True),
+        "runBinary": patch("core.lossless_jpeg.runBinary", return_value=("stdout", "stderr")),
+    }
+
+    with ExitStack() as stack:
+        _mocks = {name: stack.enter_context(patcher) for name, patcher in mocks.items()}
+        yield _mocks
+
+def test_reconstructJPEGfromJPEGXL_happy_path(reconstructJPEGfromJPEGXL_patches):
+    mocks = reconstructJPEGfromJPEGXL_patches
+    src, dst = "/path/src.jpg", "/path/dst.jpg"
+    assert (True, "stdout", "stderr") == lossless_jpeg.reconstructJPEGfromJPEGXL(src, dst, 4, explicit=True)
+
+    mocks["runBinary"].assert_called_once_with(
+        mocks["DJXL_PATH"],
         ["--num_threads=4", "--reconstruct_jpeg"],
-        src,
-        dst,
+        src, dst,
     )
 
-def test_reconstructJPEGfromJPEGXL_missing_source():
-    src, dst = "/path/src.jpg", "/path/dst.jpg"
-    with (
-        patch("core.lossless_jpeg.DJXL_PATH", "djxl") as var_DJXL_PATH,
-        patch("core.lossless_jpeg.os.path.isfile", return_value=False) as mock_isfile,
-        patch("core.lossless_jpeg.runBinary", return_value=("stdout", "stderr")) as mock_runBinary,
-    ):
-        assert (False, "", "Source file not found.") == lossless_jpeg.reconstructJPEGfromJPEGXL(src, dst, 4)
+@pytest.mark.parametrize("explicit", [True, False])
+def test_reconstructJPEGfromJPEGXL_explicit(explicit, reconstructJPEGfromJPEGXL_patches):
+    mocks = reconstructJPEGfromJPEGXL_patches
+    lossless_jpeg.reconstructJPEGfromJPEGXL("/tmp/src.jxl", "/tmp/dst.jpg", 4, explicit=explicit)
+    assert ("--reconstruct_jpeg" in mocks["runBinary"].call_args_list[0][0][1]) == explicit
 
-    mock_runBinary.assert_not_called()
+def test_reconstructJPEGfromJPEGXL_missing_source(reconstructJPEGfromJPEGXL_patches):
+    mocks = reconstructJPEGfromJPEGXL_patches
+    mocks["isfile"].return_value = False
+    src, dst = "/path/src.jpg", "/path/dst.jpg"
+
+    assert (False, "", "Source file not found.") == lossless_jpeg.reconstructJPEGfromJPEGXL(src, dst, 4)
+    mocks["runBinary"].assert_not_called()
+
+@pytest.mark.parametrize(
+    "stdout, stderr, expected", [
+    ("JPEG bitstream reconstruction data available", "", True),
+    ("", "", False),
+])
+def test_hasReconstructionData(stdout, stderr, expected):
+    with patch("core.lossless_jpeg.runProcess2", return_value=(stdout, stderr)):
+        assert lossless_jpeg.hasReconstructionData("/tmp/test.jxl") == expected
