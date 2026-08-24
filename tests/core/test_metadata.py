@@ -115,22 +115,37 @@ def reset_data():
     metadata.Data.exiftool_err_msg = ""
 
 @pytest.mark.parametrize("system, output, expected", [
-    ("Linux", ("", "exiftool is /usr/bin/exiftool"), (True, "")),
-    ("Linux", ("", "bash: type: exiftool: not found"), (False, "ExifTool not found.")),
     ("Darwin", ("", ""), (True, "")),
     ("Windows", ("12.40",""), (True, "")),
     ("Windows", ("",""), (False, "Please reinstall this program")),
     ("Windows", ("","assertion failed"), (False, "Please reinstall this program")),
 ])
-def test_isExifToolAvailable(reset_data, system, output, expected):
+def test_isExifToolAvailable_win(reset_data, system, output, expected):
     with (
-        patch("platform.system", return_value=system),
+        patch("core.metadata.platform.system", return_value=system),
         patch("core.metadata.runProcess2", return_value=output)
     ):
         is_available, err_msg = metadata.isExifToolAvailable()
         assert is_available == expected[0]
         assert type(expected[1]) is str
         assert expected[1] in err_msg
+
+@pytest.mark.parametrize(
+    "shutil_which, expected_exiftool_available, expected_err_msg", [
+    ("/usr/bin/exiftool", True, ""),
+    (None, False, "ExifTool not found"),
+])
+def test_isExifToolAvailable_linux(reset_data, shutil_which, expected_exiftool_available, expected_err_msg):
+    with (
+        patch("core.metadata.platform.system", return_value="Linux"),
+        patch("core.metadata.shutil.which", return_value=shutil_which),
+    ):
+        is_available, err_msg = metadata.isExifToolAvailable()
+        assert is_available == expected_exiftool_available
+        if expected_err_msg:
+            assert expected_err_msg in err_msg
+        else:
+            assert not err_msg
 
 def test_cached_data(reset_data):
     metadata.Data.exiftool_available = False

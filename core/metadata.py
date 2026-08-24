@@ -2,6 +2,7 @@ import platform
 import tempfile
 import os
 import logging
+import shutil
 
 from data.constants import (
     EXIFTOOL_PATH,
@@ -83,7 +84,7 @@ def isExifToolAvailable() -> tuple[bool, str]:
 
     match platform.system():
         case "Linux":
-            Data.exiftool_available = "not found" not in runProcess2("bash", "-c", "type exiftool")[1]
+            Data.exiftool_available = shutil.which("exiftool") is not None
             if Data.exiftool_available == False:
                 Data.exiftool_err_msg = "ExifTool not found. Please install ExifTool on your system and restart the program."
         case "Windows":
