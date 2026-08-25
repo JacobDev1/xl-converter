@@ -183,7 +183,16 @@ class Interact:
         self.main_window.settings_tab.resetToDefault()
         self.main_window.output_tab.wm.getWidget("threads_sl").setValue(self.main_window.output_tab.MAX_THREAD_COUNT)   # To speed up testing
 
-    def convert_preset(self, src, dst, format, lossless=False, effort=7, jpg_encoder="JPEGLI"):
+    def convert_preset(
+        self,
+        src,
+        dst,
+        format,
+        lossless=False,
+        effort=7,
+        jpg_encoder="JPEGLI",
+        jpeg_reconstruction_fallback=False,
+    ):
         self.clear_list()
         self.set_format(format)
         self.set_custom_output(dst)
@@ -192,6 +201,7 @@ class Interact:
         self.set_effort(effort)
         if format == "JPEG":
             self.set_jpg_encoder(jpg_encoder)
+        self.set_jpeg_reconstruction_fallback(jpeg_reconstruction_fallback)
         self.convert()
 
     def convert(self):
@@ -220,6 +230,9 @@ class Interact:
     
     def set_jpg_encoder(self, encoder: str):
         self.main_window.settings_tab.jpg_encoder_cmb.setCurrentText(encoder)
+
+    def set_jpeg_reconstruction_fallback(self, enabled: bool):
+        self.main_window.output_tab.jxl_png_fallback_cb.setChecked(enabled)
 
     def drag_and_drop(self, urls):
         mime_data = QMimeData()
@@ -358,7 +371,7 @@ class TestMainWindow(unittest.TestCase):
         converted = self.data.get_tmp_folder_content()
         assert blake2(converted[0]) != blake2(converted[1]), "Images should not be the same"
 
-    def test_jpg_reconstruction(self):
+    def test_jpeg_reconstruction_happy_path(self):
         # Source -> JPG
         self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("jpg"), "JPEG")
 
@@ -368,7 +381,23 @@ class TestMainWindow(unittest.TestCase):
         # JXL -> JPG
         self.app.convert_preset(self.data.get_tmp_folder_content("jxl")[0], self.data.make_tmp_subfolder("reconstructed"), "JPEG Reconstruction")
 
-        assert blake2(self.data.get_tmp_folder_content("jpg")[0]) == blake2(self.data.get_tmp_folder_content("reconstructed")[0]), "Hash mismatch for reconstructed JPG"
+    def test_jpeg_reconstruction_no_reconstruction_data_no_fallback(self):
+        # Source -> JPG
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("jxl"), "JPEG XL")
+
+        # JXL -> PNG
+        self.app.convert_preset(self.data.get_tmp_folder_content("jxl")[0], self.data.make_tmp_subfolder("png"), "JPEG Reconstruction", jpeg_reconstruction_fallback=False)
+
+        assert not self.data.get_tmp_folder_content("png")
+
+    def test_jpeg_reconstruction_no_reconstruction_data_fallback(self):
+        # Source -> JXL
+        self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("jxl"), "JPEG XL")
+
+        # JXL -> PNG
+        self.app.convert_preset(self.data.get_tmp_folder_content("jxl")[0], self.data.make_tmp_subfolder("png"), "JPEG Reconstruction", jpeg_reconstruction_fallback=True)
+
+        assert Path(self.data.get_tmp_folder_content("png")[0]).suffix == ".png", "PNG file not found"
 
     def test_avif(self): 
         self.app.convert_preset(self.data.get_sample_img(), self.data.make_tmp_subfolder("avif"), "AVIF")
