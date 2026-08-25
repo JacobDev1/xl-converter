@@ -192,6 +192,7 @@ class Interact:
         effort=7,
         jpg_encoder="JPEGLI",
         jpeg_reconstruction_fallback=False,
+        oxipng_inplace=False,
     ):
         self.clear_list()
         self.set_format(format)
@@ -202,6 +203,7 @@ class Interact:
         if format == "JPEG":
             self.set_jpg_encoder(jpg_encoder)
         self.set_jpeg_reconstruction_fallback(jpeg_reconstruction_fallback)
+        self.set_oxipng_inplace(oxipng_inplace)
         self.convert()
 
     def convert(self):
@@ -233,6 +235,9 @@ class Interact:
 
     def set_jpeg_reconstruction_fallback(self, enabled: bool):
         self.main_window.output_tab.jxl_png_fallback_cb.setChecked(enabled)
+
+    def set_oxipng_inplace(self, enabled):
+        self.main_window.output_tab.oxipng_inplace_cb.setChecked(enabled)
 
     def drag_and_drop(self, urls):
         mime_data = QMimeData()
@@ -565,6 +570,66 @@ class TestMainWindow(unittest.TestCase):
 
         self.app.convert_preset(converted[0], self.data.make_tmp_subfolder("漢字1"), "PNG")
         assert len(self.data.get_tmp_folder_content()) == 2
+
+    def test_png_optimization(self):
+        source_path = self.data.get_sample_img()
+        source_b2sum = blake2(source_path)
+
+        self.app.convert_preset(
+            source_path,
+            self.data.make_tmp_subfolder("png_optimized"),
+            "PNG Optimization",
+            effort=4,
+        )
+
+        optimized = self.data.get_tmp_folder_content("png_optimized")
+        assert blake2(source_path) == source_b2sum, "Original image should not be modified"
+        assert len(optimized) == 1, "Optimized PNG not found"
+        assert optimized[0].suffix == ".png"
+
+        with (
+            Image.open(source_path) as org,
+            Image.open(optimized[0]) as dst,
+        ):
+            assert org.size == dst.size
+            assert org.tobytes() == dst.tobytes()
+
+    def test_png_optimization_effort(self):
+        source_path = self.data.get_sample_img()
+
+        self.app.convert_preset(
+            source_path,
+            self.data.make_tmp_subfolder("low_effort"),
+            "PNG Optimization",
+            effort=0,
+        )
+        self.app.convert_preset(
+            source_path,
+            self.data.make_tmp_subfolder("high_effort"),
+            "PNG Optimization",
+            effort=4,
+        )
+
+        low_effort = self.data.get_tmp_folder_content("low_effort")
+        high_effort = self.data.get_tmp_folder_content("high_effort")
+
+        assert len(low_effort) == 1
+        assert len(high_effort) == 1
+        assert os.path.getsize(low_effort[0]) > os.path.getsize(high_effort[0])
+
+    def test_png_optimization_inplace(self):
+        source_path = self.data.get_sample_img()
+        source_b2sum = blake2(source_path)
+
+        self.app.convert_preset(
+            source_path,
+            self.data.make_tmp_subfolder("unused"),
+            "PNG Optimization",
+            effort=2,
+            oxipng_inplace=True,
+        )
+
+        assert blake2(source_path) != source_b2sum, "Source checksum should differ"
 
 if __name__ == "__main__":
     unittest.main(failfast=True)
