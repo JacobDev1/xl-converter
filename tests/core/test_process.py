@@ -44,6 +44,7 @@ def test_runProcess2_happy_path(runProcess2_patches):
         stderr=subprocess.PIPE,
         creationflags=ANY,
         cwd=None,
+        shell=False,
     )
 
     runProcess2_patches["ProcessManager.addProcess"].assert_called_once_with(mock_process)
@@ -78,6 +79,7 @@ def test_runProcess2_creationflags_valid_priority_win(runProcess2_patches, monke
             CREATE_NO_WINDOW_FLAG
             | BELOW_NORMAL_PRIORITY_CLASS
         ),
+        shell=False,
     )
 
 def test_runProcess2_creationflags_none_priority_win(runProcess2_patches, monkeypatch):
@@ -95,6 +97,7 @@ def test_runProcess2_creationflags_none_priority_win(runProcess2_patches, monkey
         creationflags=(
             CREATE_NO_WINDOW_FLAG
         ),
+        shell=False,
     )
 
 def test_runProcess2__setProcessPriority_posix(runProcess2_patches, monkeypatch):
@@ -119,6 +122,7 @@ def test_runProcess2_posix(runProcess2_patches, monkeypatch):
         stderr=subprocess.PIPE,
         cwd=None,
         creationflags=0,
+        shell=False,
     )
 
 def test_runProcess2_popen_exc(runProcess2_patches, caplog):

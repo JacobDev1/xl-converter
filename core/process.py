@@ -34,6 +34,7 @@ def runProcess2(*cmd: str, cwd: str | None = None) -> tuple[str, str]:
         stderr=subprocess.PIPE,
         cwd=cwd,
         creationflags=creationflags,
+        shell=False,
     )
 
     if SYSTEM != "Windows":
