@@ -310,8 +310,9 @@ def test__chooseOutput_var_save(app):
 @pytest.mark.parametrize("widget_name, variable_name, associated_key", [
     ("int_effort_cb", "jxl_int_effort_visible", "intelligent_effort"),
     ("jxl_modular_cb", "jxl_lossy_modular_visible", "jxl_modular"),
+    ("int_effort_cb", "jxl_int_effort_visible", "intelligent_effort"),
 ])
-def test_getSettings_special(widget_name, variable_name, associated_key, app):
+def test_getSettings_widget_visibility(widget_name, variable_name, associated_key, app):
     getattr(app, widget_name).setChecked(True)
     setattr(app, variable_name, False)
     assert not app.getSettings()[associated_key]
@@ -343,6 +344,28 @@ def test_getSettings_png_opt(app):
     assert settings["if_file_exists"] == "Replace"
     assert settings["custom_output_dir"] == False
     assert settings["delete_original"] == False
+
+@pytest.mark.parametrize(
+    "jxl_modular_visible, jxl_lossless_checked, jxl_modular_checked, expected_return", [
+        (False, False, True, False),
+        (True, True, True, False),
+        (False, True, True, False),
+        (True, False, True, True),
+    ]
+)
+def test_getSettings_jxl_lossy_modular(
+    jxl_modular_visible,
+    jxl_lossless_checked,
+    jxl_modular_checked,
+    expected_return,
+    app,
+):
+    app.jxl_modular_cb.setChecked(True)
+    setattr(app, "jxl_lossy_modular_visible", jxl_modular_visible)
+    app.lossless_cb.setChecked(jxl_lossless_checked)
+    app.jxl_modular_cb.setChecked(jxl_modular_checked)
+
+    assert app.getSettings()["jxl_modular"] == expected_return
 
 def test__onJXLNormalizeClicked_no_var(app):
     with (

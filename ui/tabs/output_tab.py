@@ -281,7 +281,7 @@ class OutputTab(QWidget):
             "max_compression": self.max_compression_cb.isChecked(),
             "effort": self.effort_sb.value(),
             "intelligent_effort": self.int_effort_cb.isChecked() if self.jxl_int_effort_visible else False,
-            "jxl_modular": self.jxl_modular_cb.isChecked() if self.jxl_lossy_modular_visible else False,
+            "jxl_modular": self.jxl_modular_cb.isChecked() if self.jxl_lossy_modular_visible and not self.lossless_cb.isChecked() else False,
             "jxl_verify": self.jxl_verify_cb.isChecked(),
             "jxl_normalize_enable": self.jxl_normalize_enable_cb.isChecked(),
             "jxl_normalize_when": self.jxl_normalize_when_cmb.currentText(),
