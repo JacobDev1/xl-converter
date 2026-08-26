@@ -74,6 +74,7 @@ def test_changeCategory_visibility(category, button, app):
             "jxl_int_effort_cb",
             "jxl_effort_10_cb",
             "custom_resampling_cb",
+            "png_opt_pixel_format_cb",
             "custom_args_cb",
             "avifenc_args_l", "avifenc_args_te",
             "cjxl_args_l", "cjxl_args_te",
@@ -97,6 +98,11 @@ def test_changeCategory_visibility(category, button, app):
             assert False, f"Widget not found ({widget_str})"
         assert widget_p.isVisibleTo(app) == ( widget_str in visibility[category] ), \
             f"Expected {widget_str in visibility[category]} got {widget_p.isVisibleTo(app)} ({widget_str})"
+
+def test_getSettings_png_opt_pixel_format(app):
+    assert app.getSettings()["png_opt_pixel_format"] is False
+    app.png_opt_pixel_format_cb.setChecked(True)
+    assert app.getSettings()["png_opt_pixel_format"] is True
 
 @pytest.mark.parametrize("signal_attr, widget_attr", [
     ("custom_resampling_toggled", "custom_resampling_cb"),
@@ -336,6 +342,7 @@ def test_resetToDefault(app):
     assert app.disable_progressive_jpegli_cb.isChecked() == False
 
     assert app.jxl_int_effort_cb.isChecked() == False
+    assert app.png_opt_pixel_format_cb.isChecked() == False
     assert app.custom_args_cb.isChecked() == False
     assert app.cjxl_args_te.toPlainText() == ""
     assert app.cjpegli_args_te.toPlainText() == ""
