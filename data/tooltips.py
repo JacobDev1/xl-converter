@@ -80,6 +80,9 @@ The default lets ImageMagick choose -- using Lanczos for images without transpar
 
 Changing resampling can worsen the quality. Make sure you know what you are doing.""",
     "jxl_int_effort": "Shows or hides the JPEG XL Intelligent Effort option in the Output tab.\n\nThis functionality picks Effort based on context.\n\nIt aimed at providing lower file size but made only a marginal difference.\n\nThis feature will be removed in the future.",
+    "png_opt_pixel_format": """Enables changing bit depth and color type to increase compression.
+
+Images will remain visually lossless.""",
     "exiftool_args": "Arguments used for handling metadata, correspond to the options is the modify tab.\n\nSupported variables:\n\n$src - source image path.\n\n$dst - destination image path.\n\nRemember to add \"-overwrite_original\" to avoid leftover files.",
     "encoder_args": "Additional arguments for the encoders.\n\nAll arguments must be valid and can not conflict with already used ones. Inspect logs for more details.",
     "processing_order": """Controls the processing order.

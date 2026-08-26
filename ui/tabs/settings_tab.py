@@ -165,6 +165,7 @@ class SettingsTab(QWidget):
         self.jxl_effort_10_cb = self.wm.addWidget("jxl_effort_10_cb", QCheckBox("JPEG XL - Enable Effort 10", self))
         self.jxl_int_effort_cb = self.wm.addWidget("jxl_int_effort_cb", QCheckBox("JPEG XL - Allow Intelligent Effort (Deprecated)"))
         self.custom_resampling_cb = self.wm.addWidget("custom_resampling_cb", QCheckBox("Downscaling - Custom Resampling", self))
+        self.png_opt_pixel_format_cb = self.wm.addWidget("png_opt_pixel_format_cb", QCheckBox("PNG Optimization - Optimize Pixel Format"))
         self.custom_args_cb = self.wm.addWidget("custom_args_cb", QCheckBox("Additional Encoder Arguments"))
         self.avifenc_args_l = QLabel("avifenc\nAVIF")
         self.avifenc_args_te = self.wm.addWidget("avifenc_args_te", QTextEdit())
@@ -250,6 +251,7 @@ class SettingsTab(QWidget):
         self.settings_lt.addWidget(self.jxl_effort_10_cb)
         self.settings_lt.addWidget(self.jxl_int_effort_cb)
         self.settings_lt.addWidget(self.custom_resampling_cb)
+        self.settings_lt.addWidget(self.png_opt_pixel_format_cb)
         self.settings_lt.addWidget(self.custom_args_cb)
         self.settings_lt.addLayout(createQHBoxLayout(self.cjxl_args_l, self.cjxl_args_te))
         self.settings_lt.addLayout(createQHBoxLayout(self.avifenc_args_l, self.avifenc_args_te))
@@ -351,6 +353,7 @@ class SettingsTab(QWidget):
         setToolTip("avif_aom_iq_tune", self.avif_aom_iq_tune_cb)
         setToolTip("ram_optimizer", self.ram_optimizer_cmb)
         setToolTip("ram_optimizer_rules", self.ram_optimizer_rules_te)
+        setToolTip("png_opt_pixel_format", self.png_opt_pixel_format_cb)
         setToolTip("processing_order", self.processing_order_cmb)
         setToolTip("process_priority", self.process_priority_cmb)
 
@@ -396,6 +399,7 @@ class SettingsTab(QWidget):
                 "jxl_int_effort_cb",
                 "jxl_effort_10_cb",
                 "custom_resampling_cb",
+                "png_opt_pixel_format_cb",
                 "custom_args_cb",
                 "avifenc_args_l", "avifenc_args_te",
                 "cjxl_args_l", "cjxl_args_te",
@@ -549,6 +553,7 @@ class SettingsTab(QWidget):
             "avif_bit_depth": self.avif_bit_depth_cmb.currentText(),
             "avif_aom_iq_tune": self.avif_aom_iq_tune_cb.isChecked(),
             "processing_order": self.processing_order_cmb.currentText(),
+            "png_opt_pixel_format": self.png_opt_pixel_format_cb.isChecked(),
         }
     
     def resetExifTool(self, reset_custom=False):
@@ -586,6 +591,7 @@ class SettingsTab(QWidget):
         self.ram_optimizer_cmb.setCurrentIndex(0)
         self.resetOptimizationRules()
         self.jxl_int_effort_cb.setChecked(False)
+        self.png_opt_pixel_format_cb.setChecked(False)
         self.resetExifTool()
         self.processing_order_cmb.setCurrentIndex(0)
         self.custom_args_cb.setChecked(False)
