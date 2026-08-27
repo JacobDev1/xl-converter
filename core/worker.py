@@ -565,8 +565,6 @@ class Worker(QRunnable):
         # Allow bit depth reduction
         if self.params["smallest_format_pool"]["webp"]:
             args["jxl"].append("--override_bitdepth=8")
-        else:
-            args["png"].append("--nb")
         
         # Handle metadata
         if self.settings["jxl_auto_lossless_jpeg"]:
@@ -722,13 +720,20 @@ class Worker(QRunnable):
     
     def PNGOptimization(self):
         args = [
-            f"-o {self.params['effort']}",
+            f"-o {min(self.params['effort'], 6)}",
             f"-t {self.available_threads}",
             "--fast",
             "--np",     # Disable indexing color palettes
         ]
         if not self.settings["png_opt_pixel_format"]:
             args.extend(["--nb", "--nc", "--ng"])
+        match self.params["effort"]:
+            case 7:
+                args.append("--zopfli --zi 15")
+            case 8:
+                args.append("--zopfli --zi 100 --ziwi 15")
+            case 9:
+                args.append("--zopfli --zi 255 --ziwi 30")
         args.extend(
             metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"])
         )

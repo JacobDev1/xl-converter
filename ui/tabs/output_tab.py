@@ -367,7 +367,7 @@ class OutputTab(QWidget):
             self.effort_sb.setRange(0, 6)
             self.effort_l.setText("Method")
         elif cur_format == "PNG Optimization":
-            self.effort_sb.setRange(0, 4)
+            self.effort_sb.setRange(0, 9)
             self.effort_l.setText("Level")
 
         if cur_format in ("JPEG XL", "AVIF"):
