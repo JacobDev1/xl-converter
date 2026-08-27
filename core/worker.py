@@ -548,7 +548,8 @@ class Worker(QRunnable):
             "png": [
                 "-o 4" if self.params["max_compression"] else "-o 2",
                 f"-t {self.available_threads}",
-                "--nb", "--nc", "--np", "--ng", "--fast",
+                "--nb", "--nc", "--np", "--ng",
+                "--fast",
                 ],
             "webp": [
                 f"-define webp:thread-level={1 if self.available_threads > 1 else 0}",

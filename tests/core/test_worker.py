@@ -1263,7 +1263,17 @@ def test_runDynamicRamOptimizer_disabled(worker):
         worker.runDynamicRamOptimizer()
         mock_run.assert_not_called()
 
-def test_PNGOptimization_happy_path(worker):
+@pytest.fixture
+def PNGOptimization_patches():
+    mocks = {
+        "runOxipng": patch("core.worker.runOxipng", return_value=("", "")),
+        "isfile": patch("core.worker.os.path.isfile", return_value=True),
+    }
+
+    with ExitStack() as stack:
+        yield {name: stack.enter_context(patcher) for name, patcher in mocks.items()}
+
+def test_PNGOptimization_happy_path(PNGOptimization_patches, worker):
     level = 4
     available_threads = 3
     worker.params["effort"] = level
@@ -1271,36 +1281,59 @@ def test_PNGOptimization_happy_path(worker):
     worker.params["misc"]["keep_metadata"] = "Encoder - Wipe"
     worker.output = "/tmp/out.png"
 
-    with (
-        patch("core.worker.runOxipng", return_value=("", "")) as mock_runOxipng,
-        patch("core.worker.os.path.isfile", return_value=True),
-    ):
-        worker.PNGOptimization()
-        mock_runOxipng.assert_called_once_with(
-            [
-                f"-o {level}",
-                f"-t {available_threads}",
-                "--fast",
-                "--np", "--nb", "--nc", "--ng",
-                "--strip", "safe",
-            ],
-            worker.item_abs_path,
-            worker.output,
-        )
+    worker.PNGOptimization()
+    PNGOptimization_patches["runOxipng"].assert_called_once_with(
+        [
+            f"-o {level}",
+            f"-t {available_threads}",
+            "--fast",
+            "--np", "--nb", "--nc", "--ng",
+            "--strip", "safe",
+        ],
+        worker.item_abs_path,
+        worker.output,
+    )
 
-def test_PNGOptimization_sad_path(worker):
+@pytest.mark.parametrize("preserve_str, expected_preserved", [
+    ("Encoder - Preserve", True),
+    ("Encoder - Wipe", False),
+])
+def test_PNGOptimization_metadata(preserve_str, expected_preserved, PNGOptimization_patches, worker):
+    worker.params["misc"]["keep_metadata"] = preserve_str
+
+    worker.PNGOptimization()
+    mock_runOxipng_args = PNGOptimization_patches["runOxipng"].call_args_list[0].args[0]
+    assert ("--strip" in mock_runOxipng_args) is (not expected_preserved)
+    assert ("safe" in mock_runOxipng_args) is (not expected_preserved)
+
+@pytest.mark.parametrize("effort, expected_extra_args", [
+    (6, None),
+    (7, "--zopfli --zi 15"),
+    (8, "--zopfli --zi 100 --ziwi 15"),
+    (9, "--zopfli --zi 255 --ziwi 30"),
+])
+def test_PNGOptimization_effort(effort, expected_extra_args, PNGOptimization_patches, worker):
+    worker.params["effort"] = effort
+
+    worker.PNGOptimization()
+    mock_runOxipng_args = PNGOptimization_patches["runOxipng"].call_args_list[0].args[0]
+    assert "-o 6" in mock_runOxipng_args
+    if expected_extra_args:
+        assert expected_extra_args in mock_runOxipng_args
+
+def test_PNGOptimization_sad_path(PNGOptimization_patches, worker):
     level = 4
     available_threads = 3
     stderr = "error"
     worker.params["effort"] = level
+    PNGOptimization_patches["isfile"].return_value = False
+    PNGOptimization_patches["runOxipng"].return_value = ("", stderr)
 
     with (
-        patch("core.worker.runOxipng", return_value=("", stderr)) as mock_runOxipng,
-        patch("core.worker.os.path.isfile", return_value=False),
         pytest.raises(FileException) as exc_info,
     ):
         worker.PNGOptimization()
 
-    mock_runOxipng.assert_called_once()
+    PNGOptimization_patches["runOxipng"].assert_called_once()
     assert exc_info.value.id == "png_opt_0"
     assert exc_info.value.msg == f"Optimization failed. {stderr}"
