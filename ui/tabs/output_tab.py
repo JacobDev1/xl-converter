@@ -233,7 +233,7 @@ class OutputTab(QWidget):
         setToolTip("smallest_lossless_webp", self.smallest_lossless_webp_cb)
         setToolTip("smallest_lossless_jpeg_xl", self.smallest_lossless_jxl_cb)
         setToolTip("smallest_lossless_max_comp", self.max_compression_cb)
-        setToolTip("oxipng_inplace", self.oxipng_inplace_cb)
+        setToolTip("png_opt_inplace", self.oxipng_inplace_cb)
 
     def _setToolTipsDynamic(self):
         """Sets tooltips. Their content can change."""
@@ -254,7 +254,7 @@ class OutputTab(QWidget):
             case "Lossless JPEG Transcoding":
                 setToolTip("effort_jpeg_recomp", self.effort_sb)
             case "PNG Optimization":
-                setToolTip("oxipng_level", self.effort_sb)
+                setToolTip("png_opt_level", self.effort_sb)
 
     # //////////////////////////////////////////////////////////
     # /                      Getters
