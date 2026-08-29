@@ -121,14 +121,6 @@ class Controller(QObject):
             )
             return output
 
-        if output_tab_settings["format"] == "PNG Optimization":
-            if not modify_tab_settings["misc"]["keep_metadata"].startswith("Encoder"):
-                output.setError(
-                    "Metadata Mode Unavailable",
-                    "ExifTool is unavailable for PNG Optimization.\nGo to Modify tab, and pick an Encoder metadata mode."
-                )
-                return output
-
         if self.items.getItemCount() == 0:
             output.setError(
                 "Data Error",

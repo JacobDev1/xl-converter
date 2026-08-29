@@ -726,8 +726,10 @@ class Worker(QRunnable):
             "--fast",
             "--np",     # Disable indexing color palettes
         ]
+
         if not self.settings["png_opt_pixel_format"]:
             args.extend(["--nb", "--nc", "--ng"])
+
         match self.params["effort"]:
             case 7:
                 args.append("--zopfli --zi 15")
@@ -735,13 +737,15 @@ class Worker(QRunnable):
                 args.append("--zopfli --zi 100 --ziwi 15")
             case 9:
                 args.append("--zopfli --zi 255 --ziwi 30")
-        args.extend(
-            metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"])
-        )
+
+        if not self.params["misc"]["png_opt_keep_metadata"]:
+            args.extend(["--strip", "safe"])
+
         stdout, stderr = runOxipng(
             args,
             self.item_abs_path,
             self.output,
         )
+
         if not os.path.isfile(self.output):
             raise FileException("png_opt_0", f"Optimization failed. {stderr}")

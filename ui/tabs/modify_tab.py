@@ -61,6 +61,7 @@ class ModifyTab(QWidget):
         else:
             self._updateDownscalingWidgets()
         self.setCustomResamplingEnabled(settings["custom_resampling"])
+        self._updateMetadataWidgets()
 
         # Vars
         self.resample_visible = settings["custom_resampling"]
@@ -111,6 +112,7 @@ class ModifyTab(QWidget):
             "Default",
             *ALLOWED_RESAMPLING
         )))
+
         self.keep_timestamps_cb = self.wm.addWidget("keep_timestamps_cb", QCheckBox("Preserve Time Attributes"))
         self.metadata_l = self.wm.addWidget("metadata_l", QLabel("Metadata"))
         self.metadata_cmb = self.wm.addWidget("metadata_cmb", ComboBox((
@@ -121,6 +123,8 @@ class ModifyTab(QWidget):
             "ExifTool - Unsafe Wipe",
             "ExifTool - Custom"
         )))
+        self.png_opt_metadata_cb = self.wm.addWidget("png_opt_metadata_cb", QCheckBox("Metadata"))
+
         self.default_btn = QPushButton("Reset to Defaults")
         self.convert_btn = QPushButton("Convert")
 
@@ -147,6 +151,7 @@ class ModifyTab(QWidget):
         metadata_hb = createQHBoxLayout(self.metadata_l, self.metadata_cmb)
         misc_grp_lt.addWidget(self.keep_timestamps_cb)
         misc_grp_lt.addLayout(metadata_hb)
+        misc_grp_lt.addWidget(self.png_opt_metadata_cb)
         misc_grp.setLayout(misc_grp_lt)
 
         # Main
@@ -194,6 +199,7 @@ class ModifyTab(QWidget):
 
     def _setToolTips(self):
         setToolTip("metadata", self.metadata_cmb)
+        setToolTip("png_opt_metadata", self.png_opt_metadata_cb)
         setToolTip("keep_timestamps", self.keep_timestamps_cb)
         setToolTip("downscaling", self.downscale_cb)
         setToolTip("downscaling_file_size", self.file_size_sb)
@@ -227,6 +233,7 @@ class ModifyTab(QWidget):
             "misc": {
                 "keep_metadata": self.metadata_cmb.currentText(),
                 "keep_timestamps": self.keep_timestamps_cb.isChecked(),
+                "png_opt_keep_metadata": self.png_opt_metadata_cb.isChecked(),
             }
         }
     
@@ -236,8 +243,9 @@ class ModifyTab(QWidget):
             self.cached_states = deepcopy(new_states)
 
     def resetToDefault(self) -> None:
-        self.metadata_cmb.setCurrentIndex(0)
         self.keep_timestamps_cb.setChecked(False)
+        self.metadata_cmb.setCurrentIndex(0)
+        self.png_opt_metadata_cb.setChecked(True)
         self.mode_cmb.setCurrentIndex(0)
         self.resample_cmb.setCurrentIndex(0)
         self.file_size_sb.setValue(300)
@@ -264,6 +272,7 @@ class ModifyTab(QWidget):
     def onFileFormatChanged(self, new_file_format: str) -> None:
         self.file_format = new_file_format
         self._updateDownscalingWidgets()
+        self._updateMetadataWidgets()
 
     # ---------------------------------------------
     # /                 Private
@@ -286,7 +295,12 @@ class ModifyTab(QWidget):
         self.pixel_w_sb.setEnabled(downscaling_enabled and self.pixel_w_cb.isChecked())
 
         self.wm.setEnabledByTag("downscale_ui", downscaling_enabled)
-    
+
+    def _updateMetadataWidgets(self):
+        self.metadata_l.setVisible(self.file_format != "PNG Optimization")
+        self.metadata_cmb.setVisible(self.file_format != "PNG Optimization")
+        self.png_opt_metadata_cb.setVisible(self.file_format == "PNG Optimization")
+
     def _onModeChanged(self):
         """Enables or disables widgets based on the currently selected mode."""
         index = self.mode_cmb.currentText()

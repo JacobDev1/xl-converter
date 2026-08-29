@@ -181,17 +181,6 @@ def test_checkProcessingRequirements_jpegli_mode_unavailable(controller_checkPro
     assert cs.display_error
     assert "The `Encoder - Preserve` metadata mode is unavailable for JPEGLI" in cs.error_description
 
-def test_checkProcessingRequirements_png_opt_metadata(controller_checkProcessingRequirements_patched, output_tab_settings, modify_tab_settings, settings_tab_settings):
-    controller, mocks = controller_checkProcessingRequirements_patched
-    output_tab_settings["format"] = "PNG Optimization"
-    modify_tab_settings["misc"]["keep_metadata"] = "ExifTool - Preserve"
-
-    cs = controller.checkProcessingRequirements(100, False, output_tab_settings, modify_tab_settings, settings_tab_settings)
-
-    assert not cs.allowed_to_proceed
-    assert cs.display_error
-    assert "ExifTool is unavailable for PNG Optimization.\nGo to Modify tab, and pick an Encoder metadata mode." in cs.error_description
-
 def test_parseData(controller):
     items = ["item0", "item1"]
 

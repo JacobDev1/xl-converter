@@ -51,6 +51,7 @@ Levels higher than 4 offer marginal returns.""",
     # Modify tab
     "keep_timestamps": """Preserves original date & time file attributes.""",
     "metadata": "Controls how metadata is handled.\n\nEncoder modes are faster and recommended. ExifTool is more thorough but more error-prone.\n\nEncoder - Wipe - wipes metadata. Works well for encoding everything except PNG, where it depends on the input format.\n\nEncoder - Preserve - preserves metadata. Works on common input formats, may not work for less popular ones.\n\nExifTool - Wipe - Deletes all metadata except orientation, and color profile.\n\nExifTool - Preserve - preserves all metadata.\n\nExifTool - Unsafe Wipe - deletes every last bit of metadata, including color profile. It can potentially alter the final image, but is the most effective.\n\nExifTool - Custom - empty. It allows you to specify custom behavior (in the settings).\n\nView and edit ExifTool commands in the settings (Settings -> ExifTool -> ExifTool Arguments).",
+    "png_opt_metadata": "Preserves metadata chunks.",
     "downscaling": "Scales down the resolution of your image.",
     "downscaling_resolution_width_enabled": "Checked - restricts width to a given amount of pixels.\n\nUnchecked - imposes no restrictions on width. Disables downscaling for this dimension.",
     "downscaling_resolution_height_enabled": "Checked - restricts height to a given amount of pixels.\n\nUnchecked - imposes no restrictions on height. Disables downscaling for this dimension.",

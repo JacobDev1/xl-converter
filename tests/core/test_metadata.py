@@ -164,7 +164,6 @@ def test_cached_data(reset_data):
     (constants.CJXL_PATH, "Encoder - Wipe", True, []),
     (constants.IMAGE_MAGICK_PATH, "Encoder - Wipe", False, ["-strip"]),
     (constants.AVIFENC_PATH, "Encoder - Wipe", False, ["--ignore-exif", "--ignore-xmp"]),
-    (constants.OXIPNG_PATH, "Encoder - Wipe", False, ["--strip", "safe"]),
 ])
 def test_getArgs(encoder, mode, jpg_to_jxl_lossless, expected):
     assert metadata.getArgs(

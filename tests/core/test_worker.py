@@ -55,6 +55,7 @@ def worker():
             "misc": {
                 "keep_metadata": "Encoder - Wipe",
                 "keep_timestamps": False,
+                "png_opt_keep_metadata": True,
             }
         },
         {
@@ -1288,23 +1289,21 @@ def test_PNGOptimization_happy_path(PNGOptimization_patches, worker):
             f"-t {available_threads}",
             "--fast",
             "--np", "--nb", "--nc", "--ng",
-            "--strip", "safe",
         ],
         worker.item_abs_path,
         worker.output,
     )
 
-@pytest.mark.parametrize("preserve_str, expected_preserved", [
-    ("Encoder - Preserve", True),
-    ("Encoder - Wipe", False),
+@pytest.mark.parametrize("preserve_metadata", [
+    True, False
 ])
-def test_PNGOptimization_metadata(preserve_str, expected_preserved, PNGOptimization_patches, worker):
-    worker.params["misc"]["keep_metadata"] = preserve_str
+def test_PNGOptimization_metadata(preserve_metadata, PNGOptimization_patches, worker):
+    worker.params["misc"]["png_opt_keep_metadata"] = preserve_metadata
 
     worker.PNGOptimization()
     mock_runOxipng_args = PNGOptimization_patches["runOxipng"].call_args_list[0].args[0]
-    assert ("--strip" in mock_runOxipng_args) is (not expected_preserved)
-    assert ("safe" in mock_runOxipng_args) is (not expected_preserved)
+    assert ("--strip" in mock_runOxipng_args) is (not preserve_metadata)
+    assert ("safe" in mock_runOxipng_args) is (not preserve_metadata)
 
 @pytest.mark.parametrize("effort, expected_extra_args", [
     (6, None),
