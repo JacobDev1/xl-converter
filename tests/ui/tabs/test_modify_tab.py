@@ -132,9 +132,13 @@ def test_setCustomResamplingEnabled(custom_resampling_enabled, app):
     assert app.resample_l.isVisibleTo(app) == custom_resampling_enabled
 
 def test_onFileFormatChanged(app):
-    with patch.object(app, "_updateDownscalingWidgets") as mock__updateDownscalingWidgets:
+    with (
+        patch.object(app, "_updateDownscalingWidgets") as mock__updateDownscalingWidgets,
+        patch.object(app, "_updateMetadataWidgets") as mock__updateMetadataWidgets,
+    ):
         app.onFileFormatChanged("format")
-        app._updateDownscalingWidgets.assert_called_once()
+        mock__updateDownscalingWidgets.assert_called_once()
+        mock__updateMetadataWidgets.assert_called_once()
 
 @pytest.mark.parametrize("downscale_enabled, setEnabled_call_count_expected", [
     (True, 1),
@@ -162,6 +166,21 @@ def test_updateDownscalingWidgets_metadata(
     app.file_format = file_format
     app._updateDownscalingWidgets()
     assert app.metadata_cmb.isEnabled() == allowed
+
+@pytest.mark.parametrize("mode, visible_widgets", [
+    ("JPEG XL", ("metadata_l", "metadata_cmb")),
+    ("PNG Optimization", ("png_opt_metadata_cb",)),
+])
+def test_updateMetadataWidgets(mode, visible_widgets, app):
+    all_widgets = (
+        "metadata_l",
+        "metadata_cmb",
+        "png_opt_metadata_cb",
+    )
+    app.file_format = mode
+    app._updateMetadataWidgets()
+    for widget in all_widgets:
+        assert getattr(app, widget).isVisibleTo(app) is (widget in visible_widgets)
 
 @pytest.mark.parametrize("file_format, downscaling_checked, expected_enabled", [
     ("Lossless JPEG Transcoding", True, False),
