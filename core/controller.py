@@ -136,7 +136,10 @@ class Controller(QObject):
             )
             return output
 
-        if modify_tab_settings["misc"]["keep_metadata"].startswith("ExifTool"):
+        if (
+            output_tab_settings["format"] not in ("PNG Optimization", "Lossless JPEG Transcoding", "JPEG Reconstruction") and
+            modify_tab_settings["misc"]["keep_metadata"].startswith("ExifTool")
+        ):
             # ExifTool available
             exiftool_available = isExifToolAvailable()
             if not exiftool_available[0]:

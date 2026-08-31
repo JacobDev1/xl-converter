@@ -694,6 +694,11 @@ def test_runExifTool_dont_run(mock_exiftool_env):
     worker.runExifTool()
     mocks["runExifTool"].assert_not_called()
 
+    worker.params["format"] = "PNG Optimization"
+    worker.params["misc"]["keep_metadata"] = "ExifTool - Wipe"
+    worker.runExifTool()
+    mocks["runExifTool"].assert_not_called()
+
 @pytest.fixture
 def postConversionRoutines_patched(worker):
     mocks = {
@@ -810,7 +815,6 @@ def smallestLossless_patches_v2():
     mocks = {
         "getsize": patch("core.worker.os.path.getsize", side_effect=getsize_side_effect),
         "getUniqueTmpFilePath": patch("core.worker.getUniqueTmpFilePath", side_effect=getUniqueTmpFilePath_side_effect),
-        "getArgs": patch("core.worker.metadata.getArgs", return_value=[]),
         "copy": patch("core.worker.shutil.copy"),
         "runBinary": patch("core.worker.runBinary", return_value=("", "")),
         "remove": patch("core.worker.os.remove"),
@@ -949,19 +953,20 @@ def test_smallestLossless_remove_bigger_failed(smallestLossless_patches_v2, work
 @pytest.mark.parametrize("jxl_auto_lossless_jpeg", [True, False])
 def test_smallestLossless_args(jxl_auto_lossless_jpeg, smallestLossless_patches_v2, worker):
     mocks = smallestLossless_patches_v2
-    mocks["getArgs"].return_value = ["--metadata_arg"]
     worker.settings["jxl_auto_lossless_jpeg"] = jxl_auto_lossless_jpeg
+    worker.params["misc"]["keep_metadata"] = "Encoder - Wipe"
     worker.item_ext = "jpg"
 
-    worker.smallestLossless()
+    with patch("core.worker.metadata.getArgs", return_value=["--metadata_arg"]):
+        worker.smallestLossless()
 
     assert mocks["runBinary"].call_count == 3
     assert mocks["runBinary"].call_args_list[0][0][1] == [
         "-o 2",
         "-t 4",
-        "--nb", "--nc", "--np", "--ng",
         "--fast",
-        "--metadata_arg"
+        "--nc", "--np", "--ng",
+        "--strip", "safe",
     ]
     assert mocks["runBinary"].call_args_list[1][0][1] == [
         "-define webp:thread-level=1",
@@ -977,6 +982,57 @@ def test_smallestLossless_args(jxl_auto_lossless_jpeg, smallestLossless_patches_
         f"--lossless_jpeg={1 if jxl_auto_lossless_jpeg else 0}",
         "--metadata_arg"
     ]
+
+@pytest.mark.parametrize("webp_enabled", [True, False])
+def test_smallestLossless_bit_depth(webp_enabled, smallestLossless_patches_v2, worker):
+    mocks = smallestLossless_patches_v2
+    worker.params["smallest_format_pool"]["webp"] = webp_enabled
+    worker.params["smallest_format_pool"]["jxl"] = True
+
+    worker.smallestLossless()
+
+    png_args = mocks["runBinary"].call_args_list[0].args[1]
+    jxl_args = mocks["runBinary"].call_args_list[1 if not webp_enabled else 2].args[1]
+    assert ("--nb" in png_args) is (not webp_enabled)
+    assert ("--override_bitdepth=8" in jxl_args) is webp_enabled
+
+@pytest.mark.parametrize(
+    "metadata_mode, png_args, webp_args, jxl_args", [
+    (
+        "Encoder - Wipe",
+        ["--strip", "safe"],
+        ["-strip"],
+        ["-x strip=exif", "-x strip=xmp", "-x strip=jumbf"],
+    ),
+    (
+        "Encoder - Preserve",
+        [],
+        [],
+        [],
+    )
+])
+def test_smallestLossless_metadata(
+    metadata_mode,
+    png_args,
+    webp_args,
+    jxl_args,
+    smallestLossless_patches_v2,
+    worker,
+):
+    mocks = smallestLossless_patches_v2
+    worker.params["misc"]["keep_metadata"] = metadata_mode
+    worker.params["smallest_format_pool"]["png"] = True
+    worker.params["smallest_format_pool"]["jxl"] = True
+    worker.params["smallest_format_pool"]["webp"] = True
+
+    worker.smallestLossless()
+
+    actual_args = [call.args[1] for call in mocks["runBinary"].call_args_list]
+    for actual, expected in zip(
+        actual_args,
+        (png_args, webp_args, jxl_args),
+    ):
+        assert set(expected) <= set(actual)
 
 @pytest.fixture
 def worker_losslesslyTranscodeJPEG_patches(worker):

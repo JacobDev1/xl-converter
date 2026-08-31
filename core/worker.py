@@ -411,7 +411,8 @@ class Worker(QRunnable):
         # Apply metadata (ExifTool)
         if (
             not self.lossless_jpeg and
-            self.params["misc"]["keep_metadata"].startswith("ExifTool")
+            self.params["misc"]["keep_metadata"].startswith("ExifTool") and
+            self.params["format"] != "PNG Optimization"
         ):
             cur_mode = self.params["misc"]["keep_metadata"]
             try:
@@ -548,8 +549,8 @@ class Worker(QRunnable):
             "png": [
                 "-o 4" if self.params["max_compression"] else "-o 2",
                 f"-t {self.available_threads}",
-                "--nb", "--nc", "--np", "--ng",
                 "--fast",
+                "--nc", "--np", "--ng",
                 ],
             "webp": [
                 f"-define webp:thread-level={1 if self.available_threads > 1 else 0}",
@@ -566,13 +567,16 @@ class Worker(QRunnable):
         # Allow bit depth reduction
         if self.params["smallest_format_pool"]["webp"]:
             args["jxl"].append("--override_bitdepth=8")
+        else:
+            args["png"].append("--nb")
         
         # Handle metadata
         if self.settings["jxl_auto_lossless_jpeg"]:
             self.lossless_jpeg = self.item_ext in JPEG_ALIASES
         args["jxl"].extend([f"--lossless_jpeg={1 if self.lossless_jpeg else 0}"])
 
-        args["png"].extend(metadata.getArgs(OXIPNG_PATH, self.params["misc"]["keep_metadata"]))
+        if self.params["misc"]["keep_metadata"] == "Encoder - Wipe":
+            args["png"].extend(["--strip", "safe"])
         args["webp"].extend(metadata.getArgs(IMAGE_MAGICK_PATH, self.params["misc"]["keep_metadata"]))
         args["jxl"].extend(metadata.getArgs(CJXL_PATH, self.params["misc"]["keep_metadata"], self.lossless_jpeg))
 

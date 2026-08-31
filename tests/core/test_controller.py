@@ -169,6 +169,27 @@ def test_checkProcessingRequirements_exiftool_empty_args_happy_path(controller_c
     assert cs.allowed_to_proceed
     assert not cs.display_error
 
+@pytest.mark.parametrize("file_format", [
+    "Lossless JPEG Transcoding",
+    "JPEG Reconstruction",
+    "PNG Optimization",
+])
+def test_checkProcessingRequirements_exiftool_not_required(
+    file_format,
+    controller_checkProcessingRequirements_patched,
+    output_tab_settings,
+    modify_tab_settings,
+    settings_tab_settings,
+):
+    controller, mocks = controller_checkProcessingRequirements_patched
+    output_tab_settings["format"] = file_format
+
+    cs = controller.checkProcessingRequirements(100, False, output_tab_settings, modify_tab_settings, settings_tab_settings)
+
+    assert cs.allowed_to_proceed
+    assert not cs.display_error
+    mocks["isExifToolAvailable"].assert_not_called()
+
 def test_checkProcessingRequirements_jpegli_mode_unavailable(controller_checkProcessingRequirements_patched, output_tab_settings, modify_tab_settings, settings_tab_settings):
     controller, mocks = controller_checkProcessingRequirements_patched
     output_tab_settings["format"] = "JPEG"
