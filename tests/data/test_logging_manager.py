@@ -83,7 +83,7 @@ def test_setLevel_invalid(reset_logging_manager, caplog):
     assert "[Logging - setLevel] Invalid argument (INVALID)" in caplog.text
     assert org_level == logging.getLogger().level
 
-def test_startLoggingToFile(reset_logging_manager):
+def test_startLoggingToFile_happy_path(reset_logging_manager):
     with (
         patch("data.logging_manager.logging.FileHandler") as mock_FileHandler,
         patch("data.logging_manager.os.makedirs") as mock_makedirs,
@@ -96,6 +96,24 @@ def test_startLoggingToFile(reset_logging_manager):
         assert lm.isLoggingToFile() is True
         mock_setLevel.assert_called_once_with("DEBUG")
         assert mock_FileHandler.return_value in lm.root_logger.handlers
+
+def test_startLoggingToFile_makedirs_fail(reset_logging_manager, caplog):
+    with (
+        patch("data.logging_manager.os.makedirs", side_effect=OSError("Exception")) as mock_makedirs,
+        patch("data.logging_manager.logging.FileHandler") as mock_FileHandler,
+    ):
+        lm = LoggingManager()
+        lm.startLoggingToFile(level="DEBUG")
+
+        mock_makedirs.assert_called_once_with("/tmp/logs_dir", exist_ok=True)
+        mock_FileHandler.assert_not_called()
+        assert lm.file_handler is None
+        assert lm.isLoggingToFile() is False
+        assert "Failed to create logs dir" in caplog.text
+
+        root_logger = logging.getLogger()
+        assert None not in root_logger.handlers
+        root_logger.error("Logging still works")
 
 def test_stopLoggingToFile(reset_logging_manager):
     with (

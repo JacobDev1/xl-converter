@@ -60,6 +60,8 @@ class LoggingManager:   # Singleton
     
     def startLoggingToFile(self, level: str = None) -> None:
         self._setupFileHandler()
+        if self.file_handler is None:
+            return
         if level is not None:
             self.setLevel(level)
         if self.file_handler not in self.root_logger.handlers:
