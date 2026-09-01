@@ -64,15 +64,8 @@ class UpdateCheckerRunner(QObject):
         self.thread = None
     
     def _cleanup(self):
-        if self.thread:
-            self.thread.quit()
-            self.thread.wait(1000)
-            self.thread.deleteLater()
-            self.thread = None
-        
-        if self.worker:
-            self.worker.deleteLater()
-            self.worker = None
+        self.thread = None
+        self.worker = None
         
     def run(self):
         if self.thread and self.thread.isRunning():
@@ -85,7 +78,10 @@ class UpdateCheckerRunner(QObject):
         self.thread.started.connect(self.worker.run)
         self.worker.json_received.connect(self.json_received)
         self.worker.error_occurred.connect(self.error_occurred)
-        self.worker.finished.connect(self._cleanup)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.thread.quit)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self._cleanup)
         self.thread.start()
 
 def isNewerVersionAvailable(remote_ver: str) -> bool:
