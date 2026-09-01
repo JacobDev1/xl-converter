@@ -101,15 +101,26 @@ def runOxipng(
     src_path: str,
     dst_path: str | None = None,
     inplace: bool = False,
+    delete_if_canceled: list[str] | None = None,
 ) -> tuple[str, str]:
     """Runs Oxipng."""
     if not inplace and dst_path is None:
         raise ValueError("dst_path is required if inplace is False.")
 
+    if delete_if_canceled and src_path in delete_if_canceled:
+        raise ValueError("src_path cannot be in delete_if_canceled")
+
     if inplace:
-        return runProcess2(OXIPNG_PATH, *parseArgs(args), src_path)
+        stdout, stderr = runProcess2(OXIPNG_PATH, *parseArgs(args), src_path)
     else:
-        return runProcess2(OXIPNG_PATH, *parseArgs(args), src_path, "--out", dst_path)
+        stdout, stderr = runProcess2(OXIPNG_PATH, *parseArgs(args), src_path, "--out", dst_path)
+
+    if task_status.wasCanceled():
+        if delete_if_canceled:
+            cleanUp(delete_if_canceled)
+        raise CancellationException()
+
+    return (stdout, stderr)
 
 def parseArgs(args: list[str]) -> list[str]:
     """Splits arguments by spaces and flattens them into a list."""

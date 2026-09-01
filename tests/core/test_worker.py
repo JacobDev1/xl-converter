@@ -1394,6 +1394,7 @@ def test_PNGOptimization_happy_path(PNGOptimization_patches, worker):
         ],
         worker.item_abs_path,
         worker.output,
+        delete_if_canceled=[worker.output],
     )
 
 @pytest.mark.parametrize("preserve_metadata", [
@@ -1438,3 +1439,11 @@ def test_PNGOptimization_sad_path(PNGOptimization_patches, worker):
     PNGOptimization_patches["runOxipng"].assert_called_once()
     assert exc_info.value.id == "png_opt_0"
     assert exc_info.value.msg == f"Optimization failed. {stderr}"
+
+def test_PNGOptimization_canceled(PNGOptimization_patches, worker):
+    PNGOptimization_patches["runOxipng"].side_effect = CancellationException()
+
+    with pytest.raises(CancellationException):
+        worker.PNGOptimization()
+
+    PNGOptimization_patches["isfile"].assert_not_called()  # The code after runOxipng not reached

@@ -753,6 +753,7 @@ class Worker(QRunnable):
             args,
             self.item_abs_path,
             self.output,
+            delete_if_canceled=[self.output],
         )
 
         if not os.path.isfile(self.output):

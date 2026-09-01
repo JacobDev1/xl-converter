@@ -179,47 +179,85 @@ def test_runJPEGtran_sad_path():
         "path/src.jpg",
     )
 
-def test_runOxipng_inplace_false():
-    args = ["--nc", "--np"]
-    src_path = "/tmp/src.png"
-    dst_path = "/tmp/dst.png"
+@pytest.fixture
+def runOxipng_patches():
+    mocks = {
+        "wasCanceled": patch("core.convert.task_status.wasCanceled", return_value=False),
+        "runProcess2": patch("core.convert.runProcess2", return_value=("", "")),
+        "isfile": patch("core.convert.os.path.isfile", return_value=True),
+        "remove": patch("core.convert.os.remove"),
+    }
+
+    with ExitStack() as stack:
+        yield {name: stack.enter_context(patcher) for name, patcher in mocks.items()}
+
+@pytest.mark.parametrize(
+    "inplace, dst_path, expected_cmd", [
+        (True, None, (OXIPNG_PATH, "--np", "/tmp/src.png")),
+        (False, "/tmp/dst.png", (OXIPNG_PATH, "--np", "/tmp/src.png", "--out", "/tmp/dst.png")),
+    ]
+)
+def test_runOxipng_inplace(inplace, dst_path, expected_cmd, runOxipng_patches):
     runProcess2_return = ("stdout", "")
+    runOxipng_patches["runProcess2"].return_value = runProcess2_return
+    assert convert.runOxipng(
+        ["--np"],
+        "/tmp/src.png",
+        dst_path,
+        inplace=inplace,
+    ) == runProcess2_return
+    runOxipng_patches["runProcess2"].assert_called_once_with(*expected_cmd)
 
-    with (
-        patch("core.convert.runProcess2", return_value=runProcess2_return) as mock_runProcess2
-    ):
-        assert convert.runOxipng(args, src_path, dst_path) == runProcess2_return
-        mock_runProcess2.assert_called_once_with(
-            OXIPNG_PATH,
-            *args,
-            src_path,
-            "--out", dst_path,
-        )
-
-def test_runOxipng_inplace_false_no_dst():
+def test_runOxipng_inplace_false_no_dst(runOxipng_patches):
     src_path = "/tmp/src.png"
 
     with (
-        patch("core.convert.runProcess2") as mock_runProcess2,
         pytest.raises(ValueError, match="dst_path is required if inplace is False."),
     ):
         convert.runOxipng([], src_path)
-    mock_runProcess2.assert_not_called()
+    runOxipng_patches["runProcess2"].assert_not_called()
 
-def test_runOxipng_inplace_true():
-    args = ["--nc", "--np"]
-    src_path = "/tmp/src.png"
-    runProcess2_return = ("stdout", "")
-
+def test_runOxipng_canceled_no_delete_list(runOxipng_patches):
+    runOxipng_patches["wasCanceled"].return_value = True
     with (
-        patch("core.convert.runProcess2", return_value=runProcess2_return) as mock_runProcess2
+        patch("core.convert.cleanUp") as mock_cleanUp,
+        pytest.raises(CancellationException),
     ):
-        assert convert.runOxipng(args, src_path, inplace=True) == runProcess2_return
-        mock_runProcess2.assert_called_once_with(
-            OXIPNG_PATH,
-            *args,
-            src_path,
+        convert.runOxipng([], "/tmp/src.png", "/tmp/dst.png")
+    runOxipng_patches["runProcess2"].assert_called_once()
+    mock_cleanUp.assert_not_called()
+
+def test_runOxipng_canceled_delete_list_exists(runOxipng_patches):
+    tmp_files = ["/tmp/image_0.png", "/tmp/image_1.png", "/tmp/image_2.png"]
+    runOxipng_patches["wasCanceled"].return_value = True
+    runOxipng_patches["isfile"].side_effect = (True, False, True)
+    with (
+        pytest.raises(CancellationException),
+    ):
+        convert.runOxipng(
+            [],
+            "/tmp/src.png",
+            "/tmp/dst.png",
+            delete_if_canceled=tmp_files,
         )
+    runOxipng_patches["runProcess2"].assert_called_once()
+    assert runOxipng_patches["isfile"].call_count == 3
+    assert runOxipng_patches["remove"].call_count == 2
+    assert runOxipng_patches["remove"].call_args_list[0].args[0] == tmp_files[0]
+    assert runOxipng_patches["remove"].call_args_list[1].args[0] == tmp_files[2]
+
+def test_runOxipng_src_in_delete_if_canceled(runOxipng_patches):
+    src_path = "/tmp/src.png"
+    with (
+        pytest.raises(ValueError),
+    ):
+        convert.runOxipng(
+            [],
+            src_path,
+            "/tmp/dst.png",
+            delete_if_canceled=[src_path],
+        )
+    runOxipng_patches["runProcess2"].assert_not_called()
 
 def test_parseArgs():
     assert convert.parseArgs(["--quality=50", "-m 1"]) == ["--quality=50", "-m", "1"]
