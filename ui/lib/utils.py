@@ -120,6 +120,8 @@ def blockSignals(*objects: QObject) -> None:
         if isinstance(obj, QObject):
             obj.blockSignals(True)
             blocked.append(obj)
-    yield
-    for obj in blocked:
-        obj.blockSignals(False)
+    try:
+        yield
+    finally:
+        for obj in blocked:
+            obj.blockSignals(False)
