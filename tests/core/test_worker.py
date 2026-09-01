@@ -125,6 +125,20 @@ def test_run_finally(worker):
     worker.proxy.cleanUp.assert_called_once_with(raising=False)
     assert spy_completed.count() == 1
 
+def test_run_canceled_mid_run(worker):
+    spy_canceled = QSignalSpy(worker.signals.canceled)
+    spy_completed = QSignalSpy(worker.signals.completed)
+
+    with (
+        patch.object(worker, "runChecks", side_effect=CancellationException),
+        patch("core.worker.task_status.wasCanceled", return_value=False),
+    ):
+        worker.run()
+
+    assert spy_canceled.count() == 1
+    assert spy_completed.count() == 0
+    worker.proxy.cleanUp.assert_called_once_with(raising=False)
+
 @patch("core.worker.os.path.isfile", return_value=False)
 def test_runChecks_file_not_found(mock_isfile, worker):
     with pytest.raises(FileException) as exc:

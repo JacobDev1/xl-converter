@@ -106,6 +106,7 @@ class Worker(QRunnable):
         else:
             self.signals.started.emit(self.n)
 
+        worker_canceled = False
         try:
             self.runChecks()
             self.setupConversion()
@@ -131,6 +132,7 @@ class Worker(QRunnable):
             self.finishConversion()
             self.postConversionRoutines()
         except CancellationException:
+            worker_canceled = True
             self.signals.canceled.emit(self.n)
             return
         except (GenericException, FileException) as err:
@@ -141,7 +143,8 @@ class Worker(QRunnable):
             self.logException("Exception", str(err))
         finally:
             self.proxy.cleanUp(raising=False)     # Cleans up proxy if it wasn't cleaned up before. A no-op if no proxy exists.
-            self.signals.completed.emit(self.n, self.skipped)
+            if not worker_canceled:
+                self.signals.completed.emit(self.n, self.skipped)
     
     def runChecks(self):
         # Input was moved / deleted
