@@ -22,11 +22,11 @@ class Proxy():
     def __init__(self):
         self.proxy_path = None
 
-    def isProxyNeeded(self, _format: str, src_ext: str, jpegli: bool = False, downscaling_enabled: bool = False) -> bool:
-        if _format == "Smallest Lossless":
+    def isProxyNeeded(self, file_format: str, src_ext: str, jpegli: bool = False, downscaling_enabled: bool = False) -> bool:
+        if file_format == "Smallest Lossless":
             return True
 
-        if _format == "PNG":
+        if file_format == "PNG":
             return False
 
         if downscaling_enabled:
@@ -35,7 +35,7 @@ class Proxy():
             else:
                 return True
 
-        match _format:
+        match file_format:
             case "JPEG XL":
                 if src_ext in ALLOWED_INPUT_CJXL:
                     return False
@@ -59,7 +59,7 @@ class Proxy():
             case "PNG Optimization":
                 return False
             case _:
-                raise FileException("Proxy0", f"Unrecognized format ({src_ext})")
+                raise FileException("Proxy0", f"Unrecognized format ({file_format})")
         
         return True
 

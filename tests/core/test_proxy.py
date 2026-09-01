@@ -25,14 +25,18 @@ def test_isProxyNeeded_png(proxy):
     ("Smallest Lossless", "png", True),
     ("PNG Optimization", "png", False),
 ])
-def test_test_isProxyNeeded_base(proxy, file_format, src_ext, expected):
+def test_isProxyNeeded_base(proxy, file_format, src_ext, expected):
     assert proxy.isProxyNeeded(file_format, src_ext) == expected
 
-def test_test_isProxyNeeded_jpegli(proxy):
+def test_isProxyNeeded_jpegli(proxy):
     assert not proxy.isProxyNeeded("JPEG", "jpg", jpegli=True)
 
-def test_test_isProxyNeeded_unknown(proxy):
+def test_isProxyNeeded_unknown_ext(proxy):
     assert proxy.isProxyNeeded("JPEG XL", "exr")
+
+def test_isProxyNeeded_unknown_format(proxy):
+    with pytest.raises(FileException):
+        proxy.isProxyNeeded("Unknown", "none")
 
 def test_isProxyNeeded_downscaling(proxy):
     assert proxy.isProxyNeeded("JPEG XL", "exr", downscaling_enabled=True)
