@@ -123,6 +123,7 @@ build-win:
 .PHONY: build-macos
 build-macos:
 	rm -rf dist
+	$(PYTHON) build.py
 	bash $(SCRIPT_DIR)/macos/build.sh
 
 .PHONY: build-all
