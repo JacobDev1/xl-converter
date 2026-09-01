@@ -170,8 +170,7 @@ def _downscaleToFileSize(params, mutex):
     # Use gathered data
     extrapolated_scale = _extrapolateScale(size_samples, params["max_size"] * 1024)
     if extrapolated_scale < 1:          # Error
-        _deleteFile(proxy_src, raising=True, exc_id="D13")
-        raise GenericException("D14", f"Extrapolated scale cannot be negative ({extrapolated_scale})")
+        raise GenericException("D14", f"Extrapolated scale cannot be lower than 1 ({extrapolated_scale})")
     elif extrapolated_scale >= 100:     # Non-downscaled conversion
         if Path(params["src"]).suffix[1:].lower() in ("png", "jpeg", "jpg"):
             runBinary(
