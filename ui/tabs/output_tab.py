@@ -126,7 +126,7 @@ class OutputTab(QWidget):
         self.jxl_verify_cb = self.wm.addWidget("jxl_verify_cb", QCheckBox("Verify"))
         self.jxl_normalize_enable_cb = self.wm.addWidget("jxl_normalize_enable_cb", QCheckBox("Normalize"))
         self.jxl_normalize_when_cmb = self.wm.addWidget("jxl_normalize_when_cmb", ComboBox(("On Fail", "Always")))  # There is a quirk / bug in Qt which causes the popup opened by this specific widget in this particular layout combination on Windows to shrink. Overriding `showPopup` fixed it in Qt 6.6 but Qt 6.8 broke it.
-        self.oxipng_inplace_cb = self.wm.addWidget("oxipng_inplace_cb", QCheckBox("In-place"))
+        self.png_opt_inplace_cb = self.wm.addWidget("png_opt_inplace_cb", QCheckBox("In-place"))
 
         # Buttons
         self.reset_to_default_btn = QPushButton("Reset to Defaults")
@@ -167,7 +167,7 @@ class OutputTab(QWidget):
         self.format_grp_lt.addWidget(self.jxl_png_fallback_cb)
         self.format_grp_lt.addLayout(createQHBoxLayout(self.jxl_normalize_enable_cb, self.jxl_normalize_when_cmb))
         self.format_grp_lt.addWidget(self.jxl_verify_cb)
-        self.format_grp_lt.addWidget(self.oxipng_inplace_cb)
+        self.format_grp_lt.addWidget(self.png_opt_inplace_cb)
 
         self.smallest_lossless_bit_depth_l.setMaximumHeight(13)
 
@@ -208,7 +208,7 @@ class OutputTab(QWidget):
         self.jxl_normalize_enable_cb.toggled.connect(self._onJXLNormalizeToggled)
         self.jxl_normalize_enable_cb.clicked.connect(self._onJXLNormalizeClicked)
         self.smallest_lossless_webp_cb.toggled.connect(self._onSmLBitDepthChanged)
-        self.oxipng_inplace_cb.toggled.connect(self._updateOutputStates)
+        self.png_opt_inplace_cb.toggled.connect(self._updateOutputStates)
 
     def _setToolTipsStatic(self):
         """Sets tooltips at once at startup."""
@@ -233,7 +233,7 @@ class OutputTab(QWidget):
         setToolTip("smallest_lossless_webp", self.smallest_lossless_webp_cb)
         setToolTip("smallest_lossless_jpeg_xl", self.smallest_lossless_jxl_cb)
         setToolTip("smallest_lossless_max_comp", self.max_compression_cb)
-        setToolTip("png_opt_inplace", self.oxipng_inplace_cb)
+        setToolTip("png_opt_inplace", self.png_opt_inplace_cb)
 
     def _setToolTipsDynamic(self):
         """Sets tooltips. Their content can change."""
@@ -300,11 +300,15 @@ class OutputTab(QWidget):
                 "jxl": self.smallest_lossless_jxl_cb.isChecked()
                 },
             "jxl_png_fallback": self.jxl_png_fallback_cb.isChecked(),
+            "png_opt_inplace": (
+                self.format_cmb.currentText() == "PNG Optimization" and
+                self.png_opt_inplace_cb.isChecked()
+            ),
         }
 
         if (
             self.format_cmb.currentText() == "PNG Optimization" and
-            self.oxipng_inplace_cb.isChecked()
+            self.png_opt_inplace_cb.isChecked()
         ):
             settings["if_file_exists"] = "Replace"
             settings["custom_output_dir"] = False
@@ -354,7 +358,7 @@ class OutputTab(QWidget):
         self.jxl_verify_cb.setVisible(cur_format == "Lossless JPEG Transcoding")
         self.jxl_normalize_enable_cb.setVisible(cur_format == "Lossless JPEG Transcoding")
         self.jxl_normalize_when_cmb.setVisible(cur_format == "Lossless JPEG Transcoding")
-        self.oxipng_inplace_cb.setVisible(cur_format == "PNG Optimization")
+        self.png_opt_inplace_cb.setVisible(cur_format == "PNG Optimization")
 
         # Params
         if cur_format == "AVIF":
@@ -443,7 +447,7 @@ class OutputTab(QWidget):
             self.chroma_subsampling_aom_av1_cmb.setVisible(encoder == "AOM AV1")
 
     def _updateOutputStates(self) -> None:
-        inplace = self.format_cmb.currentText() == "PNG Optimization" and self.oxipng_inplace_cb.isChecked()
+        inplace = self.format_cmb.currentText() == "PNG Optimization" and self.png_opt_inplace_cb.isChecked()
 
         self.output_grp.setDisabled(inplace)
         if not inplace:
@@ -514,7 +518,7 @@ class OutputTab(QWidget):
             i.setChecked(True)
         
         self.jxl_png_fallback_cb.setChecked(False)
-        self.oxipng_inplace_cb.setChecked(False)
+        self.png_opt_inplace_cb.setChecked(False)
 
     def _setQualityRange(self, _min: int, _max: int) -> None:
         for i in self.wm.getWidgetsByTag("quality"):

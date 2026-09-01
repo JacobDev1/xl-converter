@@ -40,6 +40,7 @@ def worker():
             "aom_av1_chroma_subsampling": "Default",
             "jpegli_chroma_subsampling": "Default",
             "jxl_png_fallback": False,
+            "png_opt_inplace": False,
             "downscaling": {
                 "enabled": False,
                 "mode": "Percent",
@@ -620,6 +621,37 @@ def test_finishConversion_replace_edge_case_delete_original(delete_original_mode
     worker.finishConversion()
 
     mocks[delete_method].assert_called_once_with("final/path/img.jpg")
+
+def test_finishConversion_replace_png_opt_inplace(finishConversion_patches):
+    worker, mocks = finishConversion_patches
+    worker.output = "temp/path/img.jpg"
+    worker.final_output = "final/path/img.jpg"
+    worker.params["format"] = "PNG Optimization"
+    worker.params["png_opt_inplace"] = True
+    worker.params["if_file_exists"] = "Replace"
+    worker.params["custom_output_dir"] = False
+    worker.params["delete_original"] = False
+    mocks["isSamePath"].return_value = True
+    worker.settings["keep_if_larger"] = True
+    worker.settings["copy_if_larger"] = True
+    mocks["getsize"].side_effect = [
+        100_000,
+        100_000,
+        200_000,
+        100_000,
+        200_000,
+    ]
+
+    worker.finishConversion()
+
+    assert worker.final_output == "final/path/img.jpg"
+    mocks["getUniqueFilePath"].assert_not_called()
+    mocks["removeFile"].assert_called_once_with("final/path/img.jpg")
+    mocks["rename"].assert_called_once_with(
+        "temp/path/img.jpg",
+        "final/path/img.jpg",
+    )
+    mocks["copyfile"].assert_not_called()
 
 @pytest.mark.parametrize("file_format, getsize_side_effect, copy_if_larger_enabled, expected_to_run", [
     ("JPEG XL", [300_000, 300_000, 400_000], True, True),

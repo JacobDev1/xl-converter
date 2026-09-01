@@ -237,7 +237,7 @@ class Interact:
         self.main_window.output_tab.jxl_png_fallback_cb.setChecked(enabled)
 
     def set_oxipng_inplace(self, enabled):
-        self.main_window.output_tab.oxipng_inplace_cb.setChecked(enabled)
+        self.main_window.output_tab.png_opt_inplace_cb.setChecked(enabled)
 
     def drag_and_drop(self, urls):
         mime_data = QMimeData()

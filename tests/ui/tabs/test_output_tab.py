@@ -324,7 +324,7 @@ def test_getSettings_no_png_opt(app):
     app.choose_output_src_rb.setChecked(True)
     app.delete_original_cb.setChecked(True)
     app.format_cmb.setCurrentText("JPEG")
-    app.oxipng_inplace_cb.setChecked(True)
+    app.png_opt_inplace_cb.setChecked(True)
 
     settings = app.getSettings()
 
@@ -337,7 +337,7 @@ def test_getSettings_png_opt(app):
     app.choose_output_ct_rb.setChecked(False)
     app.delete_original_cb.setChecked(True)
     app.format_cmb.setCurrentText("PNG Optimization")
-    app.oxipng_inplace_cb.setChecked(True)
+    app.png_opt_inplace_cb.setChecked(True)
 
     settings = app.getSettings()
 
@@ -412,7 +412,7 @@ def test_png_opt_inplace_happy_path(app):
     # PNG Optimization / inplace on
     app.format_cmb.setCurrentText("PNG Optimization")
     app.delete_original_cb.setChecked(False)
-    app.oxipng_inplace_cb.setChecked(True)
+    app.png_opt_inplace_cb.setChecked(True)
     assert not app.output_grp.isEnabled()
     assert not app.duplicates_l.isEnabled()
     assert not app.duplicates_cmb.isEnabled()
@@ -420,7 +420,7 @@ def test_png_opt_inplace_happy_path(app):
     assert not app.delete_original_cmb.isEnabled()
 
     # PNG Optimization / inplace off
-    app.oxipng_inplace_cb.setChecked(False)
+    app.png_opt_inplace_cb.setChecked(False)
     assert app.output_grp.isEnabled()
     assert app.duplicates_l.isEnabled()
     assert app.duplicates_cmb.isEnabled()
@@ -428,7 +428,7 @@ def test_png_opt_inplace_happy_path(app):
     assert not app.delete_original_cmb.isEnabled()
 
     # JPEG / reference
-    app.oxipng_inplace_cb.setChecked(True)
+    app.png_opt_inplace_cb.setChecked(True)
     app.format_cmb.setCurrentText("JPEG")
     assert app.output_grp.isEnabled()
     assert app.duplicates_l.isEnabled()
@@ -446,10 +446,10 @@ def test_delete_original_happy_path(app):
 
     # PNG Optimization
     app.format_cmb.setCurrentText("PNG Optimization")
-    app.oxipng_inplace_cb.setChecked(True)
+    app.png_opt_inplace_cb.setChecked(True)
     assert not app.delete_original_cb.isEnabled()
     assert not app.delete_original_cmb.isEnabled()
-    app.oxipng_inplace_cb.setChecked(False)
+    app.png_opt_inplace_cb.setChecked(False)
     app.delete_original_cb.setChecked(False)
     assert app.delete_original_cb.isEnabled()
     assert not app.delete_original_cmb.isEnabled()

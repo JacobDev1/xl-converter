@@ -455,6 +455,7 @@ class Worker(QRunnable):
                 else:
                     if mode == "Replace":
                         if (
+                            not self.params["png_opt_inplace"] and
                             (self.settings["keep_if_larger"] or self.settings["copy_if_larger"]) and
                             os.path.getsize(self.org_item_abs_path) < os.path.getsize(self.output) and
                             (os.path.isfile(self.final_output) and isSamePath(self.org_item_abs_path, self.final_output))
