@@ -12,6 +12,7 @@ RUN apt update && apt install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+RUN git config --global http.version HTTP/1.1
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 WORKDIR /src
 RUN git clone -b "$OXIPNG_TAG" --depth 1 https://github.com/shssoichiro/oxipng.git

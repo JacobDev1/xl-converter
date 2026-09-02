@@ -50,6 +50,8 @@ RUN apt update && apt install -y \
     xdg-desktop-portal-gtk \
     && rm -rf /var/lib/apt/lists/*
 
+RUN git config --global http.version HTTP/1.1
+
 # Install Python
 RUN curl -fsSL https://pyenv.run | bash
 RUN pyenv install 3.13 && \

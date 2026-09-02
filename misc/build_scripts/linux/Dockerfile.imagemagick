@@ -30,6 +30,8 @@ RUN apt update && apt install -y \
     cmake \
     && rm -rf /var/lib/apt/lists/*
 
+RUN git config --global http.version HTTP/1.1
+
 # Install libjxl (unavailable in Ubuntu 22.04)
 WORKDIR /src
 RUN apt update && apt install -y \
