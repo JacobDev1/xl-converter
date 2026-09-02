@@ -122,6 +122,10 @@ class Downloader():
         # Verify the checksum
         if checksum is not None:
             if blake2(dst) != checksum:
+                try:
+                    os.remove(dst)
+                except OSError as e:
+                    pass
                 raise Exception(f"[Downloading] Checksum mismatch ({dst.name})")
         
         # Permissions
