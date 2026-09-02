@@ -140,7 +140,6 @@ def test_runProcess2_communicate_exc(runProcess2_patches, caplog):
     stdout, stderr = process.runProcess2("echo", "test")
 
     assert stdout == "" and stderr == ""
-    assert "process.communicate() failed" in caplog.text
     assert "Process crashed" in caplog.text
     runProcess2_patches["ProcessManager.removeProcess"].assert_called_once_with(mock_process)
 

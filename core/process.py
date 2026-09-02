@@ -37,14 +37,13 @@ def runProcess2(*cmd: str, cwd: str | None = None) -> tuple[str, str]:
         shell=False,
     )
 
-    if SYSTEM != "Windows":
-        _setProcessPriority(process, ProcessPriorityManager.getPriorityFlag())
-
     try:
         ProcessManager.addProcess(process)
+        if SYSTEM != "Windows":
+            _setProcessPriority(process, ProcessPriorityManager.getPriorityFlag())
         stdout, stderr = process.communicate()
     except Exception as e:
-        logging.error(f"[runProcess2] process.communicate() failed. {e}")
+        logging.error(f"[runProcess2] {e}")
         return ("", "")
     finally:
         ProcessManager.removeProcess(process)
