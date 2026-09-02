@@ -381,9 +381,9 @@ def _downscaleManualModes(params, mutex):
 def decodeAndDownscale(params, ext, metadata_mode, mutex):
     """Decode to PNG with downscaling support."""
     params["enc"] = getDecoder(ext)
-    params["args"] = metadata.getArgs(params["enc"], metadata_mode)
 
     if params["enc"] == IMAGE_MAGICK_PATH:
+        params["args"] = metadata.getArgs(params["enc"], metadata_mode)
         downscale(params, mutex)
     else:
         # Generate proxy
@@ -401,6 +401,7 @@ def decodeAndDownscale(params, ext, metadata_mode, mutex):
         # Downscale
         params["src"] = proxy_src
         params["enc"] = IMAGE_MAGICK_PATH
+        params["args"] = metadata.getArgs(params["enc"], metadata_mode)
         downscale(params, mutex)
 
         # Cleanup
