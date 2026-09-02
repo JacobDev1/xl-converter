@@ -2,7 +2,7 @@
 set -euo pipefail
 
 LIBJPEG_TURBO_TAG="3.2.0"
-MT_PATH=$(ls -1 "/c/Program Files (x86)/Windows Kits/10/bin/"*"/x64/mt.exe" 2>/dev/null | sort -V | tail -n 1)
+MT_PATH=$(ls -1 "/c/Program Files (x86)/Windows Kits/10/bin/"*"/x64/mt.exe" 2>/dev/null | sort -V | tail -n 1 || true)
 RUN_DIR=$(pwd)
 OUTPUT_DIR="${RUN_DIR}/bin/win/jpegtran"
 TEMP_DIR=$(mktemp -d)
