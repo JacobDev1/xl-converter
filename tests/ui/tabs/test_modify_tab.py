@@ -311,6 +311,17 @@ def test_isDownscalingEnabled_enabled(app):
 
     assert app._isDownscalingEnabled()
 
+@pytest.mark.parametrize("file_format", [
+    "Lossless JPEG Transcoding",
+    "JPEG Reconstruction",
+    "Smallest Lossless",
+    "PNG Optimization",
+])
+def test_isDownscalingEnabled_disallowed_formats(file_format, app):
+    app.onFileFormatChanged(file_format)
+    app.setDownscalingEnabled(True)
+    assert not app._isDownscalingEnabled()
+
 def test_getResampling_disabled(app):
     app.setCustomResamplingEnabled(False)
     app.resample_cmb.setCurrentIndex(1)

@@ -30,6 +30,8 @@ from ui.widgets import SpinBox, DoubleSpinBox
 
 MAX_RES_PX = 999_999_999
 MAX_FILE_SIZE = 1024**2   # KiB
+METADATA_DISALLOWED_FORMATS = ("Lossless JPEG Transcoding", "JPEG Reconstruction")
+DOWNSCALING_DISALLOWED_FORMATS = ("Lossless JPEG Transcoding", "JPEG Reconstruction", "Smallest Lossless", "PNG Optimization")
 
 class ModifyTab(QWidget):
     convert = Signal()
@@ -283,8 +285,8 @@ class ModifyTab(QWidget):
             widget.setEnabled(enabled)
 
     def _updateDownscalingWidgets(self) -> None:
-        metadata_allowed = self.file_format not in ("Lossless JPEG Transcoding", "JPEG Reconstruction")
-        downscaling_allowed = self.file_format not in ("Lossless JPEG Transcoding", "JPEG Reconstruction", "Smallest Lossless", "PNG Optimization")
+        metadata_allowed = self.file_format not in METADATA_DISALLOWED_FORMATS
+        downscaling_allowed = self.file_format not in DOWNSCALING_DISALLOWED_FORMATS
         downscaling_enabled = downscaling_allowed and self.downscale_cb.isChecked()
 
         self.metadata_cmb.setEnabled(metadata_allowed)
@@ -312,7 +314,11 @@ class ModifyTab(QWidget):
         self.wm.setVisibleByTag("megapixels", index == "Megapixels")
 
     def _isDownscalingEnabled(self) -> bool:
-        if not self.downscale_cb.isChecked() or not self.downscale_cb.isEnabled():
+        if (
+            not self.downscale_cb.isChecked() or
+            not self.downscale_cb.isEnabled() or
+            self.file_format in DOWNSCALING_DISALLOWED_FORMATS
+        ):
             return False
         
         if (
