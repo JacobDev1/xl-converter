@@ -16,6 +16,7 @@
 ### Changed
 
 - Improve conversion start and cancel times.
+- Speed up downscaling (#141).
 - Limit AVIF tune scope to color only, leave alpha default.
 - Update `libjxl` to `v0.12.0` (#152).
 - Update AOM AV1 to `v3.14.1` (#153).

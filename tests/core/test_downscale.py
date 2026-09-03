@@ -34,6 +34,36 @@ def test__extrapolateScale():
 #                           Helper
 # ------------------------------------------------------------
 
+@pytest.mark.parametrize("overrides, expected", [
+    pytest.param({"mode": "Resolution", "width": 1920, "height": 1080}, True, id="resolution-both-over-threshold"),
+    pytest.param({"mode": "Resolution", "width": 1920, "height": 4000}, True, id="resolution-height-over-threshold"),
+    pytest.param({"mode": "Resolution", "width": 4000, "height": 1080}, True, id="resolution-width-over-threshold"),
+    pytest.param({"mode": "Resolution", "width": 4000, "height": 4000}, False, id="resolution-under-threshold"),
+    pytest.param({"mode": "Resolution", "width": 1000, "height": float("inf")}, True, id="resolution-width-above-threshold"),
+    pytest.param({"mode": "Resolution", "width": 3000, "height": float("inf")}, False, id="resolution-width-below-threshold"),
+    pytest.param({"mode": "Resolution", "width": float("inf"), "height": 2000}, True, id="resolution-height-above-threshold"),
+    pytest.param({"mode": "Resolution", "width": float("inf"), "height": 4000}, False, id="resolution-height-below-threshold"),
+    pytest.param({"mode": "Resolution", "width": float("inf"), "height": float("inf")}, True, id="resolution-inf"),
+    pytest.param({"mode": "Shortest Side", "shortest_side": 3000}, False, id="shortest-side-below-threshold"),
+    pytest.param({"mode": "Shortest Side", "shortest_side": 1000}, True, id="shortest-side-above-threshold"),
+    pytest.param({"mode": "Longest Side", "longest_side": 4000}, False, id="longest-side-below-threshold"),
+    pytest.param({"mode": "Longest Side", "longest_side": 2000}, True, id="longest-side-above-threshold"),
+    pytest.param({"mode": "Megapixels", "megapixels": 6.0}, False, id="megapixels-at-threshold"),
+    pytest.param({"mode": "Megapixels", "megapixels": 7.0}, False, id="megapixels-below-threshold"),
+    pytest.param({"mode": "Megapixels", "megapixels": 5.0}, True, id="megapixels-above-threshold"),
+    pytest.param({"mode": "Unknwon"}, True, id="mode-unknown"), # Will raise GenericException once it gets to _downscaleManualModes
+    pytest.param({"mode": "Percent", "percent": 99}, True, id="percent-above-threshold"),   # Percent is capped in the UI at 99.
+])
+def test__isDownscalingNeeded(overrides, expected, params_fixture):
+    params_fixture.update(overrides)
+    with patch("core.downscale.getImageRes", return_value=(2000, 3000)):
+        assert downscale._isDownscalingNeeded(params_fixture) is expected
+
+def test__isDownscalingNeeded_invalid_res(params_fixture):
+    params_fixture.update({"mode": "Megapixels", "megapixels": 5.0})
+    with patch("core.downscale.getImageRes", return_value=(-1, -1)):
+        assert downscale._isDownscalingNeeded(params_fixture) is True
+
 def test__downscaleToPercent_happy_path():
     custom_resampling = ALLOWED_RESAMPLING[0]
     with patch("core.downscale.runBinary") as mock_runBinary:
@@ -461,6 +491,39 @@ def test__downscaleToFileSize_do_not_downscale_uncommon_formats(params_fixture):
         assert mock__checkForSuccess.call_args_list[5] == call("D6", params_fixture["dst"], [proxy_src])
         assert mock__deleteFile.call_args_list[4] == call(proxy_src, raising=True, exc_id="D22")
 
+def test__downscaleManualModes_fast_path(params_fixture):
+    params_fixture.update({
+        "mode": "Resolution",
+        "width": 3000,
+        "height": 3000,
+        "enc": "cumstom/env/path",
+        "args": ["-arg1", "-arg2"],
+        "src": "path/to/src.png",
+        "jxl_int_e": False,
+    })
+    mutex = MagicMock(spec=QMutex)
+    with (
+        patch("core.downscale.getImageRes", return_value=(2000, 3000)),
+        patch("core.downscale.getUniqueTmpFilePath") as mock_getUniqueTmpFilePath,
+        patch("core.downscale.runBinary") as mock_runBinary,
+        patch("core.downscale.QMutexLocker") as mock_QMutexLocker,
+        patch("core.downscale._checkForSuccess") as mock__checkForSuccess,
+        patch("core.downscale._deleteFile") as mock__deleteFile,
+    ):
+        downscale._downscaleManualModes(params_fixture, mutex)
+        mock_runBinary.assert_called_once_with(
+            params_fixture["enc"],
+            params_fixture["args"],
+            params_fixture["src"],
+            params_fixture["dst"],
+            args_after_input=False,
+            delete_if_canceled=[params_fixture["dst"]],
+        )
+        mock__checkForSuccess.assert_called_once_with("D12", params_fixture["dst"])
+        mock_QMutexLocker.assert_not_called()
+        mock_getUniqueTmpFilePath.assert_not_called()
+        mock__deleteFile.assert_not_called()
+
 @pytest.mark.parametrize("resample,expected_filter", [
     ("Default", None),
     ("Lanczos", "-filter Lanczos"),
@@ -579,6 +642,7 @@ def test__downscaleManualModes_no_imagemagick(params_fixture):
     })
     mutex = MagicMock(spec=QMutex)
     with (
+        patch("core.downscale.getImageRes", return_value=(2000, 3000)),
         patch("core.downscale.getUniqueTmpFilePath", return_value="/tmp/image.jpg") as mock_getUniqueTmpFilePath,
         patch("core.downscale.runBinary") as mock_runBinary,
         patch("core.downscale.QMutexLocker") as mock_QMutexLocker,

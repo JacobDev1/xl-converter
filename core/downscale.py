@@ -9,11 +9,12 @@ import data.task_status as task_status
 from data.constants import (
     IMAGE_MAGICK_PATH,
     ALLOWED_RESAMPLING,
+    JPEG_ALIASES,
 )
 from core.utils import clip
 from core.pathing import getUniqueTmpFilePath
 import core.metadata as metadata
-from core.convert import getDecoder, runBinary, cleanUp
+from core.convert import getDecoder, runBinary, cleanUp, getImageRes
 from core.exceptions import CancellationException, GenericException, FileException
 
 # ------------------------------------------------------------
@@ -53,6 +54,31 @@ def _extrapolateScale(sample_points, desired_size) -> int:
 # ------------------------------------------------------------
 #                           Helper
 # ------------------------------------------------------------
+
+def _isDownscalingNeeded(params) -> bool:
+    width, height = getImageRes(params["src"])
+
+    if min(width, height) < 1:
+        return True
+
+    match params["mode"]:
+        case "Resolution":
+            if params['width'] != float("inf") and params['height'] != float("inf"):
+                return params["width"] < width or params["height"] < height
+            elif params['width'] != float("inf"):
+                return params["width"] < width
+            elif params['height'] != float("inf"):
+                return params["height"] < height
+            else:
+                return True
+        case "Shortest Side":
+            return params["shortest_side"] < min(width, height)
+        case "Longest Side":
+            return params["longest_side"] < max(width, height)
+        case "Megapixels":
+            return int(params["megapixels"] * 1_000_000) < width * height
+        case _:
+            return True
 
 def _downscaleToPercent(src, dst, amount=90, resample="Default", delete_if_canceled=[]):
     amount = clip(amount, 1, 100)
@@ -312,11 +338,27 @@ def _downscaleManualModes(params, mutex):
         )
         _checkForSuccess("D9", params["dst"])
     else:
-        with QMutexLocker(mutex):
-            downscaled_path = getUniqueTmpFilePath(params["dst_dir"], "png")
+        if (
+            not params["jxl_int_e"] and
+            Path(params["src"]).suffix[1:].lower() in ("png", *JPEG_ALIASES) and
+            not _isDownscalingNeeded(params)
+        ):
+            runBinary(
+                params["enc"],
+                params["args"],
+                params["src"],
+                params["dst"],
+                args_after_input=(params["enc"] == IMAGE_MAGICK_PATH),
+                delete_if_canceled=[params["dst"]],
+            )
+            _checkForSuccess("D12", params["dst"])
+            return
 
         # Downscale
         # Proxy was handled before in Worker.py
+        with QMutexLocker(mutex):
+            downscaled_path = getUniqueTmpFilePath(params["dst_dir"], "png")
+
         runBinary(
             IMAGE_MAGICK_PATH,
             args,
