@@ -155,7 +155,11 @@ def getDecoderArgs(decoder_path: str, threads: int) -> list[str]:
         return []
 
 def getImageRes(image_path: str) -> tuple[int, int]:
-    """Returns resolution of an image or (-1, -1) if one cannot be determined."""
+    """
+    Returns resolution of an image or (-1, -1) if one cannot be determined.
+
+    Note: width and height might be returned flipped because Exif orientation is not followed. Adding -auto-orient works, but is too slow and too memory intensive.
+    """
     out, err = runBinary(
         IMAGE_MAGICK_PATH,
         ["identify", "-ping", "-format", "%[page]"],

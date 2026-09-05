@@ -56,21 +56,15 @@ def _extrapolateScale(sample_points, desired_size) -> int:
 # ------------------------------------------------------------
 
 def _isDownscalingNeeded(params) -> bool:
-    width, height = getImageRes(params["src"])
+    if params["mode"] in ("Resolution", "Percent"):
+        return True
+
+    width, height = getImageRes(params["src"])  # width and height might be flipped because the tool does not follow Exif orientation.
 
     if min(width, height) < 1:
         return True
 
     match params["mode"]:
-        case "Resolution":
-            if params['width'] != float("inf") and params['height'] != float("inf"):
-                return params["width"] < width or params["height"] < height
-            elif params['width'] != float("inf"):
-                return params["width"] < width
-            elif params['height'] != float("inf"):
-                return params["height"] < height
-            else:
-                return True
         case "Shortest Side":
             return params["shortest_side"] < min(width, height)
         case "Longest Side":

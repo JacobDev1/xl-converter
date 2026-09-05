@@ -35,15 +35,17 @@ def test__extrapolateScale():
 # ------------------------------------------------------------
 
 @pytest.mark.parametrize("overrides, expected", [
-    pytest.param({"mode": "Resolution", "width": 1920, "height": 1080}, True, id="resolution-both-over-threshold"),
-    pytest.param({"mode": "Resolution", "width": 1920, "height": 4000}, True, id="resolution-height-over-threshold"),
-    pytest.param({"mode": "Resolution", "width": 4000, "height": 1080}, True, id="resolution-width-over-threshold"),
-    pytest.param({"mode": "Resolution", "width": 4000, "height": 4000}, False, id="resolution-under-threshold"),
-    pytest.param({"mode": "Resolution", "width": 1000, "height": float("inf")}, True, id="resolution-width-above-threshold"),
-    pytest.param({"mode": "Resolution", "width": 3000, "height": float("inf")}, False, id="resolution-width-below-threshold"),
-    pytest.param({"mode": "Resolution", "width": float("inf"), "height": 2000}, True, id="resolution-height-above-threshold"),
-    pytest.param({"mode": "Resolution", "width": float("inf"), "height": 4000}, False, id="resolution-height-below-threshold"),
-    pytest.param({"mode": "Resolution", "width": float("inf"), "height": float("inf")}, True, id="resolution-inf"),
+    pytest.param({"mode": "Resolution", "width": 1920, "height": 1080}, True, id="resolution-always-scale"),
+    pytest.param({"mode": "Percent", "percent": 99 }, True, id="percent-always-scale"),
+    # pytest.param({"mode": "Resolution", "width": 1920, "height": 1080}, True, id="resolution-both-over-threshold"),
+    # pytest.param({"mode": "Resolution", "width": 1920, "height": 4000}, True, id="resolution-height-over-threshold"),
+    # pytest.param({"mode": "Resolution", "width": 4000, "height": 1080}, True, id="resolution-width-over-threshold"),
+    # pytest.param({"mode": "Resolution", "width": 4000, "height": 4000}, False, id="resolution-under-threshold"),
+    # pytest.param({"mode": "Resolution", "width": 1000, "height": float("inf")}, True, id="resolution-width-above-threshold"),
+    # pytest.param({"mode": "Resolution", "width": 3000, "height": float("inf")}, False, id="resolution-width-below-threshold"),
+    # pytest.param({"mode": "Resolution", "width": float("inf"), "height": 2000}, True, id="resolution-height-above-threshold"),
+    # pytest.param({"mode": "Resolution", "width": float("inf"), "height": 4000}, False, id="resolution-height-below-threshold"),
+    # pytest.param({"mode": "Resolution", "width": float("inf"), "height": float("inf")}, True, id="resolution-inf"),
     pytest.param({"mode": "Shortest Side", "shortest_side": 3000}, False, id="shortest-side-below-threshold"),
     pytest.param({"mode": "Shortest Side", "shortest_side": 1000}, True, id="shortest-side-above-threshold"),
     pytest.param({"mode": "Longest Side", "longest_side": 4000}, False, id="longest-side-below-threshold"),
@@ -493,9 +495,8 @@ def test__downscaleToFileSize_do_not_downscale_uncommon_formats(params_fixture):
 
 def test__downscaleManualModes_fast_path(params_fixture):
     params_fixture.update({
-        "mode": "Resolution",
-        "width": 3000,
-        "height": 3000,
+        "mode": "Megapixels",
+        "megapixels": 7.0,
         "enc": "cumstom/env/path",
         "args": ["-arg1", "-arg2"],
         "src": "path/to/src.png",
