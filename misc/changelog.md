@@ -1,4 +1,4 @@
-## TBA
+## 1.3.0 - 2026-09-06
 
 ### Added
 
@@ -16,8 +16,8 @@
 ### Changed
 
 - Improve conversion start and cancel times.
-- Speed up downscaling (#141).
-- Limit AVIF tune scope to color only, leave alpha default.
+- Speed up processing for JPEG and PNG sources below downscaling threshold (#141).
+- Limit AVIF tune scope to color only, leave alpha at default.
 - Update `libjxl` to `v0.12.0` (#152).
 - Update AOM AV1 to `v3.14.1` (#153).
 - Update Oxipng, ExifTool, and ImageMagick.

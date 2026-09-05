@@ -216,10 +216,6 @@ Build:
 python build.py
 ```
 
-### macOS
-
-The macOS support is experimental.
-
 ## Testing
 
 [Setup repo](#building-from-source).

@@ -84,6 +84,12 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="1.3.0" date="2026-09-06">
+            <url type="details">https://github.com/JacobDev1/xl-converter/blob/v1.3.0/misc/changelog.md</url>
+            <description>
+                <p>Updates libjxl and AOM AV1. Adds a PNG optimization mode, and a process priority setting.</p>
+            </description>
+        </release>
         <release version="1.2.3" date="2025-10-02">
             <url type="details">https://github.com/JacobDev1/xl-converter/blob/v1.2.3/misc/changelog.md</url>
             <description>
